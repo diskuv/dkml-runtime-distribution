@@ -38,7 +38,8 @@ cd "$TOPDIR"
 uninstall_opam_root() {
     uninstall_opam_root_OLDOPAMROOT="$1"
     opam switch list --root "$uninstall_opam_root_OLDOPAMROOT" --short > "$WORK"/list
-    for sw in $(cat "$WORK"/list); do
+    while IFS= read -r sw
+    do
         trimmed_switch=$(printf "%s" "$sw" | awk 'NF>0{print $1}')
         if [ -z "$trimmed_switch" ] || [ "$trimmed_switch" = "/" ]; then
             echo "Unsafe switch deletion: $trimmed_switch" >&2
@@ -62,7 +63,7 @@ uninstall_opam_root() {
             ;;
         esac
         opam switch remove --root "$uninstall_opam_root_OLDOPAMROOT" --yes "$trimmed_switch"
-    done
+    done < "$WORK"/list
     rm -rf "$uninstall_opam_root_OLDOPAMROOT"
 }
 
