@@ -588,9 +588,9 @@ if is_unixy_windows_build_machine; then
         # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
         if [ -x /usr/bin/cygpath ]; then
             # shellcheck disable=SC2154
-            OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\opam-repositories\\$dkml_root_version")
+            OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
         else
-            OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/opam-repositories/$dkml_root_version"
+            OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
         fi
         OPAMREPO_WINDOWS_OCAMLOPAM="$OPAMREPOS_MIXED/fdopen-mingw/$OCAMLVERSION"
         {
@@ -991,7 +991,7 @@ if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_C
             # Input (older versions): opam pin add --yes --no-action -k version 0install 2.17
             # Output:   "0install.2.17"
             # Caution: `tr` on MSYS2 only operates on standard input and output; no named file argument.
-            tr -d '"' < "$DKMLPARENTHOME_BUILDHOST/opam-repositories/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt" | \
+            tr -d '"' < "$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt" | \
             awk -v dquot='"' 'NF>=2 { l2=NF-1; l1=NF; print "  " dquot $l2 "." $l1 dquot}'
         fi
     } | sort > "$WORK"/new-pinned
@@ -1003,7 +1003,7 @@ if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_C
         diff "$WORK"/new-pinned "$WORK"/new-pinned.uniq >&2 || true
         printf "%s\n" "(Debugging) PINNED_PACKAGES_DKML_PATCHES=$PINNED_PACKAGES_DKML_PATCHES" >&2
         printf "%s\n" "(Debugging) PINNED_PACKAGES_OPAM=$PINNED_PACKAGES_OPAM" >&2
-        printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/opam-repositories/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
+        printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
         exit 1
     fi
 

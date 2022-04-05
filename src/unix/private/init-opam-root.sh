@@ -145,10 +145,10 @@ autodetect_dkmlvars || true
 # -----------------------
 # BEGIN install opam repositories
 
-# Make versioned opam-repositories
+# Make versioned repos
 #
-# Q: Why is opam-repositories here rather than in DiskuvOCamlHome?
-# The opam-repositories are required for Unix, not just Windows.
+# Q: Why is repos here rather than in DiskuvOCamlHome?
+# The repos are required for Unix, not just Windows.
 #
 # Q: Why aren't we using an HTTP(S) site?
 # Yep, we could have done `opam admin index`
@@ -160,10 +160,10 @@ autodetect_dkmlvars || true
 
 if [ -x /usr/bin/cygpath ]; then
     # shellcheck disable=SC2154
-    OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\opam-repositories\\$dkml_root_version")
-    OPAMREPOS_UNIX=$(/usr/bin/cygpath -au "$DKMLPARENTHOME_BUILDHOST\\opam-repositories\\$dkml_root_version")
+    OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
+    OPAMREPOS_UNIX=$(/usr/bin/cygpath -au "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
 else
-    OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/opam-repositories/$dkml_root_version"
+    OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
     OPAMREPOS_UNIX="$OPAMREPOS_MIXED"
 fi
 if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
@@ -185,13 +185,13 @@ if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
         fi
     fi
     if has_rsync; then
-        log_trace spawn_rsync -ap "$DKMLDIR"/vendor/dkml-runtime-distribution/opam-repositories/ "$OPAMREPOS_UNIX"
+        log_trace spawn_rsync -ap "$DKMLDIR"/vendor/dkml-runtime-distribution/repos/ "$OPAMREPOS_UNIX"
         if [ "$DISKUVOPAMREPO" = LOCAL ]; then
             log_trace spawn_rsync -ap "$DKMLDIR"/vendor/diskuv-opam-repository/ "$OPAMREPOS_UNIX/diskuv-opam-repository"
         fi
     else
         log_trace install -d "$OPAMREPOS_UNIX"
-        log_trace sh -x -c "cp -r '$DKMLDIR/vendor/dkml-runtime-distribution/opam-repositories'/* '$OPAMREPOS_UNIX/'"
+        log_trace sh -x -c "cp -r '$DKMLDIR/vendor/dkml-runtime-distribution/repos'/* '$OPAMREPOS_UNIX/'"
         if [ "$DISKUVOPAMREPO" = LOCAL ]; then
             log_trace install -d "$OPAMREPOS_UNIX"/diskuv-opam-repository
             log_trace sh -x -c "cp -r '$DKMLDIR/vendor/diskuv-opam-repository'/* '$OPAMREPOS_UNIX/diskuv-opam-repository/'"
@@ -235,7 +235,7 @@ fi
 # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
 #             the home directory inside the Docker container is not persistent anyways.
 # --bare: so we can configure its settings before adding the OCaml system compiler.
-REPONAME_PENDINGREMOVAL=pendingremoval-opam-repo
+REPONAME_PENDINGREMOVAL=to-delete
 if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
     if is_unixy_windows_build_machine; then
         # We'll use `pendingremoval` as a signal that we can remove it later if it is the 'default' repository.
@@ -307,7 +307,7 @@ if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/
         exit 107
     fi
     if grep -q "/$REPONAME_PENDINGREMOVAL"$ "$WORK"/default; then
-        # ok. is like file://C:/source/xxx/vendor/dkml-runtime-distribution/opam-repositories/pendingremoval-opam-repo
+        # ok. is like file://C:/source/xxx/vendor/dkml-runtime-distribution/repos/to-delete
         run_opamsys repository remove default --yes --all --dont-select
     fi
 fi
