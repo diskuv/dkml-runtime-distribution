@@ -11,7 +11,7 @@
 #       At least one is selected as a cornerstone. Ex. `ocaml-variants.4.12.1+options+dkml+msvc64`
 #       All other packages must be constrained to versions that are present in UNION(DKML repo,DKSDK repo). Ex. `(mirage-crypto.0.10.3 | mirage-crypto.0.10.4)`
 #
-#   Foundation packages (either ci-flavor-packages -or- full-flavor-minus-ci-flavor-packages -or- some other flavor) {nit: rename flavor to foundation}
+#   Foundation packages (either ci-packages -or- full-no-ci-pkgs -or- some other flavor) {nit: rename flavor to foundation}
 #       All packages are presence constraints. Ex. `dune`
 #
 #   No-go packages (known not to compile on Win32 like Async, or known bad license)

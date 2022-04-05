@@ -152,13 +152,13 @@ log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/create-opam-switc
     fi
     case "$FLAVOR" in
         CI)
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/ci-flavor-packages.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/ci-pkgs.txt | tr -d '\r'
             ;;
         Full)
             get_ocamlver
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/ci-flavor-packages.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/full-flavor-versionagnostic-minus-ci-flavor-packages.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/full-flavor-"$OCAMLVERSION"-minus-ci-flavor-packages.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/full-anyver-no-ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/full-"$OCAMLVERSION"-no-ci-pkgs.txt | tr -d '\r'
             ;;
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac

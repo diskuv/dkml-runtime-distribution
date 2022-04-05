@@ -11,8 +11,8 @@ set -euf
 # Summary: DKML provides patches for these
 #
 # Sections:
-# 1. Subset of packages from ci-flavor-packages.txt, in `.txt` order
-# 2. Subset of packages from full-flavor-minus-ci-flavor-packages.txt, in `.txt` order
+# 1. Subset of packages from ci-pkgs.txt, in `.txt` order
+# 2. Subset of packages from full-no-ci-pkgs.txt, in `.txt` order
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
 PINNED_PACKAGES_DKML_PATCHES="
     ocamlfind,1.9.1
@@ -54,8 +54,8 @@ PINNED_PACKAGES_DKML_PATCHES="
 # * (a) alcotest.1.4.0 works with Win32 MSVC; 1.5.0 does not
 #
 # Sections:
-# 1. Subset of packages from ci-flavor-packages.txt, in `.txt` order
-# 2. Subset of packages from full-flavor-minus-ci-flavor-packages.txt, in `.txt` order
+# 1. Subset of packages from ci-pkgs.txt, in `.txt` order
+# 2. Subset of packages from full-no-ci-pkgs.txt, in `.txt` order
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
 PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     bos,0.2.1
