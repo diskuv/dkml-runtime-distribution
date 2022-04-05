@@ -41,7 +41,7 @@ cd "$DKMLDIR"
 # >>>>>>>>>
 
 # Install the source code
-log_trace "$DKMLDIR"/vendor/dkml-compiler/src/reproducible-compile-ocaml-1-setup.sh \
+log_trace "$DKMLDIR"/vendor/dkml-compiler/src/r-c-ocaml-1-setup.sh \
     -d "$DKMLDIR" \
     -t "$INSTALLDIR" \
     -v "$GIT_TAG_OR_COMMIT" \
@@ -52,4 +52,4 @@ log_trace "$DKMLDIR"/vendor/dkml-compiler/src/reproducible-compile-ocaml-1-setup
 cd "$INSTALLDIR"
 
 # Build and install OCaml (but no cross-compilers)
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/100co/vendor/dkml-compiler/src/reproducible-compile-ocaml-2-build_host-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/100co/vendor/dkml-compiler/src/r-c-ocaml-2-build_host-noargs.sh
