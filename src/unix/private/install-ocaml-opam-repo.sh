@@ -57,7 +57,7 @@ if [ -z "$OCAML_VERSION" ]; then
 fi
 
 # Install the source code
-log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-1-setup.sh \
+log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-1-setup.sh \
     -d "$DKMLDIR" \
     -t "$INSTALLDIR" \
     -v "$DOCKER_IMAGE" \
@@ -69,6 +69,6 @@ log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/reproduci
 cd "$INSTALLDIR"
 
 # Fetch and install
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-2-build-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-2-build-noargs.sh
 # Trim
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-9-trim-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-9-trim-noargs.sh

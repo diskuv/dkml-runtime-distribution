@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-fetch-ocaml-opam-repo-1-setup.sh -d DKMLDIR -t TARGETDIR -g DOCKER_IMAGE [-a HOST] [-b GIT_EXE]
+# r-f-oorepo-1-setup.sh -d DKMLDIR -t TARGETDIR -g DOCKER_IMAGE [-a HOST] [-b GIT_EXE]
 #
 # Sets up the source code for a reproducible build
 
@@ -36,7 +36,7 @@ TRIM_ARGS=()
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    reproducible-fetch-ocaml-opam-repo-1-setup.sh" >&2
+    printf "%s\n" "    r-f-oorepo-1-setup.sh" >&2
     printf "%s\n" "        -h                                              Display this help message." >&2
     printf "%s\n" "        -d DIR -t DIR -v IMAGE -a ARCH -b OCAMLVERSION  Setup fetching of ocaml/opam repository." >&2
     printf "%s\n" "Options" >&2
@@ -148,11 +148,11 @@ fi
 # shellcheck disable=SC2016
 COMMON_ARGS=(-d "$SHARE_REPRODUCIBLE_BUILD_RELPATH/$BOOTSTRAPNAME")
 install_reproducible_common
-install_reproducible_readme           vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-README.md
-install_reproducible_system_packages  vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-0-system.sh
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"
+install_reproducible_readme           vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-README.md
+install_reproducible_system_packages  vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-0-system.sh
+install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
+install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
+install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"
 install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/ml/ocaml_opam_repo_trim.ml
 install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/download-moby-downloader.sh
 install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/moby-download-docker-image.sh

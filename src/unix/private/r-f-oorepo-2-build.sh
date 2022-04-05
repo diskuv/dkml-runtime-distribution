@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-fetch-ocaml-opam-repo-2-build.sh -d DKMLDIR -t TARGETDIR
+# r-f-oorepo-2-build.sh -d DKMLDIR -t TARGETDIR
 #
 # Download the Opam repository
 
@@ -32,7 +32,7 @@ set -euf
 
 usage() {
     echo "Usage:" >&2
-    echo "    reproducible-fetch-ocaml-opam-repo-2-build.sh" >&2
+    echo "    r-f-oorepo-2-build.sh" >&2
     echo "        -h                              Display this help message." >&2
     echo "        -d DIR -t DIR -v IMAGE -a ARCH  Do compilation of Opam." >&2
     echo "Options" >&2

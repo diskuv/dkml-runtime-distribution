@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-fetch-ocaml-opam-repo-9-trim.sh -d DKMLDIR -t TARGETDIR
+# r-f-oorepo-9-trim.sh -d DKMLDIR -t TARGETDIR
 #
 # Remove unneeded package versions
 
@@ -32,7 +32,7 @@ set -euf
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    reproducible-fetch-ocaml-opam-repo-9-trim.sh" >&2
+    printf "%s\n" "    r-f-oorepo-9-trim.sh" >&2
     printf "%s\n" "        -h                                      Display this help message." >&2
     printf "%s\n" "        -d DIR -t DIR -a ARCH -b OCAMLVERSION   Create target repository without unneeded package versions." >&2
     printf "%s\n" "Options" >&2

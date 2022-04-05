@@ -8,12 +8,12 @@
    1. Change the current directory to be vendor/diskuv-ocaml (the directory containing .dkmlroot)
    2. Run the following (replace DV_WindowsMsvcDockerImage with what is in DeploymentVersion.psm1):
 
-     DV_WindowsMsvcDockerImage="ocaml/opam:windows-msvc-20H2-ocaml-4.12@sha256:810ce2fca08c22ea1bf4066cb75ffcba2f98142d6ce09162905d9ddc09967da8" ; DOCKERARCH=amd64; OCAMLVERSION=4.12.1 ; DEPLOYDIR=$(cygpath -am $TMP/oorepo) ; CI_PROJECT_DIR=$(cygpath -am .) ; env TOPDIR=$CI_PROJECT_DIR/vendor/dkml-runtime-common/all/emptytop $CI_PROJECT_DIR/vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-1-setup.sh -d $CI_PROJECT_DIR -t $DEPLOYDIR -v $DV_WindowsMsvcDockerImage -a $DOCKERARCH -b $OCAMLVERSION
+     DV_WindowsMsvcDockerImage="ocaml/opam:windows-msvc-20H2-ocaml-4.12@sha256:810ce2fca08c22ea1bf4066cb75ffcba2f98142d6ce09162905d9ddc09967da8" ; DOCKERARCH=amd64; OCAMLVERSION=4.12.1 ; DEPLOYDIR=$(cygpath -am $TMP/oorepo) ; CI_PROJECT_DIR=$(cygpath -am .) ; env TOPDIR=$CI_PROJECT_DIR/vendor/dkml-runtime-common/all/emptytop $CI_PROJECT_DIR/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-1-setup.sh -d $CI_PROJECT_DIR -t $DEPLOYDIR -v $DV_WindowsMsvcDockerImage -a $DOCKERARCH -b $OCAMLVERSION
 
    3. Run:
 
-     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-2-build-noargs.sh)
-     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/reproducible-fetch-ocaml-opam-repo-9-trim-noargs.sh)
+     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-2-build-noargs.sh)
+     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-9-trim-noargs.sh)
      OCAMLRUNPARAM=b ocaml $DEPLOYDIR/share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/ml/ocaml_opam_repo_trim.ml -t $DEPLOYDIR -a $DOCKERARCH -b $OCAMLVERSION -n
 *)
 
@@ -75,7 +75,7 @@ let packages_fdopen_to_remove =
     (* The first section is where we don't care what pkg version is used, but we know we don't want fdopen's version:
        * depext is unnecessary as of Opam 2.1
        * ocaml-compiler-libs,v0.12.4 and jst-config,v0.14.1 and dune-build-info,2.9.3 are part of the good set, but not part of the fdopen repository snapshot. So we remove it in
-         reproducible-fetch-ocaml-opam-repo-9-trim.sh so the default Opam repository is used.
+         r-f-oorepo-9-trim.sh so the default Opam repository is used.
     *)
     "depext";
     "dune-build-info";
