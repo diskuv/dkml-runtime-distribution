@@ -1,6 +1,6 @@
 #!/bin/bash
 # -------------------------------------------------------
-# create-diskuv-boot-DO-NOT-DELETE-switch.sh
+# create-boot-switch.sh
 #
 # Purpose: Make a global switch that ...
 #
@@ -27,8 +27,8 @@ set -euf
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    create-diskuv-boot-DO-NOT-DELETE-switch.sh -h   Display this help message." >&2
-    printf "%s\n" "    create-diskuv-boot-DO-NOT-DELETE-switch.sh      Create the Opam switch." >&2
+    printf "%s\n" "    create-boot-switch.sh -h   Display this help message." >&2
+    printf "%s\n" "    create-boot-switch.sh      Create the Opam switch." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam or bin/opam.exe" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'); must be present if -s option since part of the switch name" >&2
