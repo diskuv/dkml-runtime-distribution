@@ -41,7 +41,7 @@ cd "$DKMLDIR"
 autodetect_buildhost_arch
 
 # Install the source code
-log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-1-setup.sh \
+log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-1-setup.sh \
     -d "$DKMLDIR" \
     -t "$INSTALLDIR" \
     -a "$BUILDHOST_ARCH" \
@@ -53,7 +53,7 @@ log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/reproduci
 cd "$INSTALLDIR"
 
 # Build and install Opam
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-2-build-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-2-build-noargs.sh
 
 # Remove intermediate files including build files and .git folders
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-9-trim-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-9-trim-noargs.sh

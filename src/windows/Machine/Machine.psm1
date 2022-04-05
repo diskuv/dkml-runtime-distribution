@@ -18,7 +18,7 @@ $Windows10SdkFullVer = "10.0.$Windows10SdkVer.0"
 # Why MSBuild / Visual Studio 2015+? Because [vcpkg](https://vcpkg.io/en/getting-started.html) needs
 #   Visual Studio 2015 Update 3 or newer as of July 2021.
 # 14.0.25431.01 == Visual Studio 2015 Update 3 (newest patch; older is 14.0.25420.10)
-$VsVerMin = "14.0.25420.10"       # KEEP IN SYNC with WindowsAdministrator.rst and reproducible-compile-opam-(1-setup|2-build).sh's OPT_MSVS_PREFERENCE
+$VsVerMin = "14.0.25420.10"       # KEEP IN SYNC with WindowsAdministrator.rst and r-c-opam-(1-setup|2-build).sh's OPT_MSVS_PREFERENCE
 $VsDescribeVerMin = "Visual Studio 2015 Update 3 or later"
 
 $VsSetupVer = "2.2.14-87a8a69eef"

@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-compile-opam-1-setup.sh -d DKMLDIR -t TARGETDIR -g GIT_COMMITID_OR_TAG [-a DKMLPLATFORM]
+# r-c-opam-1-setup.sh -d DKMLDIR -t TARGETDIR -g GIT_COMMITID_OR_TAG [-a DKMLPLATFORM]
 #
 # Sets up the source code for a reproducible build of Opam
 
@@ -43,7 +43,7 @@ OPT_MSVS_PREFERENCE='VS16.*;VS15.*;VS14.0' # KEEP IN SYNC with 2-build.sh
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    reproducible-compile-opam-1-setup.sh" >&2
+    printf "%s\n" "    r-c-opam-1-setup.sh" >&2
     printf "%s\n" "        -h                                       Display this help message." >&2
     printf "%s\n" "        -d DIR -t DIR -v COMMIT -a DKMLPLATFORM  Setup compilation of Opam." >&2
     printf "%s\n" "Options" >&2
@@ -217,8 +217,8 @@ fi
 # shellcheck disable=SC2016
 COMMON_ARGS=(-d "$SHARE_REPRODUCIBLE_BUILD_RELPATH/$BOOTSTRAPNAME")
 install_reproducible_common
-install_reproducible_readme           vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-README.md
-install_reproducible_system_packages  vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-0-system.sh
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"
+install_reproducible_readme           vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-README.md
+install_reproducible_system_packages  vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-0-system.sh
+install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
+install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
+install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"

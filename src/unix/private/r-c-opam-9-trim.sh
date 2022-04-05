@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-compile-opam-9-trim.sh -d DKMLDIR -t TARGETDIR
+# r-c-opam-9-trim.sh -d DKMLDIR -t TARGETDIR
 #
 # Remove intermediate files from reproducible target directory
 
@@ -32,7 +32,7 @@ set -euf
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    reproducible-compile-opam-9-trim.sh" >&2
+    printf "%s\n" "    r-c-opam-9-trim.sh" >&2
     printf "%s\n" "        -h                     Display this help message." >&2
     printf "%s\n" "        -d DIR -t DIR          Do trimming of Opam install." >&2
     printf "%s\n" "Options" >&2

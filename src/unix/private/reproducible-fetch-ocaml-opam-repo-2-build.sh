@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-compile-opam-2-build.sh -d DKMLDIR -t TARGETDIR
+# reproducible-fetch-ocaml-opam-repo-2-build.sh -d DKMLDIR -t TARGETDIR
 #
 # Download the Opam repository
 

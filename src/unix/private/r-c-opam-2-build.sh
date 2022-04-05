@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# reproducible-compile-opam-2-build.sh -d DKMLDIR -t TARGETDIR
+# r-c-opam-2-build.sh -d DKMLDIR -t TARGETDIR
 #
 # Sets up the source code for a reproducible build
 
@@ -34,7 +34,7 @@ OPT_MSVS_PREFERENCE='VS16.*;VS15.*;VS14.0' # KEEP IN SYNC with 1-setup.sh
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    reproducible-compile-opam-2-build.sh" >&2
+    printf "%s\n" "    r-c-opam-2-build.sh" >&2
     printf "%s\n" "        -h                              Display this help message." >&2
     printf "%s\n" "        -d DIR -t DIR -a DKMLPLATFORM   Do compilation of Opam." >&2
     printf "%s\n" "Options" >&2
@@ -182,7 +182,7 @@ chmod +x "$WORK"/fixup-opam-compiler-env.sh
 # we have successfully completed a single run all the way to `configure`.
 if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
     # Clear out all intermediate build files
-    log_trace vendor/dkml-runtime-distribution/src/unix/private/reproducible-compile-opam-9-trim.sh -d . -t "$TARGETDIR_UNIX" -e "$PRESERVEGIT"
+    log_trace vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-9-trim.sh -d . -t "$TARGETDIR_UNIX" -e "$PRESERVEGIT"
 
     # If no OCaml home, let Opam create its own Ocaml compiler which Opam will use to compile
     # all of its required Ocaml dependencies
