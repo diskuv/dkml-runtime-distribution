@@ -104,7 +104,7 @@ if [ -z "$DKMLPLATFORM" ]; then
 fi
 
 DKMLDIR=$(dirname "$0")
-DKMLDIR=$(cd "$DKMLDIR/../../.." && pwd)
+DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 
 # shellcheck disable=SC1091
 . "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh

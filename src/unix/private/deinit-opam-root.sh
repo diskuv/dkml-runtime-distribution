@@ -11,7 +11,7 @@
 set -euf
 
 DKMLDIR=$(dirname "$0")
-DKMLDIR=$(cd "$DKMLDIR/../../.." && pwd)
+DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 
 # Need feature flag and usermode and statedir until all legacy code is removed in _common_tool.sh
 # shellcheck disable=SC2034

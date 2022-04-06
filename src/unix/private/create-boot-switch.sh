@@ -69,7 +69,7 @@ fi
 
 if [ -z "${DKMLDIR:-}" ]; then
     DKMLDIR=$(dirname "$0")
-    DKMLDIR=$(cd "$DKMLDIR/../../.." && pwd)
+    DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 fi
 if [ ! -e "$DKMLDIR/.dkmlroot" ]; then echo "FATAL: Not embedded within or launched from a 'diskuv-ocaml' Local Project" >&2 ; exit 1; fi
 
