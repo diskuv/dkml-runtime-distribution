@@ -3,7 +3,7 @@
 # 2. PINNED_PACKAGES_DKML_PATCHES *and* [packages_fdopen_to_remove] or  {package defn is in dkml repo}
 # 3. [pkgvers_fdopen_compiler_agnostic]                                 {package defn is in fdopen repo}
 
-# For dkml_templatizer; may be used for creating local projects as well.
+# (REMOVED) For dkml_templatizer; may be used for creating local projects as well.
 jingoo.1.4.4
 
 # ocamlformat needs to be 0.18.* or 0.19.* because of https://github.com/ocaml/ocaml-lsp/blob/650fc5c667561f487e6fc1338a531f059e41b713/ocaml-lsp-server.opam#L31
