@@ -27,7 +27,6 @@ usage() {
     printf "%s\n" "    install-opamplugin-opam-dkml.sh [-d STATEDIR] -p DKMLPLATFORM       Install the Opam plugin opam-dkml" >&2
     printf "%s\n" "      Without '-d' the Opam root will be the Opam 2.2 default" >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p PLATFORM: (Deprecated) The target platform or 'dev'" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev')" >&2
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam or bin/opam.exe." >&2
@@ -39,11 +38,7 @@ usage() {
 
 PLATFORM=
 STATEDIR=
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    USERMODE=OFF
-else
-    USERMODE=ON
-fi
+USERMODE=ON
 OPAMHOME=
 OCAMLVERSION_OR_HOME=
 while getopts ":hp:d:o:v:" opt; do
@@ -54,7 +49,7 @@ while getopts ":hp:d:o:v:" opt; do
         ;;
         p )
             PLATFORM=$OPTARG
-            if [ ! "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ] && [ "$PLATFORM" = dev ]; then
+            if [ "$PLATFORM" = dev ]; then
                 usage
                 exit 0
             fi
@@ -116,17 +111,30 @@ autodetect_posix_shell
 # -----------------------
 # BEGIN opam install opam-dkml
 
-OPAMFILE_BUILDHOST="$DKMLDIR"/vendor/dkml-runtime-distribution/opam-files/opam-dkml.opam
+# Create a temp directory containing opam-dkml.opam and the opam-dkml source
+# code. opam-dkml requires dkml_apps_common which comes from dkml-apps.opam.
+#
+#  opam-dkml.opam
+#  dkml-apps.opam
+#  vendor/ (need all of it since many files are crunched into apps/common/dune:scripts.ml)
+#     dkml-runtime-distribution/
+#       src/msys2/apps/opam-dkml/opam_dkml.ml
+#       src/msys2/apps/with-dkml/with_dkml.ml
+#  .dkmlroot (needed for apps/common/dune)
+OPAMDKML_SRC_UNIX="$WORK"/src
+install -d "$OPAMDKML_SRC_UNIX"
+install "$DKMLDIR"/.dkmlroot "$OPAMDKML_SRC_UNIX/"
+install "$DKMLDIR"/vendor/dkml-runtime-distribution/opam-files/opam-dkml.opam "$OPAMDKML_SRC_UNIX/"
+install "$DKMLDIR"/vendor/dkml-runtime-distribution/opam-files/dkml-apps.opam "$OPAMDKML_SRC_UNIX/"
+cp -rp "$DKMLDIR"/vendor "$OPAMDKML_SRC_UNIX/"
+
+# opam install
+OPAMFILE_BUILDHOST="$OPAMDKML_SRC_UNIX"/opam-dkml.opam
 if [ -x /usr/bin/cygpath ]; then
     OPAMFILE_BUILDHOST=$(/usr/bin/cygpath -aw "$OPAMFILE_BUILDHOST")
 fi
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s \
-    install "$OPAMFILE_BUILDHOST" --yes
-else
-    "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s -p "$PLATFORM" -d "$STATEDIR" -u "$USERMODE" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" \
+"$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s -p "$PLATFORM" -d "$STATEDIR" -u "$USERMODE" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" \
     install "$OPAMFILE_BUILDHOST" --yes --verbose --debug-level 2
-fi
 
 # END opam install opam-dkml
 # -----------------------

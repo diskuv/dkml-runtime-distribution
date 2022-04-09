@@ -27,7 +27,6 @@ usage() {
     printf "%s\n" "    install-dkmlplugin-withdkml.sh [-d STATEDIR] -p DKMLPLATFORM  Install the DKML plugin with-dkml" >&2
     printf "%s\n" "      Without '-d' the Opam root will be the Opam 2.2 default" >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p PLATFORM: (Deprecated) The target platform or 'dev'" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev')" >&2
     printf "%s\n" "    -d STATEDIR: If specified and -u ON enabled, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
@@ -112,22 +111,38 @@ set_opamrootdir
 # BEGIN install with-dkml (with-dkml)
 
 if [ ! -x "$WITHDKMLEXE_BUILDHOST" ]; then
+    # Create a temp directory containing dkml-apps.opam and the dkml-apps source code.
+    #
+    #  dkml-apps.opam
+    #  vendor/ (need all of it since many files are crunched into apps/common/dune:scripts.ml)
+    #     dkml-runtime-distribution/
+    #       src/msys2/apps/with-dkml/with_dkml.ml
+    #  .dkmlroot (needed for apps/common/dune)
+    WITHDKML_SRC_UNIX="$WORK"/src
+    install -d "$WITHDKML_SRC_UNIX"
+    install "$DKMLDIR"/.dkmlroot "$WITHDKML_SRC_UNIX/"
+    install "$DKMLDIR"/vendor/dkml-runtime-distribution/opam-files/dkml-apps.opam "$WITHDKML_SRC_UNIX/"
+    cp -rp "$DKMLDIR"/vendor "$WITHDKML_SRC_UNIX/"
+
+    # Since dkml-apps code is interspersed with opam-dkml, get rid of opam-dkml
+    rm -rf "$WITHDKML_SRC_UNIX/vendor/dkml-runtime-distribution/src/msys2/apps/opam-dkml"
+
     # Compile with Dune into temp build directory
-    WITHDKML_TMP_UNIX="$WORK"/with-dkml
+    WITHDKML_BUILD_UNIX="$WORK"/build
     if [ -x /usr/bin/cygpath ]; then
-        WITHDKML_TMP_BUILDHOST=$(/usr/bin/cygpath -aw "$WITHDKML_TMP_UNIX")
-        DKMLDIR_BUILDHOST=$(/usr/bin/cygpath -aw "$DKMLDIR")
+        WITHDKML_SRC_BUILDHOST=$(/usr/bin/cygpath -aw "$WITHDKML_SRC_UNIX")
+        WITHDKML_BUILD_BUILDHOST=$(/usr/bin/cygpath -aw "$WITHDKML_BUILD_UNIX")
     else
-        WITHDKML_TMP_BUILDHOST="$WITHDKML_TMP_UNIX"
-        DKMLDIR_BUILDHOST="$DKMLDIR"
+        WITHDKML_SRC_BUILDHOST="$WITHDKML_SRC_UNIX"
+        WITHDKML_BUILD_BUILDHOST="$WITHDKML_BUILD_UNIX"
     fi
-    install -d "$WITHDKML_TMP_UNIX"
+    install -d "$WITHDKML_SRC_UNIX"
     "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s -p "$PLATFORM" -d "$STATEDIR" -u "$USERMODE" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" \
-        -- exec -- dune build --root "$DKMLDIR_BUILDHOST" --build-dir "$WITHDKML_TMP_BUILDHOST" vendor/dkml-runtime-distribution/src/msys2/apps/with-dkml/with_dkml.exe
+        -- exec -- dune build --root "$WITHDKML_SRC_BUILDHOST" --build-dir "$WITHDKML_BUILD_BUILDHOST" vendor/dkml-runtime-distribution/src/msys2/apps/with-dkml/with_dkml.exe
 
     # Place in plugins
     install -d "$WITHDKMLEXEDIR_BUILDHOST"
-    install "$WITHDKML_TMP_UNIX/default/vendor/dkml-runtime-distribution/src/msys2/apps/with-dkml/with_dkml.exe" "$WITHDKMLEXE_BUILDHOST"
+    install "$WITHDKML_BUILD_BUILDHOST/default/vendor/dkml-runtime-distribution/src/msys2/apps/with-dkml/with_dkml.exe" "$WITHDKMLEXE_BUILDHOST"
 fi
 
 # END install with-dkml (with-dkml)

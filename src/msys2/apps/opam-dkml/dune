@@ -12,4 +12,4 @@
   (with-stdout-to
    %{target}
    (progn
-    (echo "let version = {|%{version:dkml-apps}|}\n")))))
+    (echo "let version = {|%{version:opam-dkml}|}\n")))))
