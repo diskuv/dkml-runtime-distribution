@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# r-c-opam-1-setup.sh -d DKMLDIR -t TARGETDIR -g GIT_COMMITID_OR_TAG [-a DKMLPLATFORM]
+# r-c-opam-1-setup.sh -d DKMLDIR -t TARGETDIR -g GIT_COMMITID_TAG_OR_DIR [-a DKMLPLATFORM]
 #
 # Sets up the source code for a reproducible build of Opam
 
@@ -49,9 +49,10 @@ usage() {
     printf "%s\n" "Options" >&2
     printf "%s\n" "   -d DIR: DKML directory containing a .dkmlroot file" >&2
     printf "%s\n" "   -t DIR: Target directory" >&2
-    printf "%s\n" "   -u URL: Git repository url. Defaults to https://github.com/ocaml/opam" >&2
-    printf "%s\n" "   -v COMMIT: Git commit or tag for the git repository. Strongly prefer a commit id for much stronger" >&2
-    printf "%s\n" "      reproducibility guarantees" >&2
+    printf "%s\n" "   -v COMMIT_OR_DIR: Git commit or tag or directory for the OCaml source code. Strongly prefer a" >&2
+    printf "%s\n" "      commit id for much stronger reproducibility guarantees" >&2
+    printf "%s\n" "   -u URL: Git repository url. Defaults to https://github.com/ocaml/opam. Unused if -v COMMIT is a" >&2
+    printf "%s\n" "      directory" >&2
     printf "%s\n" "   -a DKMLPLATFORM: Target platform for bootstrapping an OCaml compiler." >&2
     printf "%s\n" "      Ex. windows_x86, windows_x86_64" >&2
     printf "%s\n" "   -b PREF: The msvs-tools MSVS_PREFERENCE setting, needed only for Windows." >&2
@@ -65,7 +66,7 @@ usage() {
 
 DKMLDIR=
 GIT_URL=https://github.com/ocaml/opam
-GIT_COMMITID_OR_TAG=
+GIT_COMMITID_TAG_OR_DIR=
 TARGETDIR=
 PRESERVEGIT=OFF
 DKMLPLATFORM=
@@ -93,8 +94,8 @@ while getopts ":d:u:v:t:a:b:c:e:h" opt; do
             SETUP_ARGS+=( -u "$GIT_URL" )
         ;;
         v )
-            GIT_COMMITID_OR_TAG="$OPTARG"
-            SETUP_ARGS+=( -v "$GIT_COMMITID_OR_TAG" )
+            GIT_COMMITID_TAG_OR_DIR="$OPTARG"
+            SETUP_ARGS+=( -v "$GIT_COMMITID_TAG_OR_DIR" )
         ;;
         t )
             TARGETDIR="$OPTARG"
@@ -128,7 +129,7 @@ while getopts ":d:u:v:t:a:b:c:e:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLDIR" ] || [ -z "$GIT_COMMITID_OR_TAG" ] || [ -z "$TARGETDIR" ] || [ -z "$DKMLPLATFORM" ]; then
+if [ -z "$DKMLDIR" ] || [ -z "$GIT_COMMITID_TAG_OR_DIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DKMLPLATFORM" ]; then
     printf "%s\n" "Missing required options" >&2
     usage
     exit 1
@@ -163,28 +164,59 @@ else
     OPAMSRC_MIXED="$OPAMSRC_UNIX"
 fi
 
+# ensure git, if directory, is an absolute directory
+if [ -d "$GIT_COMMITID_TAG_OR_DIR" ]; then
+    if [ -x /usr/bin/cygpath ]; then
+        GIT_COMMITID_TAG_OR_DIR=$(/usr/bin/cygpath -am "$GIT_COMMITID_TAG_OR_DIR")
+    else
+        # absolute directory
+        buildhost_pathize "$GIT_COMMITID_TAG_OR_DIR"
+        # shellcheck disable=SC2154
+        GIT_COMMITID_TAG_OR_DIR="$buildhost_pathize_RETVAL"
+    fi
+fi
+
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the DKMLDIR (just like the container
 # sets the directory to be /work)
 cd "$DKMLDIR"
 
-# Get Opam if not present already
-if [ ! -e "$OPAMSRC_UNIX/Makefile" ] || [ ! -e "$OPAMSRC_UNIX/.git" ]; then
-    log_trace rm -rf "$OPAMSRC_UNIX" # clean any partial downloads
-    log_trace install -d "$OPAMSRC_UNIX"
-    #   Instead of git clone we use git fetch --depth 1 so we do a shallow clone of the commit
-    log_trace git -C "$OPAMSRC_MIXED" -c init.defaultBranch=master init
-    log_trace git -C "$OPAMSRC_MIXED" remote add origin "$GIT_URL"
-    log_trace git -C "$OPAMSRC_MIXED" fetch --depth 1 origin "$GIT_COMMITID_OR_TAG"
-    log_trace git -C "$OPAMSRC_MIXED" reset --hard FETCH_HEAD
+# Get the unpatched ocaml/opam source code ...
+
+if [ -d "$GIT_COMMITID_TAG_OR_DIR" ]; then
+    # If there is a directory of the source code, use that
+    if [ ! -e "$OPAMSRC_UNIX/Makefile" ]; then
+        log_trace install -d "$OPAMSRC_UNIX"
+        log_trace rm -rf "$OPAMSRC_UNIX" # clean any partial downloads
+        log_trace cp -rp "$GIT_COMMITID_TAG_OR_DIR" "$OPAMSRC_UNIX"
+    fi
+
+    # Make it git patchable if it is not a git repository already
+    if [ ! -e "$OPAMSRC_UNIX/.git" ]; then
+        log_trace git -C "$OPAMSRC_MIXED" init
+        log_trace git -C "$OPAMSRC_MIXED" config user.email "nobody+autocommitter@diskuv.ocaml.org"
+        log_trace git -C "$OPAMSRC_MIXED" config user.name  "Auto Committer"
+        log_trace git -C "$OPAMSRC_MIXED" add -A
+        log_trace git -C "$OPAMSRC_MIXED" commit -m "Commit from source tree"
+    fi
 else
-    # Git fetch can be very expensive after a shallow clone; we skip advancing the repository
-    # if the expected tag/commit is a commit and the actual git commit is the expected git commit
-    git_head=$(log_trace git -C "$OPAMSRC_MIXED" rev-parse HEAD)
-    if [ ! "$git_head" = "$GIT_COMMITID_OR_TAG" ]; then
-        if git -C "$OPAMSRC_MIXED" tag -l "$GIT_COMMITID_OR_TAG" | awk 'BEGIN{nonempty=0} NF>0{nonempty+=1} END{exit nonempty==0}'; then git -C "$OPAMSRC_MIXED" tag -d "$GIT_COMMITID_OR_TAG"; fi # allow tag to move (for development and for emergency fixes)
-        log_trace git -C "$OPAMSRC_MIXED" fetch --tags
-        log_trace git -C "$OPAMSRC_MIXED" -c advice.detachedHead=false checkout "$GIT_COMMITID_OR_TAG"
+    if [ ! -e "$OPAMSRC_UNIX/Makefile" ] || [ ! -e "$OPAMSRC_UNIX/.git" ]; then
+        log_trace rm -rf "$OPAMSRC_UNIX" # clean any partial downloads
+        log_trace install -d "$OPAMSRC_UNIX"
+        #   Instead of git clone we use git fetch --depth 1 so we do a shallow clone of the commit
+        log_trace git -C "$OPAMSRC_MIXED" -c init.defaultBranch=master init
+        log_trace git -C "$OPAMSRC_MIXED" remote add origin "$GIT_URL"
+        log_trace git -C "$OPAMSRC_MIXED" fetch --depth 1 origin "$GIT_COMMITID_TAG_OR_DIR"
+        log_trace git -C "$OPAMSRC_MIXED" reset --hard FETCH_HEAD
+    else
+        # Git fetch can be very expensive after a shallow clone; we skip advancing the repository
+        # if the expected tag/commit is a commit and the actual git commit is the expected git commit
+        git_head=$(log_trace git -C "$OPAMSRC_MIXED" rev-parse HEAD)
+        if [ ! "$git_head" = "$GIT_COMMITID_TAG_OR_DIR" ]; then
+            if git -C "$OPAMSRC_MIXED" tag -l "$GIT_COMMITID_TAG_OR_DIR" | awk 'BEGIN{nonempty=0} NF>0{nonempty+=1} END{exit nonempty==0}'; then git -C "$OPAMSRC_MIXED" tag -d "$GIT_COMMITID_TAG_OR_DIR"; fi # allow tag to move (for development and for emergency fixes)
+            log_trace git -C "$OPAMSRC_MIXED" fetch --tags
+            log_trace git -C "$OPAMSRC_MIXED" -c advice.detachedHead=false checkout "$GIT_COMMITID_TAG_OR_DIR"
+        fi
     fi
 fi
 
