@@ -205,8 +205,9 @@ if [ ! -e "$OPAMSRC_UNIX"/shell/msvs-detect ] || [ ! -e "$OPAMSRC_UNIX"/shell/ms
     touch "$OPAMSRC_UNIX"/shell/msvs-detect.complete
 fi
 
-# Copy self into share/dkml-bootstrap/110-compile-opam
-export BOOTSTRAPNAME=110-compile-opam
+# Copy self into share/dkml-bootstrap/110co (short form of 110-compile-opam
+# so Windows and macOS paths are short)
+export BOOTSTRAPNAME=110co
 export DEPLOYDIR_UNIX="$TARGETDIR_UNIX"
 DESTDIR=$TARGETDIR_UNIX/$SHARE_REPRODUCIBLE_BUILD_RELPATH/$BOOTSTRAPNAME
 THISDIR=$(pwd)
