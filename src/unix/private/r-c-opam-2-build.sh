@@ -191,7 +191,11 @@ if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
         # --------------------------------
 
         # Make sure at least flexdll is available for the upcoming 'make compiler'
+        #   We'll need md5sum. On macOS this may be in homebrew (/usr/local/bin).
+        OLDPATH=$PATH
+        PATH=/usr/local/bin:$PATH
         log_trace make -C "$OPAMSRC_UNIX"/src_ext cache-archives
+        PATH=$OLDPATH
 
         # We do what the following does (with customization): `make -C "$OPAMSRC_UNIX" compiler -j "$NUMCPUS"`
         pushd "$OPAMSRC_UNIX"
