@@ -199,7 +199,7 @@ if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
 
         # We do what the following does (with customization): `make -C "$OPAMSRC_UNIX" compiler -j "$NUMCPUS"`
         pushd "$OPAMSRC_UNIX"
-        if ! log_trace "$WORK"/launch-compiler.sh "$WORK"/fixup-opam-compiler-env.sh \
+        if ! log_trace --return-error-code "$WORK"/launch-compiler.sh "$WORK"/fixup-opam-compiler-env.sh \
             BOOTSTRAP_EXTRA_OPTS="$BOOTSTRAP_EXTRA_OPTS" BOOTSTRAP_OPT_TARGET=opt.opt BOOTSTRAP_ROOT=.. BOOTSTRAP_DIR=bootstrap \
             ./shell/bootstrap-ocaml.sh auto;
         then
