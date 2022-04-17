@@ -239,5 +239,5 @@ fi
 # At this point we have compiled _all_ of Opam dependencies ...
 # Now we need to build Opam itself.
 
-log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" # parallelism does not work here
+log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" -j1 # parallel is unreliable, especially on Windows
 log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" install
