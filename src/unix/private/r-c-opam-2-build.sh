@@ -236,8 +236,21 @@ if [ -n "$OCAMLHOME" ]; then
     log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" lib-ext # OCAML="$OCAMLHOME/bin/ocaml"
 fi
 
+# Diagnostics for OCaml libraries
+log_trace env PATH="$POST_BOOTSTRAP_PATH" ocamlfind list
+log_trace env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf
+
+QUERIED_OCAMLFIND_CONF=$(env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf conf)
+
+# Don't let any parent Opam / Dune context interfere with the building of Opam
+safe_run() {
+    log_trace env -u DUNE_SOURCEROOT -u DUNE_OCAML_HARDCODED -u OCAML_TOPLEVEL_PATH -u OPAM_SWITCH_PREFIX PATH="$POST_BOOTSTRAP_PATH" OCAMLFIND_CONF="$QUERIED_OCAMLFIND_CONF" "$@"
+}
+
+(cd "$OPAMSRC_UNIX" && safe_run dune printenv --verbose)
+
 # At this point we have compiled _all_ of Opam dependencies ...
 # Now we need to build Opam itself.
 
-log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" -j1 # parallel is unreliable, especially on Windows
-log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" install
+safe_run make -C "$OPAMSRC_UNIX" # parallel is unreliable, especially on Windows
+safe_run make -C "$OPAMSRC_UNIX" install
