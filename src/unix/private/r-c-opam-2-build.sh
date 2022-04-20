@@ -247,10 +247,41 @@ safe_run() {
     log_trace env -u DUNE_SOURCEROOT -u DUNE_OCAML_HARDCODED -u OCAML_TOPLEVEL_PATH -u OPAM_SWITCH_PREFIX PATH="$POST_BOOTSTRAP_PATH" OCAMLFIND_CONF="$QUERIED_OCAMLFIND_CONF" "$@"
 }
 
-(cd "$OPAMSRC_UNIX" && safe_run dune printenv --verbose)
+safe_run dune printenv --root "$OPAMSRC_UNIX" --verbose
 
 # At this point we have compiled _all_ of Opam dependencies ...
 # Now we need to build Opam itself.
 
 safe_run make -C "$OPAMSRC_UNIX" # parallel is unreliable, especially on Windows
 safe_run make -C "$OPAMSRC_UNIX" install
+
+# The `make` scripts run the Dune `xxx.install` targets, which will only build the "default" context.
+# We want all contexts, especially if a build tool has placed a custom `dune-workspace` in the Opam
+# source directory that includes cross-compiling contexts.
+#
+# Nit: opam-putenv.exe is not included below ... because for now Windows does not have a cross-compiling
+# DKML context.
+#
+# End-goal: _build/install/default.CONTEXT/bin/opam and other executables (perhaps libraries as well) populated
+
+# --------
+# METHOD 1
+# --------
+#   1. For all cross-compiling contexts
+# find "$OPAMSRC_UNIX/_build" -mindepth 1 -maxdepth 1 -name "default.*" | while read -r context_dir; do
+#     # ex. default.darwin_arm64
+#     context_basename=$(basename "$context_dir")
+#     # 2. Build the executables we want
+#     safe_run dune build --profile=release --root "$OPAMSRC_UNIX" \
+#         _build/install/"$context_basename"/bin/opam \
+#         _build/install/"$context_basename"/bin/opam-installer
+# done
+
+# --------
+# METHOD 2
+# --------
+#   1. Run the @install for the packages we care about
+#       This installs more than we need (ex. lib/opam/META, etc.)
+safe_run dune build --profile=release --root "$OPAMSRC_UNIX" \
+    --only-packages opam-state,opam-solver,opam-core,opam-format,opam-repository,opam-client,opam,opam-installer \
+    @install
