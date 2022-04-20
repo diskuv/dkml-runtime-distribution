@@ -115,8 +115,10 @@ TARGETDIR_UNIX=$(install -d "$TARGETDIR" && cd "$TARGETDIR" && pwd) # better tha
 OPAMSRC_UNIX=$TARGETDIR_UNIX/src/opam
 if [ -x /usr/bin/cygpath ]; then
     TARGETDIR_MIXED=$(/usr/bin/cygpath -am "$TARGETDIR_UNIX")
+    OPAMSRC_MIXED=$(/usr/bin/cygpath -am "$OPAMSRC_UNIX")
 else
     TARGETDIR_MIXED="$TARGETDIR_UNIX"
+    OPAMSRC_MIXED="$OPAMSRC_UNIX"
 fi
 
 # To be portable whether we build scripts in the container or not, we
@@ -247,7 +249,7 @@ safe_run() {
     log_trace env -u DUNE_SOURCEROOT -u DUNE_OCAML_HARDCODED -u OCAML_TOPLEVEL_PATH -u OPAM_SWITCH_PREFIX PATH="$POST_BOOTSTRAP_PATH" OCAMLFIND_CONF="$QUERIED_OCAMLFIND_CONF" "$@"
 }
 
-safe_run dune printenv --root "$OPAMSRC_UNIX" --verbose
+safe_run dune printenv --root "$OPAMSRC_MIXED" --verbose
 
 # At this point we have compiled _all_ of Opam dependencies ...
 # Now we need to build Opam itself.
@@ -263,25 +265,45 @@ safe_run make -C "$OPAMSRC_UNIX" install
 # DKML context.
 #
 # End-goal: _build/install/default.CONTEXT/bin/opam and other executables (perhaps libraries as well) populated
+#
+# The dune from the "dune-local" of Opam that is invoked via Opam's Makefile and hardcodes environment
+# variables (confer Makefile.config in Opam). These hardcoded environment variables (INCLUDE, LIB, CPATH,
+# LIBRARY_PATH) force a single compiler that can't do any cross-compiling!
+#
+# So we will use `dune` accessible in the post boostrap PATH, and use whatever is present currently
+# for the compiler environment variables.
+# That does mean that MSVC compiler won't work (you need vcvarsbat.cmd or INCLUDE/LIB/CPATH), but almost all
+# other compilers can work directly from the PATH (ex. clang/gcc) and do cross-compilation using
+# the flags available in `ocamlc -config` (ex. clang -arch xxx on macOS, gcc -m32 on Linux).
 
-# --------
-# METHOD 1
-# --------
-#   1. For all cross-compiling contexts
-# find "$OPAMSRC_UNIX/_build" -mindepth 1 -maxdepth 1 -name "default.*" | while read -r context_dir; do
-#     # ex. default.darwin_arm64
-#     context_basename=$(basename "$context_dir")
-#     # 2. Build the executables we want
-#     safe_run dune build --profile=release --root "$OPAMSRC_UNIX" \
-#         _build/install/"$context_basename"/bin/opam \
-#         _build/install/"$context_basename"/bin/opam-installer
-# done
+ccomp_type=$(safe_run ocamlc -config | tr -d '\r' | grep ccomp_type | awk '{print $2}')
+echo "ccomp_type is $ccomp_type"
+if [ "$ccomp_type" != msvc ]; then
+    # We are not using MSVC! We can do cross-compilation directly with Dune.
+    #
+    # Advanced: There is no way to actually support MSVC cross-compilation with Dune unless the dune-workspace
+    # sets INCLUDE and LIB separately for each context (ex. INCLUDE/LIB for Windows ARM64, which is different for Windows x86_64).
+    # We don't have the detection logic here to see if the dune-workspace is correct.
 
-# --------
-# METHOD 2
-# --------
-#   1. Run the @install for the packages we care about
-#       This installs more than we need (ex. lib/opam/META, etc.)
-safe_run dune build --profile=release --root "$OPAMSRC_UNIX" \
-    --only-packages opam-state,opam-solver,opam-core,opam-format,opam-repository,opam-client,opam,opam-installer \
-    @install
+    # --------
+    # METHOD 1
+    # --------
+    #   1. For all cross-compiling contexts
+    # find "$OPAMSRC_UNIX/_build" -mindepth 1 -maxdepth 1 -name "default.*" | while read -r context_dir; do
+    #     # ex. default.darwin_arm64
+    #     context_basename=$(basename "$context_dir")
+    #     # 2. Build the executables we want
+    #     safe_run dune build --profile=release --root "$OPAMSRC_MIXED" \
+    #         _build/install/"$context_basename"/bin/opam \
+    #         _build/install/"$context_basename"/bin/opam-installer
+    # done
+
+    # --------
+    # METHOD 2
+    # --------
+    #   1. Run the @install for the packages we care about
+    #       This installs more than we need (ex. lib/opam/META, etc.)
+    safe_run dune build --profile=release --root "$OPAMSRC_MIXED" \
+        --only-packages opam-state,opam-solver,opam-core,opam-format,opam-repository,opam-client,opam,opam-installer \
+        @install
+fi
