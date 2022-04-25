@@ -134,12 +134,12 @@ usage() {
     printf "%s\n" "                                                      -b option is not needed; otherwise -b option is required." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'). Determines how to make an OCaml home if a version number is specified" >&2
-    printf "%s\n" "       (or nothing) using -v option. Also part of the name for the host-tools switch if -s option" >&2
+    printf "%s\n" "       (or nothing) using -v option. Also part of the name for the dkml switch if -s option" >&2
     printf "%s\n" "    -d STATEDIR: Create <STATEDIR>/_opam as an Opam switch prefix, unless [-s] is also" >&2
-    printf "%s\n" "        selected which creates <STATEDIR>/host-tools, and unless [-s] [-u ON] is also" >&2
-    printf "%s\n" "        selected which creates <DiskuvOCamlHome>/host-tools/_opam on Windows and" >&2
+    printf "%s\n" "        selected which creates <STATEDIR>/dkml, and unless [-s] [-u ON] is also" >&2
+    printf "%s\n" "        selected which creates <DiskuvOCamlHome>/dkml/_opam on Windows and" >&2
     printf "%s\n" "        <OPAMROOT>/dkml/_opam on non-Windows. See also -t option" >&2
-    printf "%s\n" "    -s: Create the dkml or host-tools switch. See the -d option for the rules" >&2
+    printf "%s\n" "    -s: Create the dkml or dkml switch. See the -d option for the rules" >&2
     printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
     printf "%s\n" "        Debug" >&2
     printf "%s\n" "        Release - Most optimal code. Should be faster than ReleaseCompat* builds" >&2

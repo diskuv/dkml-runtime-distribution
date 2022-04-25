@@ -21,10 +21,10 @@ usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    create-tools-switch.sh -h           Display this help message" >&2
     printf "%s\n" "    create-tools-switch.sh              Create the Diskuv system switch" >&2
-    printf "%s\n" "                                                    at <DiskuvOCamlHome>/host-tools on Windows or" >&2
-    printf "%s\n" "                                                    <OPAMROOT>/host-tools/_opam on non-Windows" >&2
+    printf "%s\n" "                                                    at <DiskuvOCamlHome>/dkml on Windows or" >&2
+    printf "%s\n" "                                                    <OPAMROOT>/dkml/_opam on non-Windows" >&2
     printf "%s\n" "    create-tools-switch.sh -d STATEDIR -p DKMLPLATFORM  Create the Diskuv system switch" >&2
-    printf "%s\n" "                                                        at <STATEDIR>/host-tools" >&2
+    printf "%s\n" "                                                        at <STATEDIR>/dkml" >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform for the tools" >&2
     printf "%s\n" "    -d STATEDIR: If specified and -u ON enabled, use <STATEDIR>/opam as the Opam root" >&2

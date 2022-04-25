@@ -7,7 +7,7 @@ To setup on Unix/macOS:
 To setup on Windows:
   1. Make sure $DiskuvOCamlHome/share/dkml/functions/crossplatform-functions.sh exists.
   2. Run in MSYS2:
-    eval $(opam env --switch "$DiskuvOCamlHome/host-tools" --set-switch)
+    eval $(opam env --switch "$DiskuvOCamlHome/dkml" --set-switch)
 
 To test:
     dune build vendor/dkml-runtime-distribution/src/msys2/apps/opam-dkml/opam_dkml.exe

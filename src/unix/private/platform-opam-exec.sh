@@ -43,7 +43,7 @@ usage() {
     printf "%s\n" "    platform-opam-exec.sh -d STATEDIR [-u OFF] [--] install|clean|help|...     Run the opam command in the local" >&2
     printf "%s\n" "                                                                               switch prefix of STATEDIR/_opam" >&2
     printf "%s\n" "    platform-opam-exec.sh -d STATEDIR -s [-u OFF] [--] install|clean|help|...  Run the opam command in the local" >&2
-    printf "%s\n" "                                                                               switch prefix of STATEDIR/host-tools/_opam" >&2
+    printf "%s\n" "                                                                               switch prefix of STATEDIR/dkml/_opam" >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p PLATFORM: (Deprecated) The target platform or 'dev'" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'); must be present if -s option since part of the switch name" >&2
@@ -51,8 +51,8 @@ usage() {
     printf "%s\n" "    -b BUILDTYPE: Optional. The build type. If specified adds --switch to opam" >&2
     printf "%s\n" "    -t OPAMSWITCH: The target Opam switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/_opam as the Opam switch prefix, unless [-s] is also" >&2
-    printf "%s\n" "       selected which uses <STATEDIR>/host-tools/_opam, and unless [-s] [-u ON] is also" >&2
-    printf "%s\n" "       selected which uses <DiskuvOCamlHome>/host-tools/_opam on Windows and" >&2
+    printf "%s\n" "       selected which uses <STATEDIR>/dkml/_opam, and unless [-s] [-u ON] is also" >&2
+    printf "%s\n" "       selected which uses <DiskuvOCamlHome>/dkml/_opam on Windows and" >&2
     printf "%s\n" "       <OPAMROOT>/dkml/_opam on non-Windows." >&2
     printf "%s\n" "       Opam init shell scripts search the ancestor paths for an '_opam' directory, so" >&2
     printf "%s\n" "       the non-system switch will be found if you are in <STATEDIR>" >&2

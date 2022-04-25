@@ -7,7 +7,7 @@ To setup on Unix/macOS:
 To setup on Windows:
   1. Make sure $DiskuvOCamlHome/share/dkml/functions/crossplatform-functions.sh exists.
   2. Run in MSYS2:
-    eval $(opam env --switch "$DiskuvOCamlHome/host-tools" --set-switch)
+    eval $(opam env --switch "$DiskuvOCamlHome/dkml" --set-switch)
 
 To test use x64-windows or arm64-osx for the DKML_VCPKG_HOST_TRIPLET (or leave that variable out):
     dune build vendor/dkml-runtime-distribution/src/msys2/apps/with-dkml/with_dkml.exe
@@ -127,7 +127,7 @@ let remove_microsoft_visual_studio_entries () =
 
    The PATH and DiskuvOCamlHome environment variables on entry are used as a cache key.
 
-   If OPAM_SWITCH_PREFIX is not defined, then <dkmlhome_dir>/host-tools (the Diskuv
+   If OPAM_SWITCH_PREFIX is not defined, then <dkmlhome_dir>/dkml (the Diskuv
    System opam switch) is used instead.
 *)
 let set_msvc_entries cache_keys =
