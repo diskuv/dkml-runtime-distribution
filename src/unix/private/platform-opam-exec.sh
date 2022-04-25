@@ -35,11 +35,11 @@ usage() {
     printf "%s\n" "    platform-opam-exec.sh -p PLATFORM                                           (Deprecated) Run the opam command" >&2
     printf "%s\n" "                            -t OPAMSWITCH [--] install|clean|help|..." >&2
     printf "%s\n" "    platform-opam-exec.sh -s [--] install|clean|help|...                        (Deprecated) Run the opam command" >&2
-    printf "%s\n" "                                                                             in the 'diskuv-host-tools' local switch" >&2
+    printf "%s\n" "                                                                             in the 'dkml' local switch" >&2
     printf "%s\n" "    platform-opam-exec.sh -u ON -t OPAMSWITCH [--] install|clean|help|...      Run the opam command in the specified" >&2
     printf "%s\n" "                                                                               switch" >&2
     printf "%s\n" "    platform-opam-exec.sh -s -u ON [--] install|clean|help|...                 Run the opam command in the global" >&2
-    printf "%s\n" "                                                                               'diskuv-host-tools' switch" >&2
+    printf "%s\n" "                                                                               'dkml' switch" >&2
     printf "%s\n" "    platform-opam-exec.sh -d STATEDIR [-u OFF] [--] install|clean|help|...     Run the opam command in the local" >&2
     printf "%s\n" "                                                                               switch prefix of STATEDIR/_opam" >&2
     printf "%s\n" "    platform-opam-exec.sh -d STATEDIR -s [-u OFF] [--] install|clean|help|...  Run the opam command in the local" >&2
@@ -47,13 +47,13 @@ usage() {
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p PLATFORM: (Deprecated) The target platform or 'dev'" >&2
     printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'); must be present if -s option since part of the switch name" >&2
-    printf "%s\n" "    -s: Select the 'diskuv-host-tools' switch. If specified adds --switch to opam" >&2
+    printf "%s\n" "    -s: Select the 'dkml' switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -b BUILDTYPE: Optional. The build type. If specified adds --switch to opam" >&2
     printf "%s\n" "    -t OPAMSWITCH: The target Opam switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/_opam as the Opam switch prefix, unless [-s] is also" >&2
     printf "%s\n" "       selected which uses <STATEDIR>/host-tools/_opam, and unless [-s] [-u ON] is also" >&2
     printf "%s\n" "       selected which uses <DiskuvOCamlHome>/host-tools/_opam on Windows and" >&2
-    printf "%s\n" "       <OPAMROOT>/diskuv-host-tools/_opam on non-Windows." >&2
+    printf "%s\n" "       <OPAMROOT>/dkml/_opam on non-Windows." >&2
     printf "%s\n" "       Opam init shell scripts search the ancestor paths for an '_opam' directory, so" >&2
     printf "%s\n" "       the non-system switch will be found if you are in <STATEDIR>" >&2
     printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
@@ -195,7 +195,7 @@ if [ -x /usr/bin/cygpath ]; then
     if [ -n "$OPAMHOME" ]; then OPAMHOME=$(/usr/bin/cygpath -am "$OPAMHOME"); fi
 fi
 
-# `diskuv-host-tools` is the host architecture, so use `dev` as its platform
+# `dkml` is the host architecture, so use `dev` as its platform
 if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
     if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
         PLATFORM=dev
@@ -273,7 +273,7 @@ autodetect_dkmlvars || true
 
 # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND if there is a switch specified
 if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
-    # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `diskuv-host-tools` switch
+    # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `dkml` switch
     set_opamswitchdir_of_system "$PLATFORM"
 elif [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ] && [ -n "${DKML_DUNE_BUILD_DIR:-}" ]; then
     # set --switch only if BUILDTYPE (translated into DKML_DUNE_BUILD_DIR) has been set

@@ -1,6 +1,6 @@
 (*
 To setup on Unix/macOS:
-  eval $(opam env --switch diskuv-host-tools --set-switch)
+  eval $(opam env --switch dkml --set-switch)
   # or: eval $(opam env) && opam install dune bos logs fmt sexplib sha
   opam install ocaml-lsp-server ocamlformat ocamlformat-rpc # optional, for vscode or emacs
 

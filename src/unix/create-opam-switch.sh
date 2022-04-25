@@ -138,8 +138,8 @@ usage() {
     printf "%s\n" "    -d STATEDIR: Create <STATEDIR>/_opam as an Opam switch prefix, unless [-s] is also" >&2
     printf "%s\n" "        selected which creates <STATEDIR>/host-tools, and unless [-s] [-u ON] is also" >&2
     printf "%s\n" "        selected which creates <DiskuvOCamlHome>/host-tools/_opam on Windows and" >&2
-    printf "%s\n" "        <OPAMROOT>/diskuv-host-tools/_opam on non-Windows. See also -t option" >&2
-    printf "%s\n" "    -s: Create the diskuv-host-tools or host-tools switch. See the -d option for the rules" >&2
+    printf "%s\n" "        <OPAMROOT>/dkml/_opam on non-Windows. See also -t option" >&2
+    printf "%s\n" "    -s: Create the dkml or host-tools switch. See the -d option for the rules" >&2
     printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
     printf "%s\n" "        Debug" >&2
     printf "%s\n" "        Release - Most optimal code. Should be faster than ReleaseCompat* builds" >&2
@@ -318,7 +318,7 @@ if [ -z "${DKMLDIR:-}" ]; then
 fi
 if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not embedded within or launched from a 'diskuv-ocaml' Local Project" >&2 ; exit 1; fi
 
-# `diskuv-host-tools` is the host architecture, so use `dev` as its platform
+# `dkml` is the host architecture, so use `dev` as its platform
 if [ -n "$STATEDIR" ]; then
     # shellcheck disable=SC2034
     DKML_DUNE_BUILD_DIR="." # build directory will be the same as TOPDIR, not build/dev/Debug
@@ -524,7 +524,7 @@ fi
 # Make launchers for opam switch create <...> and for opam <...>
 if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
     # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, DKMLPLUGIN_BUILDHOST and WITHDKMLEXE_BUILDHOST
-    # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `diskuv-host-tools` switch
+    # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `dkml` switch
 
     if [ -z "$DKMLPLATFORM" ]; then printf "%s\n" "FATAL: create-opam-switch check_state nonempty DKMLPLATFORM" >&2; exit 1; fi
     set_opamswitchdir_of_system "$DKMLPLATFORM"

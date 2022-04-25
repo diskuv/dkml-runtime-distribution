@@ -162,8 +162,8 @@ log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/create-opam-switc
             ;;
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac
-} > "$WORK"/config-diskuv-host-tools.sh
-log_shell "$WORK"/config-diskuv-host-tools.sh -d "$STATEDIR" -u "$USERMODE" -p "$DKMLPLATFORM"
+} > "$WORK"/config-dkml.sh
+log_shell "$WORK"/config-dkml.sh -d "$STATEDIR" -u "$USERMODE" -p "$DKMLPLATFORM"
 
 # END create system switch
 # -----------------------
