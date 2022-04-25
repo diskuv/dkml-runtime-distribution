@@ -92,7 +92,7 @@ fi
 PLATFORM=dev # not actually in the dev platform but we are just pulling the "common" tool functions (so we can choose whatever platform we like)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR/vendor/dkml-runtime-common/unix/_common_tool.sh"
+. "$DKMLDIR/vendor/drc/unix/_common_tool.sh"
 
 disambiguate_filesystem_paths
 
@@ -111,13 +111,13 @@ if [ -x /usr/bin/cygpath ]; then
     MOBYDIR_UNIX=$(/usr/bin/cygpath -au "$MOBYDIR_UNIX")
 fi
 
-log_trace vendor/dkml-runtime-distribution/src/unix/private/moby-download-docker-image.sh "$MOBYDIR_UNIX" vendor/dkml-runtime-distribution/src/unix/private/download-frozen-image-v2.sh "$DOCKER_IMAGE" "$DOCKER_ARCH"
-log_trace vendor/dkml-runtime-distribution/src/unix/private/moby-extract-opam-root.sh "$MOBYDIR_UNIX" "$DOCKER_IMAGE" "$DOCKER_ARCH" msvc "$REPODIR_UNIX"
+log_trace vendor/drd/src/unix/private/moby-download-docker-image.sh "$MOBYDIR_UNIX" vendor/drd/src/unix/private/download-frozen-image-v2.sh "$DOCKER_IMAGE" "$DOCKER_ARCH"
+log_trace vendor/drd/src/unix/private/moby-extract-opam-root.sh "$MOBYDIR_UNIX" "$DOCKER_IMAGE" "$DOCKER_ARCH" msvc "$REPODIR_UNIX"
 
 if is_cygwin_build_machine; then
     echo Fixing symlinks ...
     find "$BASEDIR_IN_FULL_OPAMROOT" -xtype l | while read -r linkpath
     do
-        vendor/dkml-runtime-distribution/src/cygwin/idempotent-fix-symlink.sh "$linkpath" "$REPODIR_UNIX" msvc-"$DOCKER_ARCH" /cygdrive/c/
+        vendor/drd/src/cygwin/idempotent-fix-symlink.sh "$linkpath" "$REPODIR_UNIX" msvc-"$DOCKER_ARCH" /cygdrive/c/
     done
 fi

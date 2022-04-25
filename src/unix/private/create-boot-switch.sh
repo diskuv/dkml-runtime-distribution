@@ -79,7 +79,7 @@ STATEDIR=
 USERMODE=ON
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the TOPDIR (just like the container
@@ -93,7 +93,7 @@ cd "$TOPDIR"
 # BEGIN opam switch create  --empty
 
 run_opam() {
-    log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -u "$USERMODE" -d "$STATEDIR" -s -p "$DKMLPLATFORM" -o "$OPAMHOME" "$@"
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -u "$USERMODE" -d "$STATEDIR" -s -p "$DKMLPLATFORM" -o "$OPAMHOME" "$@"
 }
 
 # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND

@@ -90,7 +90,7 @@ DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the TOPDIR (just like the container
@@ -185,13 +185,13 @@ if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
         fi
     fi
     if has_rsync; then
-        log_trace spawn_rsync -ap "$DKMLDIR"/vendor/dkml-runtime-distribution/repos/ "$OPAMREPOS_UNIX"
+        log_trace spawn_rsync -ap "$DKMLDIR"/vendor/drd/repos/ "$OPAMREPOS_UNIX"
         if [ "$DISKUVOPAMREPO" = LOCAL ]; then
             log_trace spawn_rsync -ap "$DKMLDIR"/vendor/diskuv-opam-repository/ "$OPAMREPOS_UNIX/diskuv-opam-repository"
         fi
     else
         log_trace install -d "$OPAMREPOS_UNIX"
-        log_trace sh -x -c "cp -r '$DKMLDIR/vendor/dkml-runtime-distribution/repos'/* '$OPAMREPOS_UNIX/'"
+        log_trace sh -x -c "cp -r '$DKMLDIR/vendor/drd/repos'/* '$OPAMREPOS_UNIX/'"
         if [ "$DISKUVOPAMREPO" = LOCAL ]; then
             log_trace install -d "$OPAMREPOS_UNIX"/diskuv-opam-repository
             log_trace sh -x -c "cp -r '$DKMLDIR/vendor/diskuv-opam-repository'/* '$OPAMREPOS_UNIX/diskuv-opam-repository/'"
@@ -222,11 +222,11 @@ set_opamrootdir
 
 if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
     run_opamsys() {
-        log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s "$@" -p "$PLATFORM"
+        log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s "$@" -p "$PLATFORM"
     }
 else
     run_opamsys() {
-        log_trace env DKML_FEATUREFLAG_CMAKE_PLATFORM=ON "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s  -p "$PLATFORM" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
+        log_trace env DKML_FEATUREFLAG_CMAKE_PLATFORM=ON "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s  -p "$PLATFORM" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
     }
 fi
 
@@ -307,7 +307,7 @@ if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/
         exit 107
     fi
     if grep -q "/$REPONAME_PENDINGREMOVAL"$ "$WORK"/default; then
-        # ok. is like file://C:/source/xxx/vendor/dkml-runtime-distribution/repos/to-delete
+        # ok. is like file://C:/source/xxx/vendor/drd/repos/to-delete
         run_opamsys repository remove default --yes --all --dont-select
     fi
 fi

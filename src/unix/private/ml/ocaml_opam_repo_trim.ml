@@ -8,13 +8,13 @@
    1. Change the current directory to be vendor/diskuv-ocaml (the directory containing .dkmlroot)
    2. Run the following (replace DV_WindowsMsvcDockerImage with what is in DeploymentVersion.psm1):
 
-     DV_WindowsMsvcDockerImage="ocaml/opam:windows-msvc-20H2-ocaml-4.12@sha256:810ce2fca08c22ea1bf4066cb75ffcba2f98142d6ce09162905d9ddc09967da8" ; DOCKERARCH=amd64; OCAMLVERSION=4.12.1 ; DEPLOYDIR=$(cygpath -am $TMP/oorepo) ; CI_PROJECT_DIR=$(cygpath -am .) ; env TOPDIR=$CI_PROJECT_DIR/vendor/dkml-runtime-common/all/emptytop $CI_PROJECT_DIR/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-1-setup.sh -d $CI_PROJECT_DIR -t $DEPLOYDIR -v $DV_WindowsMsvcDockerImage -a $DOCKERARCH -b $OCAMLVERSION
+     DV_WindowsMsvcDockerImage="ocaml/opam:windows-msvc-20H2-ocaml-4.12@sha256:810ce2fca08c22ea1bf4066cb75ffcba2f98142d6ce09162905d9ddc09967da8" ; DOCKERARCH=amd64; OCAMLVERSION=4.12.1 ; DEPLOYDIR=$(cygpath -am $TMP/oorepo) ; CI_PROJECT_DIR=$(cygpath -am .) ; env TOPDIR=$CI_PROJECT_DIR/vendor/drc/all/emptytop $CI_PROJECT_DIR/vendor/drd/src/unix/private/r-f-oorepo-1-setup.sh -d $CI_PROJECT_DIR -t $DEPLOYDIR -v $DV_WindowsMsvcDockerImage -a $DOCKERARCH -b $OCAMLVERSION
 
    3. Run:
 
-     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-2-build-noargs.sh)
-     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-9-trim-noargs.sh)
-     OCAMLRUNPARAM=b ocaml $DEPLOYDIR/share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/dkml-runtime-distribution/src/unix/private/ml/ocaml_opam_repo_trim.ml -t $DEPLOYDIR -a $DOCKERARCH -b $OCAMLVERSION -n
+     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/drd/src/unix/private/r-f-oorepo-2-build-noargs.sh)
+     (cd $DEPLOYDIR ; share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/drd/src/unix/private/r-f-oorepo-9-trim-noargs.sh)
+     OCAMLRUNPARAM=b ocaml $DEPLOYDIR/share/dkml/repro/200-fetch-oorepo-$OCAMLVERSION/vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml -t $DEPLOYDIR -a $DOCKERARCH -b $OCAMLVERSION -n
 *)
 
 (* = CONSTANTS *)
@@ -86,7 +86,7 @@ let packages_fdopen_to_remove =
     *)
     "ocaml-variants";
     (* 3rd section corresponds to:
-       * PINNED_PACKAGES_DKML_PATCHES in vendor/dkml-runtime-distribution/src/unix/create-opam-switch.sh
+       * PINNED_PACKAGES_DKML_PATCHES in vendor/drd/src/unix/create-opam-switch.sh
        and MUST BE IN SYNC.
     *)
     "ocamlfind";
@@ -436,7 +436,7 @@ let () =
     Queue.iter (fun s -> Format.printf "  @[%s@]@\n" s) pin_commands)
   else
     (* WARNING: Cannot change the format of pins.txt without also changing diskuv-ocaml's
-       vendor/dkml-runtime-distribution/src/unix/create-opam-switch.sh *)
+       vendor/drd/src/unix/create-opam-switch.sh *)
     let oc = open_out_bin pin_loc in
     Queue.iter
       (fun s ->

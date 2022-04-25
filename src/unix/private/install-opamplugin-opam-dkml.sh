@@ -83,7 +83,7 @@ DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the TOPDIR (just like the container
@@ -117,15 +117,15 @@ autodetect_posix_shell
 #  opam-dkml.opam
 #  dkml-apps.opam
 #  vendor/ (need all of it since many files are crunched into apps/common/dune:scripts.ml)
-#     dkml-runtime-distribution/
+#     drd/
 #       src/msys2/apps/opam-dkml/opam_dkml.ml
 #       src/msys2/apps/with-dkml/with_dkml.ml
 #  .dkmlroot (needed for apps/common/dune)
 OPAMDKML_SRC_UNIX="$WORK"/src
 install -d "$OPAMDKML_SRC_UNIX"
 install "$DKMLDIR"/.dkmlroot "$OPAMDKML_SRC_UNIX/"
-install "$DKMLDIR"/vendor/dkml-runtime-distribution/opam-files/opam-dkml.opam "$OPAMDKML_SRC_UNIX/"
-install "$DKMLDIR"/vendor/dkml-runtime-distribution/opam-files/dkml-apps.opam "$OPAMDKML_SRC_UNIX/"
+install "$DKMLDIR"/vendor/drd/opam-files/opam-dkml.opam "$OPAMDKML_SRC_UNIX/"
+install "$DKMLDIR"/vendor/drd/opam-files/dkml-apps.opam "$OPAMDKML_SRC_UNIX/"
 cp -rp "$DKMLDIR"/vendor "$OPAMDKML_SRC_UNIX/"
 
 # opam install
@@ -133,7 +133,7 @@ OPAMFILE_BUILDHOST="$OPAMDKML_SRC_UNIX"/opam-dkml.opam
 if [ -x /usr/bin/cygpath ]; then
     OPAMFILE_BUILDHOST=$(/usr/bin/cygpath -aw "$OPAMFILE_BUILDHOST")
 fi
-"$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s -p "$PLATFORM" -d "$STATEDIR" -u "$USERMODE" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" \
+"$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s -p "$PLATFORM" -d "$STATEDIR" -u "$USERMODE" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" \
     install "$OPAMFILE_BUILDHOST" --yes --verbose --debug-level 2
 
 # END opam install opam-dkml

@@ -106,7 +106,7 @@ USERMODE=ON
 STATEDIR=
 
 # shellcheck disable=SC1091
-. "$DKMLDIR/vendor/dkml-runtime-common/unix/_common_tool.sh"
+. "$DKMLDIR/vendor/drc/unix/_common_tool.sh"
 
 disambiguate_filesystem_paths
 
@@ -184,7 +184,7 @@ chmod +x "$WORK"/fixup-opam-compiler-env.sh
 # we have successfully completed a single run all the way to `configure`.
 if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
     # Clear out all intermediate build files
-    log_trace vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-9-trim.sh -d . -t "$TARGETDIR_UNIX" -e "$PRESERVEGIT"
+    log_trace vendor/drd/src/unix/private/r-c-opam-9-trim.sh -d . -t "$TARGETDIR_UNIX" -e "$PRESERVEGIT"
 
     # If no OCaml home, let Opam create its own Ocaml compiler which Opam will use to compile
     # all of its required Ocaml dependencies

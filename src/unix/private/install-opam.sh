@@ -23,7 +23,7 @@ USERMODE=ON
 STATEDIR=
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # Keep the _common_tool provided temporary directory, even when we switch into the reproducible directory
 # so the reproducible directory does not leak anything
@@ -41,7 +41,7 @@ cd "$DKMLDIR"
 autodetect_buildhost_arch
 
 # Install the source code
-log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-1-setup.sh \
+log_trace "$DKMLDIR"/vendor/drd/src/unix/private/r-c-opam-1-setup.sh \
     -d "$DKMLDIR" \
     -t "$INSTALLDIR" \
     -a "$BUILDHOST_ARCH" \
@@ -53,7 +53,7 @@ log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-
 cd "$INSTALLDIR"
 
 # Build and install Opam
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-2-build-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/drd/src/unix/private/r-c-opam-2-build-noargs.sh
 
 # Remove intermediate files including build files and .git folders
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/dkml-runtime-distribution/src/unix/private/r-c-opam-9-trim-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/110-compile-opam/vendor/drd/src/unix/private/r-c-opam-9-trim-noargs.sh

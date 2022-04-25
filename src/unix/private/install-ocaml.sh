@@ -26,7 +26,7 @@ USERMODE=ON
 STATEDIR=
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # Keep the _common_tool provided temporary directory, even when we switch into the reproducible directory
 # so the reproducible directory does not leak anything

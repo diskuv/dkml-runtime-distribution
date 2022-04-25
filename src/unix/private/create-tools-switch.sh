@@ -107,7 +107,7 @@ DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the TOPDIR (just like the container
@@ -141,24 +141,24 @@ get_ocamlver() {
 }
 
 # Just the OCaml compiler
-log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -d "$STATEDIR" -u "$USERMODE" -p "$DKMLPLATFORM"
+log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -d "$STATEDIR" -u "$USERMODE" -p "$DKMLPLATFORM"
 
 # Flavor packages
 {
-    printf "%s" "exec '$DKMLDIR'/vendor/dkml-runtime-distribution/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" install -y"
+    printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" install -y"
     printf " %s" "--jobs=$NUMCPUS"
     if [ -n "$EXTRAPKGS" ]; then
         printf " %s" "$EXTRAPKGS"
     fi
     case "$FLAVOR" in
         CI)
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-pkgs.txt | tr -d '\r'
             ;;
         Full)
             get_ocamlver
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/ci-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/full-anyver-no-ci-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/dkml-runtime-distribution/src/none/full-"$OCAMLVERSION"-no-ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-anyver-no-ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-"$OCAMLVERSION"-no-ci-pkgs.txt | tr -d '\r'
             ;;
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac

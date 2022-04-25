@@ -25,7 +25,7 @@ PLATFORM=dev # not actually in the dev platform but we are just pulling the "com
 TMPPARENTDIR_BUILDHOST=$(mktemp -d /tmp/dkmlp.XXXXX)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/dkml-runtime-common/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # Keep the _common_tool provided temporary directory, even when we switch into the reproducible directory
 # so the reproducible directory does not leak anything
@@ -57,7 +57,7 @@ if [ -z "$OCAML_VERSION" ]; then
 fi
 
 # Install the source code
-log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-1-setup.sh \
+log_trace "$DKMLDIR"/vendor/drd/src/unix/private/r-f-oorepo-1-setup.sh \
     -d "$DKMLDIR" \
     -t "$INSTALLDIR" \
     -v "$DOCKER_IMAGE" \
@@ -69,6 +69,6 @@ log_trace "$DKMLDIR"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorep
 cd "$INSTALLDIR"
 
 # Fetch and install
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-2-build-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/drd/src/unix/private/r-f-oorepo-2-build-noargs.sh
 # Trim
-log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-9-trim-noargs.sh
+log_trace "$SHARE_REPRODUCIBLE_BUILD_RELPATH"/200-fetch-oorepo-"$OCAML_VERSION"/vendor/drd/src/unix/private/r-f-oorepo-9-trim-noargs.sh

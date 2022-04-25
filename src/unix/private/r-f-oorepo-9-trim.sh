@@ -108,7 +108,7 @@ fi
 PLATFORM=dev # not actually in the dev platform but we are just pulling the "common" tool functions (so we can choose whatever platform we like)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR/vendor/dkml-runtime-common/unix/_common_tool.sh"
+. "$DKMLDIR/vendor/drc/unix/_common_tool.sh"
 
 disambiguate_filesystem_paths
 
@@ -153,7 +153,7 @@ else
 fi
 
 # Do bulk of trimming in OCaml interpreter for speed (much faster than shell script!)
-log_trace env PATH="$OCAML_INTERPRETER_PATH" OCAMLRUNPARAM=b ocaml vendor/dkml-runtime-distribution/src/unix/private/ml/ocaml_opam_repo_trim.ml -t "$TARGETDIR_BUILDHOST" -b "$OCAML_LANG_VERSION" -a "$DOCKER_ARCH" -p "$SINGLEPACKAGE"
+log_trace env PATH="$OCAML_INTERPRETER_PATH" OCAMLRUNPARAM=b ocaml vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml -t "$TARGETDIR_BUILDHOST" -b "$OCAML_LANG_VERSION" -a "$DOCKER_ARCH" -p "$SINGLEPACKAGE"
 
 # Install files and directories into $OOREPO_UNIX:
 # - /repo

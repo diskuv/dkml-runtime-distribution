@@ -122,7 +122,7 @@ fi
 PLATFORM=dev # not actually in the dev platform but we are just pulling the "common" tool functions (so we can choose whatever platform we like)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR/vendor/dkml-runtime-common/unix/_common_tool.sh"
+. "$DKMLDIR/vendor/drc/unix/_common_tool.sh"
 
 disambiguate_filesystem_paths
 
@@ -134,7 +134,7 @@ TARGETDIR_UNIX=$(install -d "$TARGETDIR" && cd "$TARGETDIR" && pwd) # better tha
 # sets the directory to be /work)
 cd "$DKMLDIR"
 
-vendor/dkml-runtime-distribution/src/unix/private/download-moby-downloader.sh "$WORK"
+vendor/drd/src/unix/private/download-moby-downloader.sh "$WORK"
 
 # Copy self into share/dkml/repro/200-fetch-oorepo-4.12.1
 export BOOTSTRAPNAME=200-fetch-oorepo-$OCAML_LANG_VERSION
@@ -148,16 +148,16 @@ fi
 # shellcheck disable=SC2016
 COMMON_ARGS=(-d "$SHARE_REPRODUCIBLE_BUILD_RELPATH/$BOOTSTRAPNAME")
 install_reproducible_common
-install_reproducible_readme           vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-README.md
-install_reproducible_system_packages  vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-0-system.sh
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
-install_reproducible_script_with_args vendor/dkml-runtime-distribution/src/unix/private/r-f-oorepo-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"
-install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/ml/ocaml_opam_repo_trim.ml
-install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/download-moby-downloader.sh
-install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/moby-download-docker-image.sh
-install_reproducible_file             vendor/dkml-runtime-distribution/src/unix/private/moby-extract-opam-root.sh
+install_reproducible_readme           vendor/drd/src/unix/private/r-f-oorepo-README.md
+install_reproducible_system_packages  vendor/drd/src/unix/private/r-f-oorepo-0-system.sh
+install_reproducible_script_with_args vendor/drd/src/unix/private/r-f-oorepo-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
+install_reproducible_script_with_args vendor/drd/src/unix/private/r-f-oorepo-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
+install_reproducible_script_with_args vendor/drd/src/unix/private/r-f-oorepo-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"
+install_reproducible_file             vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml
+install_reproducible_file             vendor/drd/src/unix/private/download-moby-downloader.sh
+install_reproducible_file             vendor/drd/src/unix/private/moby-download-docker-image.sh
+install_reproducible_file             vendor/drd/src/unix/private/moby-extract-opam-root.sh
 if is_cygwin_build_machine; then
-    install_reproducible_file         vendor/dkml-runtime-distribution/src/cygwin/idempotent-fix-symlink.sh
+    install_reproducible_file         vendor/drd/src/cygwin/idempotent-fix-symlink.sh
 fi
-install_reproducible_generated_file   "$WORK"/download-frozen-image-v2.sh vendor/dkml-runtime-distribution/src/unix/private/download-frozen-image-v2.sh
+install_reproducible_generated_file   "$WORK"/download-frozen-image-v2.sh vendor/drd/src/unix/private/download-frozen-image-v2.sh

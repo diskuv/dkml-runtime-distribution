@@ -66,7 +66,7 @@ let run f_setup localdir_fp_opt buildtype yes =
         else ocaml_bin2_fp
       in
       (* Assemble command line arguments *)
-      Fpath.of_string "vendor/dkml-runtime-distribution/src/unix/create-opam-switch.sh" >>= fun rel_fp ->
+      Fpath.of_string "vendor/drd/src/unix/create-opam-switch.sh" >>= fun rel_fp ->
       let create_switch_fp = Fpath.(scripts_dir_fp // rel_fp) in
       let cmd =
         Cmd.of_list
