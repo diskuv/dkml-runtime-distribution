@@ -134,7 +134,7 @@ if [ -x /usr/bin/cygpath ]; then
     OPAMFILE_BUILDHOST=$(/usr/bin/cygpath -aw "$OPAMFILE_BUILDHOST")
 fi
 "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s -p "$PLATFORM" -d "$STATEDIR" -u "$USERMODE" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" \
-    install "$OPAMFILE_BUILDHOST" --yes --verbose --debug-level 2
+    install "$OPAMFILE_BUILDHOST" --yes
 
 # END opam install opam-dkml
 # -----------------------
