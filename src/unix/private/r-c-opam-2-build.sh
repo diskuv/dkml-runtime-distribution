@@ -234,13 +234,15 @@ if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
     # - MSVS_PREFERENCE is used by OCaml's shell/msvs-detect, and is not used for non-Windows systems.
     # Note: The launch-compiler.sh are needed on jonahbeckford desktops for 32-bit Windows builds, but not on GitLab CI for 32-bit Windows.
     pushd "$OPAMSRC_UNIX"
-    log_trace env PATH="$POST_BOOTSTRAP_PATH" MSVS_PREFERENCE="$OPT_MSVS_PREFERENCE" "$WORK"/launch-compiler.sh "$WORK"/fixup-opam-compiler-env.sh ./configure --prefix="$TARGETDIR_MIXED"
+    if [ "$USE_BOOTSTRAP" = OFF ]; then
+        # `--with-vendored-deps` is what used to be `make lib-ext`, which extracted the source for Opam dependencies
+        # and expected `make` to build a local Dune executable and do a recursive vendored Dune build. In contrast `make lib-pkg`
+        # does a bootstrap which is an OCaml installation (bin/ with OCaml binaries, similar to Opam switch).
+        log_trace env PATH="$POST_BOOTSTRAP_PATH" MSVS_PREFERENCE="$OPT_MSVS_PREFERENCE" "$WORK"/launch-compiler.sh "$WORK"/fixup-opam-compiler-env.sh ./configure --prefix="$TARGETDIR_MIXED" --with-vendored-deps
+    else
+        log_trace env PATH="$POST_BOOTSTRAP_PATH" MSVS_PREFERENCE="$OPT_MSVS_PREFERENCE" "$WORK"/launch-compiler.sh "$WORK"/fixup-opam-compiler-env.sh ./configure --prefix="$TARGETDIR_MIXED"
+    fi
     popd
-fi
-
-if [ "$USE_BOOTSTRAP" = OFF ]; then
-    # OCaml home. Install Opam dependencies needed to create `opam.exe`
-    log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" lib-ext # OCAML="$OCAMLHOME/bin/ocaml"
 fi
 
 if [ "$USE_BOOTSTRAP" = ON ]; then
