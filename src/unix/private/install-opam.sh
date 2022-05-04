@@ -46,7 +46,7 @@ log_trace "$DKMLDIR"/vendor/drd/src/unix/private/r-c-opam-1-setup.sh \
     -t "$INSTALLDIR" \
     -a "$BUILDHOST_ARCH" \
     -c "$INSTALLDIR" \
-    -u https://github.com/diskuv/opam \
+    -u https://github.com/jonahbeckford/opam \
     -v "$GIT_TAG"
 
 # Use reproducible directory created by setup
