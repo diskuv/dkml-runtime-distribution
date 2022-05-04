@@ -138,9 +138,14 @@ else
 fi
 if [ -n "$OCAMLHOME" ]; then
     validate_and_explore_ocamlhome "$OCAMLHOME"
+    # add ocaml, ocamlc, etc.
     POST_BOOTSTRAP_PATH="$DKML_OCAMLHOME_UNIX"/"$DKML_OCAMLHOME_BINDIR_UNIX":"$PATH"
+    USE_BOOTSTRAP=OFF
 else
+    # add the bootstrap that Opam builds with `lib-pkg`. The packages are all
+    # installed directly into the bootstrap (similar to an Opam switch).
     POST_BOOTSTRAP_PATH="$OPAMSRC_UNIX"/bootstrap/ocaml/bin:"$PATH"
+    USE_BOOTSTRAP=ON
 fi
 
 # Set NUMCPUS if unset from autodetection of CPUs
@@ -188,7 +193,7 @@ if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
 
     # If no OCaml home, let Opam create its own Ocaml compiler which Opam will use to compile
     # all of its required Ocaml dependencies
-    if [ -z "$OCAMLHOME" ]; then
+    if [ "$USE_BOOTSTRAP" = ON ]; then
         # No OCaml home. Do Opam bootstrap
         # --------------------------------
 
@@ -233,29 +238,41 @@ if [ ! -e "$OPAMSRC_UNIX/src/ocaml-flags-configure.sexp" ]; then
     popd
 fi
 
-if [ -n "$OCAMLHOME" ]; then
+if [ "$USE_BOOTSTRAP" = OFF ]; then
     # OCaml home. Install Opam dependencies needed to create `opam.exe`
     log_trace env PATH="$POST_BOOTSTRAP_PATH" make -C "$OPAMSRC_UNIX" lib-ext # OCAML="$OCAMLHOME/bin/ocaml"
 fi
 
-# Diagnostics for OCaml libraries
-log_trace env PATH="$POST_BOOTSTRAP_PATH" ocamlfind list
-log_trace env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf
+if [ "$USE_BOOTSTRAP" = ON ]; then
+    # Diagnostics for OCaml libraries
+    log_trace env PATH="$POST_BOOTSTRAP_PATH" ocamlfind list
+    log_trace env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf
 
-QUERIED_OCAMLFIND_CONF=$(env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf conf)
+    # Should not be needed: QUERIED_OCAMLFIND_CONF=$(env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf conf)
+fi
 
 # Don't let any parent Opam / Dune context interfere with the building of Opam
 safe_run() {
-    log_trace env -u DUNE_SOURCEROOT -u DUNE_OCAML_HARDCODED -u OCAML_TOPLEVEL_PATH -u OPAM_SWITCH_PREFIX PATH="$POST_BOOTSTRAP_PATH" OCAMLFIND_CONF="$QUERIED_OCAMLFIND_CONF" "$@"
+    # OCAMLFIND_CONF="$QUERIED_OCAMLFIND_CONF"
+    log_trace env -u DUNE_SOURCEROOT -u DUNE_OCAML_HARDCODED -u OCAML_TOPLEVEL_PATH -u OPAM_SWITCH_PREFIX -u OCAMLFIND_CONF PATH="$POST_BOOTSTRAP_PATH" "$@"
 }
 
-safe_run dune printenv --root "$OPAMSRC_MIXED" --verbose
-
-# At this point we have compiled _all_ of Opam dependencies ...
-# Now we need to build Opam itself.
-
+# At this point we have compiled _all_ of Opam dependencies if we used `lib-pkg` ...
+# if we used `lib-ext` the following `make` will build Dune and other Opam dependencies.
+# In both cases `make` will end up building Opam itself.
 safe_run make -C "$OPAMSRC_UNIX" # parallel is unreliable, especially on Windows
 safe_run make -C "$OPAMSRC_UNIX" install
+
+# At this point both `lib-pkg` and `lib-ext` should have provided a Dune executable.
+safe_dune() {
+    if [ -e "$OPAMSRC_UNIX"/src_ext/dune-local/dune.exe ]; then
+        # use Dune directly if it is built locally by Opam through `lib-ext` and `make`
+        safe_run "$OPAMSRC_UNIX"/src_ext/dune-local/dune.exe "$@"
+    else
+        # otherwise get dune from the PATH (which includes `lib-pkg` installed bootstrap binaries)
+        safe_run dune "$@"
+    fi
+}
 
 # The `make` scripts run the Dune `xxx.install` targets, which will only build the "default" context.
 # We want all contexts, especially if a build tool has placed a custom `dune-workspace` in the Opam
@@ -276,6 +293,8 @@ safe_run make -C "$OPAMSRC_UNIX" install
 # other compilers can work directly from the PATH (ex. clang/gcc) and do cross-compilation using
 # the flags available in `ocamlc -config` (ex. clang -arch xxx on macOS, gcc -m32 on Linux).
 
+safe_dune printenv --root "$OPAMSRC_MIXED" --verbose
+
 ccomp_type=$(safe_run ocamlc -config | tr -d '\r' | grep ccomp_type | awk '{print $2}')
 echo "ccomp_type is $ccomp_type"
 if [ "$ccomp_type" != msvc ]; then
@@ -293,7 +312,7 @@ if [ "$ccomp_type" != msvc ]; then
     #     # ex. default.darwin_arm64
     #     context_basename=$(basename "$context_dir")
     #     # 2. Build the executables we want
-    #     safe_run dune build --profile=release --root "$OPAMSRC_MIXED" \
+    #     safe_dune build --profile=release --root "$OPAMSRC_MIXED" \
     #         _build/install/"$context_basename"/bin/opam \
     #         _build/install/"$context_basename"/bin/opam-installer
     # done
@@ -303,7 +322,7 @@ if [ "$ccomp_type" != msvc ]; then
     # --------
     #   1. Run the @install for the packages we care about
     #       This installs more than we need (ex. lib/opam/META, etc.)
-    safe_run dune build --profile=release --root "$OPAMSRC_MIXED" \
+    safe_dune build --profile=release --root "$OPAMSRC_MIXED" \
         --only-packages opam-state,opam-solver,opam-core,opam-format,opam-repository,opam-client,opam,opam-installer \
         @install
 fi

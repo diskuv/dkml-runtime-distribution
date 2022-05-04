@@ -214,7 +214,8 @@ else
         git_head=$(log_trace git -C "$OPAMSRC_MIXED" rev-parse HEAD)
         if [ ! "$git_head" = "$GIT_COMMITID_TAG_OR_DIR" ]; then
             if git -C "$OPAMSRC_MIXED" tag -l "$GIT_COMMITID_TAG_OR_DIR" | awk 'BEGIN{nonempty=0} NF>0{nonempty+=1} END{exit nonempty==0}'; then git -C "$OPAMSRC_MIXED" tag -d "$GIT_COMMITID_TAG_OR_DIR"; fi # allow tag to move (for development and for emergency fixes)
-            log_trace git -C "$OPAMSRC_MIXED" fetch --tags
+            log_trace git -C "$OPAMSRC_MIXED" remote set-url origin "$GIT_URL"
+            log_trace git -C "$OPAMSRC_MIXED" fetch origin --tags
             log_trace git -C "$OPAMSRC_MIXED" -c advice.detachedHead=false checkout "$GIT_COMMITID_TAG_OR_DIR"
         fi
     fi
