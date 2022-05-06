@@ -107,6 +107,9 @@ let packages_fdopen_to_remove =
     "mirage-crypto";
     "ocamlbuild";
     "ppx_expect";
+    "dkml-c-probe";
+    "dkml-apps";
+    "opam-dkml";
     (* 4th section corresponds to:
        * PINNED_PACKAGES_OPAM in installtime\unix\create-opam-switch.sh
        and MUST BE IN SYNC.

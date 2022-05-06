@@ -1,5 +1,5 @@
 # All packages listed in this file are installed as part of
-# the "tools" system switch.
+# the "dkml" system switch.
 
 # Each package must go into either:
 # 1. PINNED_PACKAGES_OPAM *and* [packages_fdopen_to_remove] or          {package defn is in opam repo}
@@ -60,3 +60,8 @@ cmdliner.1.0.4
 crunch.3.2.0
 ptime.0.8.6
 uuidm.0.9.7
+
+# DKML apps
+dkml-c-probe.2.0.0~prerel2
+dkml-apps.0.4.0~prerel20_r1
+opam-dkml.0.4.0~prerel20_r1
