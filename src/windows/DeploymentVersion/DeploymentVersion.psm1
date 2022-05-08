@@ -59,18 +59,6 @@ $DV_MSYS2Packages = @(
     "procps", # provides `pgrep`
 
     # ----
-    # Needed by OCaml package `conf-pkg-config`
-    # ----
-
-    #   We do not use the MSYS2 subsystem because that
-    #   could produce binaries that are linked to msys-2.0.dll.
-    #   But it also means that pkg-config is opt-in since
-    #   /mingw64 has to be added to the PATH ... that is perfectly
-    #   fine. Note: DKSDK bundles its own pkg-config (actually pkgconf)
-    #   compiled from vcpkg.
-    "mingw-w64-x86_64-pkg-config",
-
-    # ----
     # Needed for our own sanity!
     # ----
 
@@ -79,21 +67,24 @@ $DV_MSYS2Packages = @(
     "tree" # directory structure viewer
 )
 Export-ModuleMember -Variable DV_MSYS2Packages
-if ([Environment]::Is64BitOperatingSystem) {
-    $DV_MSYS2PackagesArch = $DV_MSYS2Packages + @(
-        # ----
-        # Needed for our own sanity!
-        # ----
-
-        "mingw-w64-x86_64-ag" # search tool called Silver Surfer
+function DV_MSYS2PackagesAbi {
+    param (
+        [Parameter(Mandatory=$true)]
+        $DkmlHostAbi
     )
-} else {
-    $DV_MSYS2PackagesArch = $DV_MSYS2Packages + @(
-        # ----
-        # Needed for our own sanity!
-        # ----
+    # ----
+    # Needed for our own sanity!
+    # ----
+    # ag - search tool called Silver Surfer
 
-        "mingw-w64-i686-ag" # search tool called Silver Surfer
-    )
+    if ("$DkmlHostAbi" -eq "windows_x86_64") {
+        @(
+            "mingw-w64-x86_64-ag"
+        )
+    } elseif ("$DkmlHostAbi" -eq "windows_x86") {
+        @(
+            "mingw-w64-i686-ag"
+        )
+    }
 }
-Export-ModuleMember -Variable DV_MSYS2PackagesArch
+Export-ModuleMember -Function DV_MSYS2PackagesAbi
