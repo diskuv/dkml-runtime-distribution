@@ -63,5 +63,5 @@ uuidm.0.9.7
 
 # DKML apps (dkml-apps and opam-dkml auto-bumped with .bumpversion.prerelease.cfg)
 dkml-c-probe.2.0.0~prerel2
-dkml-apps.0.4.0-prerel27
-opam-dkml.0.4.0-prerel27
+dkml-apps.0.4.0-prerel28
+opam-dkml.0.4.0-prerel28
