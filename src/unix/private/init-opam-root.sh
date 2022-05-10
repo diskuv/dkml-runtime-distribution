@@ -316,5 +316,8 @@ if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDH
     run_opamsys repository add default https://opam.ocaml.org --yes --dont-select --rank=3
 fi
 
+# Diagnostic
+run_opamsys repository list --all
+
 # END opam init
 # -----------------------
