@@ -145,9 +145,7 @@ log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLV
 
 # Flavor packages
 {
-    # Diagnostic
-    printf "%s\n" "'$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" repository list"
-    printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" install --debug-level 2 -y"
+    printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" install -y"
     printf " %s" "--jobs=$NUMCPUS"
     if [ -n "$EXTRAPKGS" ]; then
         printf " %s" "$EXTRAPKGS"
