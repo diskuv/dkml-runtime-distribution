@@ -63,5 +63,5 @@ uuidm.0.9.7
 
 # DKML apps (dkml-apps and opam-dkml version maintained by diskuv-ocaml's release.sh)
 dkml-c-probe.2.0.0~prerel2
-dkml-apps.0.4.0~prerel31
-opam-dkml.0.4.0~prerel31
+dkml-apps.0.4.0~prerel32
+opam-dkml.0.4.0~prerel32
