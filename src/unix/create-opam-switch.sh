@@ -508,16 +508,19 @@ else
     OCAMLVARIANT="ocaml-system.$OCAMLVERSION"
 fi
 
+# The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
+# switches. Whether the `dkml` switch is being created or being used, we need
+# to know where it is.
+#   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+#   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
+set_opamswitchdir_of_system "$DKMLPLATFORM"
 
 # Make launchers for opam switch create <...> and for opam <...>
 if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
-    # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, DKMLPLUGIN_BUILDHOST and WITHDKMLEXE_BUILDHOST
-    # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `dkml` switch
-
-    set_opamswitchdir_of_system "$DKMLPLATFORM"
     OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLPLATFORM' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
 else
-    # Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_BUILDHOST, OPAMSWITCHNAME_EXPAND, OPAMSWITCHISGLOBAL, DKMLPLUGIN_BUILDHOST and WITHDKMLEXE_BUILDHOST
+    # (Re-)Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_BUILDHOST, OPAMSWITCHNAME_EXPAND, OPAMSWITCHISGLOBAL
+    # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
     set_opamrootandswitchdir
 
     OPAM_EXEC_OPTS=" -p '$DKMLPLATFORM' -d '$STATEDIR' -t '$TARGET_OPAMSWITCH' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
@@ -886,9 +889,9 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
     log_shell "$WORK"/setenv.sh
 fi
 
+# We don't put with-dkml.exe into the `dkml` tools switch because with-dkml.exe (currently) needs a tools switch to compile itself.
 if [ "$DISKUV_TOOLS_SWITCH" = OFF ] && \
         [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$WRAP_COMMANDS_CACHE_KEY" ]; then
-    # We can't put with-dkml.exe into Diskuv System switches because with-dkml.exe currently needs a system switch to compile itself.
     printf "%s" "$WITHDKMLEXE_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
     DOW_PATH=$(cat "$WORK"/dow.path)
     {

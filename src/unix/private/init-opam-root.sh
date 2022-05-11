@@ -226,7 +226,7 @@ if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
     }
 else
     run_opamsys() {
-        log_trace env DKML_FEATUREFLAG_CMAKE_PLATFORM=ON "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s  -p "$PLATFORM" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
+        log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s  -p "$PLATFORM" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
     }
 fi
 

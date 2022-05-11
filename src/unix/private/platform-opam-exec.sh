@@ -1,18 +1,12 @@
 #!/bin/bash
 # -------------------------------------------------------
-# platform-opam-exec.sh [-b BUILDTYPE] [-s | -p PLATFORM] [--] install|clean|help|...
+# platform-opam-exec.sh [-s | -p PLATFORM] [--] install|clean|help|...
 #
 # PLATFORM=dev|linux_arm32v6|linux_arm32v7|windows_x86|...
 #
 #   The PLATFORM can be `dev` which means the dev platform using the native CPU architecture
 #   and system binaries for Opam from your development machine.
 #   Otherwise it is one of the "PLATFORMS" canonically defined in TOPDIR/Makefile.
-#
-# BUILDTYPE=Debug|Release|...
-#
-#   One of the "BUILDTYPES" canonically defined in TOPDIR/Makefile.
-#
-# The build is placed in build/$PLATFORM.
 # -------------------------------------------------------
 set -euf
 
@@ -27,28 +21,22 @@ DKMLDIR=$(cd "$DKMLDIR"/../../../../.. && pwd)
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    platform-opam-exec.sh -h                                                    Display this help message" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p PLATFORM [--] init|help|switch remove|...          (Deprecated) Run the opam command" >&2
-    printf "%s\n" "                                                                             in the PLATFORM's active switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p PLATFORM -b BUILDTYPE [--] install|clean|help|...  (Deprecated) Run the opam command" >&2
-    printf "%s\n" "                                                                             in the PLATFORM's BUILDTYPE switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p PLATFORM                                           (Deprecated) Run the opam command" >&2
-    printf "%s\n" "                            -t OPAMSWITCH [--] install|clean|help|..." >&2
-    printf "%s\n" "    platform-opam-exec.sh -s [--] install|clean|help|...                        (Deprecated) Run the opam command" >&2
-    printf "%s\n" "                                                                             in the 'dkml' local switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -u ON -t OPAMSWITCH [--] install|clean|help|...      Run the opam command in the specified" >&2
-    printf "%s\n" "                                                                               switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -s -u ON [--] install|clean|help|...                 Run the opam command in the global" >&2
-    printf "%s\n" "                                                                               'dkml' switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -d STATEDIR [-u OFF] [--] install|clean|help|...     Run the opam command in the local" >&2
-    printf "%s\n" "                                                                               switch prefix of STATEDIR/_opam" >&2
-    printf "%s\n" "    platform-opam-exec.sh -d STATEDIR -s [-u OFF] [--] install|clean|help|...  Run the opam command in the local" >&2
-    printf "%s\n" "                                                                               switch prefix of STATEDIR/dkml/_opam" >&2
+    printf "%s\n" "    platform-opam-exec.sh -h                                     Display this help message" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -u ON -t OPAMSWITCH" >&2
+    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the specified" >&2
+    printf "%s\n" "                                                                 switch" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -s -u ON" >&2
+    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the global" >&2
+    printf "%s\n" "                                                                 'dkml' switch" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -d STATEDIR [-u OFF]" >&2
+    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the local" >&2
+    printf "%s\n" "                                                                 switch prefix of STATEDIR/_opam" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -d STATEDIR -s [-u OFF]" >&2
+    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the local" >&2
+    printf "%s\n" "                                                                 switch prefix of STATEDIR/dkml/_opam" >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p PLATFORM: (Deprecated) The target platform or 'dev'" >&2
-    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'); must be present if -s option since part of the switch name" >&2
+    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev')" >&2
     printf "%s\n" "    -s: Select the 'dkml' switch. If specified adds --switch to opam" >&2
-    printf "%s\n" "    -b BUILDTYPE: Optional. The build type. If specified adds --switch to opam" >&2
     printf "%s\n" "    -t OPAMSWITCH: The target Opam switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/_opam as the Opam switch prefix, unless [-s] is also" >&2
     printf "%s\n" "       selected which uses <STATEDIR>/dkml/_opam, and unless [-s] [-u ON] is also" >&2
@@ -98,41 +86,30 @@ fi
 #
 #   Any arguments that can go in 'opam --somearg somecommand' should be processed here
 #   and added to OPAM_OPTS. We'll parse 'somecommand ...' options in a second getopts loop.
-PLATFORM=
-BUILDTYPE=
+DKMLPLATFORM=
 DISKUV_TOOLS_SWITCH=OFF
 STATEDIR=
 PREHOOK_SINGLE_EVAL=
 PREHOOK_DOUBLE_EVAL=
 TARGET_OPAMSWITCH=
-ADD_SWITCH_OPTS=OFF
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    USERMODE=OFF
-else
-    USERMODE=ON
-fi
+USERMODE=ON
 OPAMHOME=
 OCAMLVERSION_OR_HOME=
-while getopts ":h0:1:b:sp:t:d:u:o:v:" opt; do
+while getopts ":h0:1:sp:t:d:u:o:v:" opt; do
     case ${opt} in
         h )
             usage
             exit 0
         ;;
         p )
-            PLATFORM=$OPTARG
-            if [ ! "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ] && [ "$PLATFORM" = dev ]; then
+            DKMLPLATFORM=$OPTARG
+            if [ "$DKMLPLATFORM" = dev ]; then
                 usage
                 exit 0
             fi
         ;;
-        b )
-            BUILDTYPE=$OPTARG
-            ADD_SWITCH_OPTS=ON
-        ;;
         s )
             DISKUV_TOOLS_SWITCH=ON
-            ADD_SWITCH_OPTS=ON
         ;;
         d )
             STATEDIR=$OPTARG
@@ -143,7 +120,6 @@ while getopts ":h0:1:b:sp:t:d:u:o:v:" opt; do
         ;;
         t )
             TARGET_OPAMSWITCH=$OPTARG
-            ADD_SWITCH_OPTS=ON
         ;;
         o ) OPAMHOME=$OPTARG ;;
         v ) OCAMLVERSION_OR_HOME=$OPTARG ;;
@@ -162,25 +138,18 @@ while getopts ":h0:1:b:sp:t:d:u:o:v:" opt; do
 done
 shift $((OPTIND -1))
 
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    if [ -z "$PLATFORM" ] && [ "$DISKUV_TOOLS_SWITCH" = OFF ]; then
-        usage
-        exit 1
-    fi
-else
-    if [ -z "$STATEDIR" ] && cmake_flag_off "$USERMODE"; then
-        usage
-        exit 1
-    fi
-    if [ "$DISKUV_TOOLS_SWITCH" = ON ] && [ -z "${PLATFORM:-}" ]; then
-        printf "Missing -p DKMLPLATFORM option when -s chosen\n" >&2
-        usage
-        exit 1
-    fi
-    if [ "$DISKUV_TOOLS_SWITCH" = OFF ] && [ -z "$TARGET_OPAMSWITCH" ] && ! cmake_flag_off "$USERMODE"; then
-        usage
-        exit 1
-    fi
+if [ -z "$STATEDIR" ] && cmake_flag_off "$USERMODE"; then
+    usage
+    exit 1
+fi
+if [ -z "${DKMLPLATFORM:-}" ]; then
+    printf "Missing -p DKMLPLATFORM option\n" >&2
+    usage
+    exit 1
+fi
+if [ "$DISKUV_TOOLS_SWITCH" = OFF ] && [ -z "$TARGET_OPAMSWITCH" ] && ! cmake_flag_off "$USERMODE"; then
+    usage
+    exit 1
 fi
 
 if [ "${1:-}" = "--" ]; then # supports `platform-opam-exec.sh ... -- --version`
@@ -195,29 +164,12 @@ if [ -x /usr/bin/cygpath ]; then
     if [ -n "$OPAMHOME" ]; then OPAMHOME=$(/usr/bin/cygpath -am "$OPAMHOME"); fi
 fi
 
-# `dkml` is the host architecture, so use `dev` as its platform
-if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
-    if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-        PLATFORM=dev
-    fi
-fi
-
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    if [ -n "${BUILDTYPE:-}" ] || [ -n "${DKML_DUNE_BUILD_DIR:-}" ]; then
-        # shellcheck disable=SC1091
-        . "$DKMLDIR"/vendor/drc/unix/_common_build.sh
-    else
-        # shellcheck disable=SC1091
-        . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
-    fi
+if [ -n "${STATEDIR:-}" ]; then
+    # shellcheck disable=SC1091
+    . "$DKMLDIR"/vendor/drc/unix/_common_build.sh
 else
-    if [ -n "${STATEDIR:-}" ]; then
-        # shellcheck disable=SC1091
-        . "$DKMLDIR"/vendor/drc/unix/_common_build.sh
-    else
-        # shellcheck disable=SC1091
-        . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
-    fi
+    # shellcheck disable=SC1091
+    . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 fi
 
 # To be portable whether we build scripts in the container or not, we
@@ -271,16 +223,17 @@ autodetect_dkmlvars || true
 # Q: What if there was no switch but there was a root?
 # Ans: This section would be skipped, and the earlier `opam env --root yyy --set-root` would have captured the environment with its OPAM_ENV_STMT.
 
-# Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND if there is a switch specified
-if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
-    # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `dkml` switch
-    set_opamswitchdir_of_system "$PLATFORM"
-elif [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ] && [ -n "${DKML_DUNE_BUILD_DIR:-}" ]; then
-    # set --switch only if BUILDTYPE (translated into DKML_DUNE_BUILD_DIR) has been set
-    install -d "$DKML_DUNE_BUILD_DIR"
+# The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
+# switches. Whether the `dkml` switch is being created or being used, we need
+# to know where it is.
+#   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+#   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
+set_opamswitchdir_of_system "$DKMLPLATFORM"
 
-    # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
-    set_opamrootandswitchdir
+# Set or reset OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND if there is a switch specified
+if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
+    # Already set correctly above with 'set_opamswitchdir_of_system'
+    true
 elif [ -n "${STATEDIR:-}" ]; then
     # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
     set_opamrootandswitchdir
@@ -297,19 +250,10 @@ fi
 
 # We check if the switch exists before we add --switch. Otherwise `opam` will complain:
 #   [ERROR] The selected switch C:/source/xxx/build/dev/Debug is not installed.
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    if [ "$ADD_SWITCH_OPTS" = ON ] &&
-    [ -n "${OPAMSWITCHFINALDIR_BUILDHOST:-}" ] && [ -n "${OPAMSWITCHNAME_EXPAND:-}" ] &&
-    is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
-        OPAM_OPTS+=( --switch "$OPAMSWITCHNAME_EXPAND" )
-        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --switch "'$OPAMSWITCHNAME_EXPAND'" --set-root --set-switch || true'
-    fi
-else
-    if [ -n "${OPAMSWITCHFINALDIR_BUILDHOST:-}" ] && [ -n "${OPAMSWITCHNAME_EXPAND:-}" ] &&
-    is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
-        OPAM_OPTS+=( --switch "$OPAMSWITCHNAME_EXPAND" )
-        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --switch "'$OPAMSWITCHNAME_EXPAND'" --set-root --set-switch || true'
-    fi
+if [ -n "${OPAMSWITCHFINALDIR_BUILDHOST:-}" ] && [ -n "${OPAMSWITCHNAME_EXPAND:-}" ] &&
+is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
+    OPAM_OPTS+=( --switch "$OPAMSWITCHNAME_EXPAND" )
+    OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --switch "'$OPAMSWITCHNAME_EXPAND'" --set-root --set-switch || true'
 fi
 
 # END --switch
