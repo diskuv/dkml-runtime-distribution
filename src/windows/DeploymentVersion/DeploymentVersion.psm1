@@ -82,9 +82,16 @@ function DV_MSYS2PackagesAbi {
             "mingw-w64-clang-x86_64-ag"
         )
     } elseif ("$DkmlHostAbi" -eq "windows_x86") {
-        @(
-            "mingw-w64-clang-i686-ag"
-        )
+        # `mingw-w64-clang-i686-ag` is not available if we install it in
+        # the old 32-bit MSYS2:
+        #   error: target not found: mingw-w64-clang-i686-ag
+        if ([Environment]::Is64BitOperatingSystem) {
+            @(
+                "mingw-w64-clang-i686-ag"
+            )
+        } else {
+            @()
+        }
     }
 }
 Export-ModuleMember -Function DV_MSYS2PackagesAbi
