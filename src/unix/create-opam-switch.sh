@@ -125,7 +125,7 @@ usage() {
     printf "%s\n" "  Will set switch options pin package versions needed to compile on Windows." >&2
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    create-opam-switch.sh -h                          Display this help message" >&2
-    printf "%s\n" "    create-opam-switch.sh -u OFF|ON [-b BUILDTYPE]    Create the Opam switch." >&2
+    printf "%s\n" "    create-opam-switch.sh -u OFF|ON -p DKMLPLATFORM   Create the Opam switch." >&2
     printf "%s\n" "                                                      If an OCaml home is specified with the -v option, then the" >&2
     printf "%s\n" "                                                      switch will have a 'system' OCaml compiler that uses OCaml from the" >&2
     printf "%s\n" "                                                      PATH. If an OCaml version is specified with the -v option, and the" >&2
@@ -290,7 +290,7 @@ while getopts ":hb:p:sd:u:o:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$USERMODE" ]; then
+if [ -z "$DKMLPLATFORM" ] || [ -z "$USERMODE" ]; then
     usage
     exit 1
 fi
@@ -412,76 +412,60 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
         Release*) BUILD_DEBUG=OFF; BUILD_RELEASE=ON ;;
         *) BUILD_DEBUG=OFF; BUILD_RELEASE=OFF
     esac
-    if [ -n "$DKMLPLATFORM" ]; then
-        # We'll set compiler options to:
-        # * use static builds for Linux platforms running in a (musl-based Alpine) container
-        # * use flambda optimization if a `Release*` build type
-        #
-        # Setting compiler options via environment variables (like CC and LIBS) has been available since 4.8.0 (https://github.com/ocaml/ocaml/pull/1840)
-        # but still has problems even as of 4.10.0 (https://github.com/ocaml/ocaml/issues/8648).
-        #
-        # The following has some of the compiler options we might use for `macos`, `linux` and `windows`:
-        #   https://github.com/ocaml/opam-repository/blob/bfc07c20d6846fffa49c3c44735905af18969775/packages/ocaml-variants/ocaml-variants.4.12.0%2Boptions/opam#L17-L47
-        #
-        # The following is for `macos`, `android` and `ios`:
-        #   https://github.com/EduardoRFS/reason-mobile/tree/master/sysroot
-        #
-        # Notes:
-        # * `ocaml-option-musl` has a good defaults for embedded systems. But we don't want to optimize for size on a non-embedded system.
-        #   Since we have fine grained information about whether we are on a tiny system (ie. ARM 32-bit) we set the CFLAGS ourselves.
-        # * Advanced: You can use OCAMLPARAM through `opam config set ocamlparam` (https://github.com/ocaml/opam-repository/pull/16619) or
-        #   just set it in `within-dev.sh`.
-        # `is_reproducible_platform && case "$PLATFORM" in linux*) ... ;;` then
-        #     # NOTE 2021/08/04: When this block is enabled we get the following error, which means the config is doing something that we don't know how to inspect ...
-        #
-        #     # === ERROR while compiling capnp.3.4.0 ========================================#
-        #     # context     2.0.8 | linux/x86_64 | ocaml-option-static.1 ocaml-variants.4.12.0+options | https://opam.ocaml.org#8b7c0fed
-        #     # path        /work/build/linux_x86_64/Debug/_opam/.opam-switch/build/capnp.3.4.0
-        #     # command     /work/build/linux_x86_64/Debug/_opam/bin/dune build -p capnp -j 5
-        #     # exit-code   1
-        #     # env-file    /work/build/_tools/linux_x86_64/opam-root/log/capnp-1-ebe0e0.env
-        #     # output-file /work/build/_tools/linux_x86_64/opam-root/log/capnp-1-ebe0e0.out
-        #     # ## output ###
-        #     # [...]
-        #     # /work/build/linux_x86_64/Debug/_opam/.opam-switch/build/stdint.0.7.0/_build/default/lib/uint56_conv.c:172: undefined reference to `get_uint128'
-        #     # /usr/lib/gcc/x86_64-alpine-linux-musl/10.3.1/../../../../x86_64-alpine-linux-musl/bin/ld: /work/build/linux_x86_64/Debug/_opam/lib/stdint/libstdint_stubs.a(uint64_conv.o): in function `uint64_of_int128':
-        #     # /work/build/linux_x86_64/Debug/_opam/.opam-switch/build/stdint.0.7.0/_build/default/lib/uint64_conv.c:111: undefined reference to `get_int128'
-        #
-        #     # NOTE 2021/08/03: `ocaml-option-static` seems to do nothing. No difference when running `dune printenv --verbose`
-        #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-static
-        # fi
-        case "$DKMLPLATFORM" in
-            windows_*)    TARGET_LINUXARM32=OFF ;;
-            linux_arm32*) TARGET_LINUXARM32=ON ;;
-            *)            TARGET_LINUXARM32=OFF
-        esac
-        case "$DKMLPLATFORM" in
-            *_x86 | linux_arm32*) TARGET_32BIT=ON ;;
-            *) TARGET_32BIT=OFF
-        esac
-        case "$DKMLPLATFORM" in
-            linux_x86_64) TARGET_CANENABLEFRAMEPOINTER=ON ;;
-            *) TARGET_CANENABLEFRAMEPOINTER=OFF
-        esac
+    # We'll set compiler options to:
+    # * use static builds for Linux platforms running in a (musl-based Alpine) container
+    # * use flambda optimization if a `Release*` build type
+    #
+    # Setting compiler options via environment variables (like CC and LIBS) has been available since 4.8.0 (https://github.com/ocaml/ocaml/pull/1840)
+    # but still has problems even as of 4.10.0 (https://github.com/ocaml/ocaml/issues/8648).
+    #
+    # The following has some of the compiler options we might use for `macos`, `linux` and `windows`:
+    #   https://github.com/ocaml/opam-repository/blob/bfc07c20d6846fffa49c3c44735905af18969775/packages/ocaml-variants/ocaml-variants.4.12.0%2Boptions/opam#L17-L47
+    #
+    # The following is for `macos`, `android` and `ios`:
+    #   https://github.com/EduardoRFS/reason-mobile/tree/master/sysroot
+    #
+    # Notes:
+    # * `ocaml-option-musl` has a good defaults for embedded systems. But we don't want to optimize for size on a non-embedded system.
+    #   Since we have fine grained information about whether we are on a tiny system (ie. ARM 32-bit) we set the CFLAGS ourselves.
+    # * Advanced: You can use OCAMLPARAM through `opam config set ocamlparam` (https://github.com/ocaml/opam-repository/pull/16619) or
+    #   just set it in `within-dev.sh`.
+    # `is_reproducible_platform && case "$PLATFORM" in linux*) ... ;;` then
+    #     # NOTE 2021/08/04: When this block is enabled we get the following error, which means the config is doing something that we don't know how to inspect ...
+    #
+    #     # === ERROR while compiling capnp.3.4.0 ========================================#
+    #     # context     2.0.8 | linux/x86_64 | ocaml-option-static.1 ocaml-variants.4.12.0+options | https://opam.ocaml.org#8b7c0fed
+    #     # path        /work/build/linux_x86_64/Debug/_opam/.opam-switch/build/capnp.3.4.0
+    #     # command     /work/build/linux_x86_64/Debug/_opam/bin/dune build -p capnp -j 5
+    #     # exit-code   1
+    #     # env-file    /work/build/_tools/linux_x86_64/opam-root/log/capnp-1-ebe0e0.env
+    #     # output-file /work/build/_tools/linux_x86_64/opam-root/log/capnp-1-ebe0e0.out
+    #     # ## output ###
+    #     # [...]
+    #     # /work/build/linux_x86_64/Debug/_opam/.opam-switch/build/stdint.0.7.0/_build/default/lib/uint56_conv.c:172: undefined reference to `get_uint128'
+    #     # /usr/lib/gcc/x86_64-alpine-linux-musl/10.3.1/../../../../x86_64-alpine-linux-musl/bin/ld: /work/build/linux_x86_64/Debug/_opam/lib/stdint/libstdint_stubs.a(uint64_conv.o): in function `uint64_of_int128':
+    #     # /work/build/linux_x86_64/Debug/_opam/.opam-switch/build/stdint.0.7.0/_build/default/lib/uint64_conv.c:111: undefined reference to `get_int128'
+    #
+    #     # NOTE 2021/08/03: `ocaml-option-static` seems to do nothing. No difference when running `dune printenv --verbose`
+    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-static
+    # fi
+    case "$DKMLPLATFORM" in
+        windows_*)    TARGET_LINUXARM32=OFF ;;
+        linux_arm32*) TARGET_LINUXARM32=ON ;;
+        *)            TARGET_LINUXARM32=OFF
+    esac
+    case "$DKMLPLATFORM" in
+        *_x86 | linux_arm32*) TARGET_32BIT=ON ;;
+        *) TARGET_32BIT=OFF
+    esac
+    case "$DKMLPLATFORM" in
+        linux_x86_64) TARGET_CANENABLEFRAMEPOINTER=ON ;;
+        *) TARGET_CANENABLEFRAMEPOINTER=OFF
+    esac
 
-        if [ $TARGET_LINUXARM32 = ON ]; then
-            # -Os optimizes for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
-            OPAM_SWITCH_CFLAGS="${OPAM_SWITCH_CFLAGS:-} -Os"
-        fi
-    else
-        if [ "$DKML_COMPILE_CM_CMAKE_SYSTEM_NAME" = Linux ] && [ "$DKML_COMPILE_CM_CMAKE_SIZEOF_VOID_P" -eq 8 ]; then
-            case "$DKML_COMPILE_CM_CMAKE_C_COMPILER_ID" in
-                Clang | GNU) TARGET_CANENABLEFRAMEPOINTER=ON ;; # _not_ AppleClang
-                *) TARGET_CANENABLEFRAMEPOINTER=OFF ;;
-            esac
-        else
-            TARGET_CANENABLEFRAMEPOINTER=OFF
-        fi
-        if [ "$DKML_COMPILE_CM_CMAKE_SIZEOF_VOID_P" -eq 4 ]; then
-            TARGET_32BIT=ON
-        else
-            TARGET_32BIT=OFF
-        fi
+    if [ $TARGET_LINUXARM32 = ON ]; then
+        # -Os optimizes for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
+        OPAM_SWITCH_CFLAGS="${OPAM_SWITCH_CFLAGS:-} -Os"
     fi
     if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
         # Frame pointer should be on in Debug mode.
@@ -530,7 +514,6 @@ if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
     # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, DKMLPLUGIN_BUILDHOST and WITHDKMLEXE_BUILDHOST
     # Set OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND of `dkml` switch
 
-    if [ -z "$DKMLPLATFORM" ]; then printf "%s\n" "FATAL: create-opam-switch check_state nonempty DKMLPLATFORM" >&2; exit 1; fi
     set_opamswitchdir_of_system "$DKMLPLATFORM"
     OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLPLATFORM' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
 else
