@@ -83,7 +83,7 @@ function DV_MSYS2PackagesAbi {
         )
     } elseif ("$DkmlHostAbi" -eq "windows_x86") {
         @(
-            "mingw-w64-clang-i686-ag"
+            "mingw-w64-i686-ag"
         )
     }
 }
