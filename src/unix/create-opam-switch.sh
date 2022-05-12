@@ -149,6 +149,7 @@ usage() {
     printf "%s\n" "        Release - Most optimal code. Should be faster than ReleaseCompat* builds" >&2
     printf "%s\n" "        ReleaseCompatPerf - Compatibility with 'perf' monitoring tool." >&2
     printf "%s\n" "        ReleaseCompatFuzz - Compatibility with 'afl' fuzzing tool." >&2
+    printf "%s\n" "       Ignored when -v OCAMLHOME is a OCaml home" >&2
     printf "%s\n" "    -t OPAMSWITCH: Create <OPAMSWITCH>/_opam as an Opam switch prefix when -u ON but not -s." >&2
     printf "%s\n" "       Optional when -d option supplied; defaults to <STATEDIR>/_opam" >&2
     printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
@@ -304,11 +305,6 @@ if [ "$USERMODE" = OFF ] && [ -z "$STATEDIR" ] && [ "$DISKUV_TOOLS_SWITCH" = OFF
     printf "FATAL: Missing -d STATEDIR or -s\n" >&2
     exit 1
 fi
-if [ -z "$BUILDTYPE" ] && [ -z "${DKML_COMPILE_CM_CMAKE_SIZEOF_VOID_P:-}" ]; then
-    usage
-    printf "FATAL: Missing -b BUILDTYPE\n" >&2
-    exit 1
-fi
 if [ -z "${TARGET_OPAMSWITCH:-}" ] && [ -n "$STATEDIR" ]; then
     TARGET_OPAMSWITCH="$STATEDIR"
 fi
@@ -376,6 +372,11 @@ case "$OCAMLVERSION_OR_HOME_UNIX" in
     *)
         OCAMLVERSION="$OCAMLVERSION_OR_HOME"
         BUILD_OCAML_BASE=ON
+        if [ -z "$BUILDTYPE" ]; then
+            usage
+            printf "FATAL: Missing -b BUILDTYPE. Required except when -v OCAMLHOME is specified and contains usr/bin/ocaml or bin/ocaml\n" >&2
+            exit 1
+        fi
         ;;
 esac
 
