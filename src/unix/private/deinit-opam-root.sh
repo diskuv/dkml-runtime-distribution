@@ -84,6 +84,16 @@ case "$dkml_root_version" in
             clear
         fi
         ;;
+    0.4.0*)
+        # $env:USERPROFILE/.opam/diskuv-boot-DO-NOT-DELETE switch is no longer used
+        if [ -n "${USERPROFILE:-}" ] && [ -e "${USERPROFILE:-}/.opam/diskuv-boot-DO-NOT-DELETE" ]; then
+            "$OPAMEXE" switch remove --root "${USERPROFILE:-}"/.opam --yes diskuv-boot-DO-NOT-DELETE
+        fi
+        # $env:LOCALAPPDATA/.opam/diskuv-boot-DO-NOT-DELETE switch is no longer used
+        if [ -n "${LOCALAPPDATA:-}" ] && [ -e "${LOCALAPPDATA:-}/.opam/diskuv-boot-DO-NOT-DELETE" ]; then
+            "$OPAMEXE" switch remove --root "${LOCALAPPDATA:-}"/.opam --yes diskuv-boot-DO-NOT-DELETE
+        fi
+        ;;
 esac
 
 # END Version Cleanup
