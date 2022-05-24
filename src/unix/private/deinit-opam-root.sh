@@ -3,12 +3,47 @@
 # deinit-opam-root.sh PLATFORM
 #
 # Purpose:
-# 1. Unregister former Opam roots from previous installs
-#
-# Prerequisites: A working build/_tools/common/ directory.
+# 1. Unregister former Opam roots and switches from previous installs
 #
 # -------------------------------------------------------
 set -euf
+
+# ------------------
+# BEGIN Command line processing
+
+usage() {
+    printf "%s\n" "Usage:" >&2
+    printf "%s\n" "    deinit-opam-root.sh -h                   Display this help message" >&2
+    printf "%s\n" "Options:" >&2
+    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam-real or bin/opam" >&2
+}
+
+# shellcheck disable=SC2034
+USERMODE=ON
+# shellcheck disable=SC2034
+STATEDIR=
+OPAMHOME=
+while getopts ":ho:" opt; do
+    case ${opt} in
+        h )
+            usage
+            exit 0
+        ;;
+        o )
+            # shellcheck disable=SC2034
+            OPAMHOME=$OPTARG
+            ;;
+        \? )
+            printf "%s\n" "This is not an option: -$OPTARG" >&2
+            usage
+            exit 1
+        ;;
+    esac
+done
+shift $((OPTIND -1))
+
+# END Command line processing
+# ------------------
 
 DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
@@ -16,10 +51,6 @@ DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 # Need feature flag and usermode and statedir until all legacy code is removed in _common_tool.sh
 # shellcheck disable=SC2034
 DKML_FEATUREFLAG_CMAKE_PLATFORM=ON
-# shellcheck disable=SC2034
-USERMODE=ON
-# shellcheck disable=SC2034
-STATEDIR=
 
 # shellcheck disable=SC1091
 . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
@@ -35,7 +66,7 @@ cd "$TOPDIR"
 # ---------------------
 # BEGIN Version Cleanup
 
-# Set OPAMEXE
+# Set OPAMEXE which uses OPAMHOME
 set_opamexe
 
 uninstall_opam_root() {
@@ -92,6 +123,10 @@ case "$dkml_root_version" in
         # $env:LOCALAPPDATA/.opam/diskuv-boot-DO-NOT-DELETE switch is no longer used
         if [ -n "${LOCALAPPDATA:-}" ] && [ -e "${LOCALAPPDATA:-}/.opam/diskuv-boot-DO-NOT-DELETE" ]; then
             "$OPAMEXE" switch remove --root "${LOCALAPPDATA:-}"/.opam --yes diskuv-boot-DO-NOT-DELETE
+        fi
+        # $env:LOCALAPPDATA/opam/diskuv-boot-DO-NOT-DELETE switch is no longer used
+        if [ -n "${LOCALAPPDATA:-}" ] && [ -e "${LOCALAPPDATA:-}/opam/diskuv-boot-DO-NOT-DELETE" ]; then
+            "$OPAMEXE" switch remove --root "${LOCALAPPDATA:-}"/opam --yes diskuv-boot-DO-NOT-DELETE
         fi
         ;;
 esac
