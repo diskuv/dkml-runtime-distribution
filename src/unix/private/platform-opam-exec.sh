@@ -47,7 +47,7 @@ usage() {
     printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
     printf "%s\n" "       Defaults to ON; ie. using Opam 2.2+ default root." >&2
     printf "%s\n" "       Also affects the Opam switches; see [-d STATEDIR] option" >&2
-    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam or bin/opam.exe." >&2
+    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       The bin/ subdir of the Opam home is added to the PATH" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing bin/ocaml) to use." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2

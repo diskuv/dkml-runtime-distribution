@@ -35,9 +35,12 @@ cd "$TOPDIR"
 # ---------------------
 # BEGIN Version Cleanup
 
+# Set OPAMEXE
+set_opamexe
+
 uninstall_opam_root() {
     uninstall_opam_root_OLDOPAMROOT="$1"
-    opam switch list --root "$uninstall_opam_root_OLDOPAMROOT" --short > "$WORK"/list
+    "$OPAMEXE" switch list --root "$uninstall_opam_root_OLDOPAMROOT" --short > "$WORK"/list
     while IFS= read -r sw
     do
         trimmed_switch=$(printf "%s" "$sw" | awk 'NF>0{print $1}')
@@ -62,7 +65,7 @@ uninstall_opam_root() {
             exit 1
             ;;
         esac
-        opam switch remove --root "$uninstall_opam_root_OLDOPAMROOT" --yes "$trimmed_switch"
+        "$OPAMEXE" switch remove --root "$uninstall_opam_root_OLDOPAMROOT" --yes "$trimmed_switch"
     done < "$WORK"/list
     rm -rf "$uninstall_opam_root_OLDOPAMROOT"
 }
