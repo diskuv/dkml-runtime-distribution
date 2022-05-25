@@ -17,15 +17,12 @@ shift
 INSTALLDIR=$1
 shift
 
-# shellcheck disable=SC2034
-PLATFORM=dev # not actually in the dev platform but we are just pulling the "common" tool functions (so we can choose whatever platform we like)
-
 # Because Cygwin has a max 260 character limit of absolute file names, we place the working directories in /tmp. We do not need it
 # relative to TOPDIR since we are not using sandboxes.
 TMPPARENTDIR_BUILDHOST=$(mktemp -d /tmp/dkmlp.XXXXX)
 
 # shellcheck disable=SC1091
-. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
+. "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
 
 # Keep the _common_tool provided temporary directory, even when we switch into the reproducible directory
 # so the reproducible directory does not leak anything

@@ -104,11 +104,8 @@ fi
 # END Command line processing
 # ------------------
 
-# shellcheck disable=SC2034
-PLATFORM=dev # not actually in the dev platform but we are just pulling the "common" tool functions (so we can choose whatever platform we like)
-
 # shellcheck disable=SC1091
-. "$DKMLDIR/vendor/drc/unix/_common_tool.sh"
+. "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
 
 disambiguate_filesystem_paths
 
