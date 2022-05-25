@@ -321,8 +321,6 @@ if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not embedded within
 # `dkml` is the host architecture, so use `dev` as its platform
 if [ -n "$STATEDIR" ]; then
     # shellcheck disable=SC2034
-    DKML_DUNE_BUILD_DIR="." # build directory will be the same as TOPDIR, not build/dev/Debug
-    # shellcheck disable=SC2034
     TOPDIR="$STATEDIR"
 fi
 
