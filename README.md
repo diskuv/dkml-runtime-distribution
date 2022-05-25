@@ -1,4 +1,4 @@
-# dkml-runtime-distribution 0.4.0-prerel47
+# dkml-runtime-distribution 0.4.0-prerel48
 
 Scripts used by the Diskuv OCaml distribution during the installation of:
 * a local project (ie. a Opam switch created with `opam dkml init`)
