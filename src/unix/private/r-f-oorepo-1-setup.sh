@@ -121,6 +121,9 @@ fi
 # shellcheck disable=SC1091
 . "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
 
+# Make a WORK dir
+create_workdir
+
 disambiguate_filesystem_paths
 
 # Bootstrapping vars
