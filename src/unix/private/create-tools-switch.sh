@@ -4,7 +4,7 @@
 #
 # Purpose:
 # 1. Make or upgrade an Opam switch tied to the current installation of Diskuv OCaml and the
-#    current DKMLPLATFORM.
+#    current DKMLABI.
 # 2. Not touch any existing installations of Diskuv OCaml (if blue-green deployments are enabled)
 #
 # When invoked?
@@ -20,13 +20,13 @@ set -euf
 usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    create-tools-switch.sh -h           Display this help message" >&2
-    printf "%s\n" "    create-tools-switch.sh -p DKMLPLATFORM              Create the Diskuv system switch" >&2
+    printf "%s\n" "    create-tools-switch.sh -p DKMLABI              Create the Diskuv system switch" >&2
     printf "%s\n" "                                                        at <DiskuvOCamlHome>/dkml on Windows or" >&2
     printf "%s\n" "                                                        <OPAMROOT>/dkml/_opam on non-Windows" >&2
-    printf "%s\n" "    create-tools-switch.sh -d STATEDIR -p DKMLPLATFORM  Create the Diskuv system switch" >&2
+    printf "%s\n" "    create-tools-switch.sh -d STATEDIR -p DKMLABI  Create the Diskuv system switch" >&2
     printf "%s\n" "                                                        at <STATEDIR>/dkml" >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform for the tools" >&2
+    printf "%s\n" "    -p DKMLABI: The DKML ABI for the tools" >&2
     printf "%s\n" "    -d STATEDIR: If specified and -u ON enabled, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
     printf "%s\n" "       If ON, uses Opam 2.2+ default root" >&2
@@ -44,7 +44,7 @@ USERMODE=ON
 OCAMLVERSION_OR_HOME=
 OPAMHOME=
 FLAVOR=CI
-DKMLPLATFORM=
+DKMLABI=
 EXTRAPKGS=
 while getopts ":hd:u:o:p:v:f:a:" opt; do
     case ${opt} in
@@ -63,8 +63,8 @@ while getopts ":hd:u:o:p:v:f:a:" opt; do
         ;;
         o ) OPAMHOME=$OPTARG ;;
         p )
-            DKMLPLATFORM=$OPTARG
-            if [ "$DKMLPLATFORM" = dev ]; then
+            DKMLABI=$OPTARG
+            if [ "$DKMLABI" = dev ]; then
                 usage
                 exit 0
             fi
@@ -97,8 +97,8 @@ shift $((OPTIND -1))
 # END Command line processing
 # ------------------
 
-if [ -z "$DKMLPLATFORM" ]; then
-    printf "Must specify -p DKMLPLATFORM option\n" >&2
+if [ -z "$DKMLABI" ]; then
+    printf "Must specify -p DKMLABI option\n" >&2
     usage
     exit 1
 fi
@@ -141,7 +141,7 @@ get_ocamlver() {
 }
 
 # Just the OCaml compiler
-log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -d "$STATEDIR" -u "$USERMODE" -p "$DKMLPLATFORM"
+log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -d "$STATEDIR" -u "$USERMODE" -p "$DKMLABI"
 
 # Flavor packages
 {
@@ -163,7 +163,7 @@ log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLV
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac
 } > "$WORK"/config-dkml.sh
-log_shell "$WORK"/config-dkml.sh -d "$STATEDIR" -u "$USERMODE" -p "$DKMLPLATFORM"
+log_shell "$WORK"/config-dkml.sh -d "$STATEDIR" -u "$USERMODE" -p "$DKMLABI"
 
 # END create system switch
 # -----------------------

@@ -31,11 +31,11 @@ usage() {
     printf "%s\n" "    create-boot-switch.sh      Create the Opam switch." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam or bin/opam.exe" >&2
-    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'); must be present if -s option since part of the switch name" >&2
+    printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev'); must be present if -s option since part of the switch name" >&2
 }
 
 OPAMHOME=
-DKMLPLATFORM=
+DKMLABI=
 while getopts ":o:p:h" opt; do
     case ${opt} in
         h )
@@ -44,8 +44,8 @@ while getopts ":o:p:h" opt; do
         ;;
         o ) OPAMHOME=$OPTARG ;;
         p )
-            DKMLPLATFORM=$OPTARG
-            if [ "$DKMLPLATFORM" = dev ]; then
+            DKMLABI=$OPTARG
+            if [ "$DKMLABI" = dev ]; then
                 usage
                 exit 0
             fi
@@ -59,7 +59,7 @@ while getopts ":o:p:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLPLATFORM" ]; then
+if [ -z "$DKMLABI" ]; then
     usage
     exit 1
 fi
@@ -93,7 +93,7 @@ cd "$TOPDIR"
 # BEGIN opam switch create  --empty
 
 run_opam() {
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -u "$USERMODE" -d "$STATEDIR" -s -p "$DKMLPLATFORM" -o "$OPAMHOME" "$@"
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -u "$USERMODE" -d "$STATEDIR" -s -p "$DKMLABI" -o "$OPAMHOME" "$@"
 }
 
 # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND

@@ -125,7 +125,7 @@ usage() {
     printf "%s\n" "  Will set switch options pin package versions needed to compile on Windows." >&2
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    create-opam-switch.sh -h                          Display this help message" >&2
-    printf "%s\n" "    create-opam-switch.sh -u OFF|ON -p DKMLPLATFORM   Create the Opam switch." >&2
+    printf "%s\n" "    create-opam-switch.sh -u OFF|ON -p DKMLABI   Create the Opam switch." >&2
     printf "%s\n" "                                                      If an OCaml home is specified with the -v option, then the" >&2
     printf "%s\n" "                                                      switch will have a 'system' OCaml compiler that uses OCaml from the" >&2
     printf "%s\n" "                                                      PATH. If an OCaml version is specified with the -v option, and the" >&2
@@ -137,7 +137,7 @@ usage() {
     printf "%s\n" "                                                      create and use an OCaml home. DKSDK will also supply variables so that the" >&2
     printf "%s\n" "                                                      -b option is not needed; otherwise -b option is required." >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev'). Determines how to make an OCaml home if a version number is specified" >&2
+    printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev'). Determines how to make an OCaml home if a version number is specified" >&2
     printf "%s\n" "       (or nothing) using -v option. Also part of the name for the dkml switch if -s option" >&2
     printf "%s\n" "    -d STATEDIR: Create <STATEDIR>/_opam as an Opam switch prefix, unless [-s] is also" >&2
     printf "%s\n" "        selected which creates <STATEDIR>/dkml, and unless [-s] [-u ON] is also" >&2
@@ -225,7 +225,7 @@ YES=OFF
 USERMODE=ON
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
 OPAMHOME=
-DKMLPLATFORM=
+DKMLABI=
 EXTRAPATH=
 EXTRAREPOCMDS=
 HOOK_POSTCREATE=
@@ -240,8 +240,8 @@ while getopts ":hb:p:sd:u:o:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
             exit 0
         ;;
         p )
-            DKMLPLATFORM=$OPTARG
-            if [ "$DKMLPLATFORM" = dev ]; then
+            DKMLABI=$OPTARG
+            if [ "$DKMLABI" = dev ]; then
                 usage
                 exit 0
             fi
@@ -291,7 +291,7 @@ while getopts ":hb:p:sd:u:o:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLPLATFORM" ] || [ -z "$USERMODE" ]; then
+if [ -z "$DKMLABI" ] || [ -z "$USERMODE" ]; then
     usage
     exit 1
 fi
@@ -448,16 +448,16 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     #     # NOTE 2021/08/03: `ocaml-option-static` seems to do nothing. No difference when running `dune printenv --verbose`
     #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-static
     # fi
-    case "$DKMLPLATFORM" in
+    case "$DKMLABI" in
         windows_*)    TARGET_LINUXARM32=OFF ;;
         linux_arm32*) TARGET_LINUXARM32=ON ;;
         *)            TARGET_LINUXARM32=OFF
     esac
-    case "$DKMLPLATFORM" in
+    case "$DKMLABI" in
         *_x86 | linux_arm32*) TARGET_32BIT=ON ;;
         *) TARGET_32BIT=OFF
     esac
-    case "$DKMLPLATFORM" in
+    case "$DKMLABI" in
         linux_x86_64) TARGET_CANENABLEFRAMEPOINTER=ON ;;
         *) TARGET_CANENABLEFRAMEPOINTER=OFF
     esac
@@ -512,17 +512,17 @@ fi
 # to know where it is.
 #   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
 #   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
-set_opamswitchdir_of_system "$DKMLPLATFORM"
+set_opamswitchdir_of_system "$DKMLABI"
 
 # Make launchers for opam switch create <...> and for opam <...>
 if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
-    OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLPLATFORM' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLABI' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
 else
     # (Re-)Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_BUILDHOST, OPAMSWITCHNAME_EXPAND, OPAMSWITCHISGLOBAL
     # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
     set_opamrootandswitchdir
 
-    OPAM_EXEC_OPTS=" -p '$DKMLPLATFORM' -d '$STATEDIR' -t '$TARGET_OPAMSWITCH' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGET_OPAMSWITCH' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
 fi
 printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh
@@ -621,7 +621,7 @@ if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "  --debug-level 2 \\
     printf "%s\n" "export OPAMSWITCH="
     printf "%s\n" "export OPAM_SWITCH_PREFIX="
     if [ -n "${OPAM_SWITCH_CFLAGS:-}" ]; then printf "export CFLAGS=\"\${CFLAGS:-} \""; escape_string_for_shell "$OPAM_SWITCH_CFLAGS"; printf "\n"; fi
-    printf "exec env DKMLDIR='%s' DKML_TARGET_ABI='%s' '%s' \"\$@\"\n" "$DKMLDIR" "$DKMLPLATFORM" "$DKMLDIR/vendor/dkml-compiler/src/standard-compiler-env-to-ocaml-configure-launcher.sh"
+    printf "exec env DKMLDIR='%s' DKML_TARGET_ABI='%s' '%s' \"\$@\"\n" "$DKMLDIR" "$DKMLABI" "$DKMLDIR/vendor/dkml-compiler/src/standard-compiler-env-to-ocaml-configure-launcher.sh"
 } > "$WORK"/switch-create-prehook.sh
 chmod +x "$WORK"/switch-create-prehook.sh
 

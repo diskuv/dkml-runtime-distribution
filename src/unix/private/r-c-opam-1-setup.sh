@@ -21,7 +21,7 @@
 #   build files.
 #
 ######################################
-# r-c-opam-1-setup.sh -d DKMLDIR -t TARGETDIR -g GIT_COMMITID_TAG_OR_DIR [-a DKMLPLATFORM]
+# r-c-opam-1-setup.sh -d DKMLDIR -t TARGETDIR -g GIT_COMMITID_TAG_OR_DIR [-a DKMLABI]
 #
 # Sets up the source code for a reproducible build of Opam
 
@@ -45,7 +45,7 @@ usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    r-c-opam-1-setup.sh" >&2
     printf "%s\n" "        -h                                       Display this help message." >&2
-    printf "%s\n" "        -d DIR -t DIR -v COMMIT -a DKMLPLATFORM  Setup compilation of Opam." >&2
+    printf "%s\n" "        -d DIR -t DIR -v COMMIT -a DKMLABI  Setup compilation of Opam." >&2
     printf "%s\n" "Options" >&2
     printf "%s\n" "   -d DIR: DKML directory containing a .dkmlroot file" >&2
     printf "%s\n" "   -t DIR: Target directory" >&2
@@ -53,7 +53,7 @@ usage() {
     printf "%s\n" "      commit id for much stronger reproducibility guarantees" >&2
     printf "%s\n" "   -u URL: Git repository url. Defaults to https://github.com/ocaml/opam. Unused if -v COMMIT is a" >&2
     printf "%s\n" "      directory" >&2
-    printf "%s\n" "   -a DKMLPLATFORM: Target platform for bootstrapping an OCaml compiler." >&2
+    printf "%s\n" "   -a DKMLABI: Target ABI for bootstrapping an OCaml compiler." >&2
     printf "%s\n" "      Ex. windows_x86, windows_x86_64" >&2
     printf "%s\n" "   -b PREF: The msvs-tools MSVS_PREFERENCE setting, needed only for Windows." >&2
     printf "%s\n" "      Defaults to '$OPT_MSVS_PREFERENCE' which, because it does not include '@'," >&2
@@ -69,7 +69,7 @@ GIT_URL=https://github.com/ocaml/opam
 GIT_COMMITID_TAG_OR_DIR=
 TARGETDIR=
 PRESERVEGIT=OFF
-DKMLPLATFORM=
+DKMLABI=
 while getopts ":d:u:v:t:a:b:c:e:h" opt; do
     case ${opt} in
         h )
@@ -104,7 +104,7 @@ while getopts ":d:u:v:t:a:b:c:e:h" opt; do
             SETUP_ARGS+=( -t . )
         ;;
         a )
-            DKMLPLATFORM="$OPTARG"
+            DKMLABI="$OPTARG"
             BUILD_ARGS+=( -a "$OPTARG" )
             SETUP_ARGS+=( -a "$OPTARG" )
         ;;
@@ -129,7 +129,7 @@ while getopts ":d:u:v:t:a:b:c:e:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLDIR" ] || [ -z "$GIT_COMMITID_TAG_OR_DIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DKMLPLATFORM" ]; then
+if [ -z "$DKMLDIR" ] || [ -z "$GIT_COMMITID_TAG_OR_DIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DKMLABI" ]; then
     printf "%s\n" "Missing required options" >&2
     usage
     exit 1
@@ -229,10 +229,10 @@ if [ ! -e "$OPAMSRC_UNIX"/shell/msvs-detect ] || [ ! -e "$OPAMSRC_UNIX"/shell/ms
             autodetect_buildhost_arch
             DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$BUILDHOST_ARCH autodetect_compiler --msvs-detect "$WORK"/msvs-detect
         else
-            DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$DKMLPLATFORM autodetect_compiler --msvs-detect "$WORK"/msvs-detect
+            DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$DKMLABI autodetect_compiler --msvs-detect "$WORK"/msvs-detect
         fi
     else
-        DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$DKMLPLATFORM autodetect_compiler --msvs-detect "$WORK"/msvs-detect
+        DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$DKMLABI autodetect_compiler --msvs-detect "$WORK"/msvs-detect
     fi
     install "$WORK"/msvs-detect "$OPAMSRC_UNIX"/shell/msvs-detect
     touch "$OPAMSRC_UNIX"/shell/msvs-detect.complete

@@ -22,20 +22,20 @@ DKMLDIR=$(cd "$DKMLDIR"/../../../../.. && pwd)
 usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    platform-opam-exec.sh -h                                     Display this help message" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -u ON -t OPAMSWITCH" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -u ON -t OPAMSWITCH" >&2
     printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the specified" >&2
     printf "%s\n" "                                                                 switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -s -u ON" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -s -u ON" >&2
     printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the global" >&2
     printf "%s\n" "                                                                 'dkml' switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -d STATEDIR [-u OFF]" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR [-u OFF]" >&2
     printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the local" >&2
     printf "%s\n" "                                                                 switch prefix of STATEDIR/_opam" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLPLATFORM -d STATEDIR -s [-u OFF]" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR -s [-u OFF]" >&2
     printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the local" >&2
     printf "%s\n" "                                                                 switch prefix of STATEDIR/dkml/_opam" >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev')" >&2
+    printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
     printf "%s\n" "    -s: Select the 'dkml' switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -t OPAMSWITCH: The target Opam switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/_opam as the Opam switch prefix, unless [-s] is also" >&2
@@ -86,7 +86,7 @@ fi
 #
 #   Any arguments that can go in 'opam --somearg somecommand' should be processed here
 #   and added to OPAM_OPTS. We'll parse 'somecommand ...' options in a second getopts loop.
-DKMLPLATFORM=
+DKMLABI=
 DISKUV_TOOLS_SWITCH=OFF
 STATEDIR=
 PREHOOK_SINGLE_EVAL=
@@ -102,8 +102,8 @@ while getopts ":h0:1:sp:t:d:u:o:v:" opt; do
             exit 0
         ;;
         p )
-            DKMLPLATFORM=$OPTARG
-            if [ "$DKMLPLATFORM" = dev ]; then
+            DKMLABI=$OPTARG
+            if [ "$DKMLABI" = dev ]; then
                 usage
                 exit 0
             fi
@@ -142,8 +142,8 @@ if [ -z "$STATEDIR" ] && cmake_flag_off "$USERMODE"; then
     usage
     exit 1
 fi
-if [ -z "${DKMLPLATFORM:-}" ]; then
-    printf "Missing -p DKMLPLATFORM option\n" >&2
+if [ -z "${DKMLABI:-}" ]; then
+    printf "Missing -p DKMLABI option\n" >&2
     usage
     exit 1
 fi
@@ -228,7 +228,7 @@ autodetect_dkmlvars || true
 # to know where it is.
 #   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
 #   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
-set_opamswitchdir_of_system "$DKMLPLATFORM"
+set_opamswitchdir_of_system "$DKMLABI"
 
 # Set or reset OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND if there is a switch specified
 if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
@@ -311,20 +311,20 @@ fi
 set +u # workaround bash 'unbound variable' triggered on empty arrays
 case "$subcommand" in
     help)
-        exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" help "$@"
+        exec_in_platform "$DKMLABI" "$OPAMEXE" help "$@"
     ;;
     init)
-        exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" init --root "$OPAMROOTDIR_EXPAND" "${OPAM_OPTS[@]}" "$@"
+        exec_in_platform "$DKMLABI" "$OPAMEXE" init --root "$OPAMROOTDIR_EXPAND" "${OPAM_OPTS[@]}" "$@"
     ;;
     list | option | repository | env)
-        exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+        exec_in_platform "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
     ;;
     switch)
         if [ "$1" = create ]; then
             # When a switch is created we need a commpiler
-            exec_in_platform -c "$OPAMEXE" "$DKMLPLATFORM" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform -c "$OPAMEXE" "$DKMLABI" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         else
-            exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         fi
     ;;
     install | upgrade | pin)
@@ -332,11 +332,11 @@ case "$subcommand" in
         if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
             # When we are upgrading / installing a package in the host tools switch, we must have a compiler so we can compile
             # with-dkml.exe
-            exec_in_platform -c "$OPAMEXE" "$DKMLPLATFORM" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform -c "$OPAMEXE" "$DKMLABI" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         else
             # When we are upgrading / installing a package in any other switch, we will have a with-dkml.exe wrapper to
             # provide the compiler
-            exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         fi
     ;;
     exec)
@@ -350,17 +350,17 @@ case "$subcommand" in
         if [ -e "$WITHDKMLEXE_BUILDHOST" ] && [ "${WITHDKML_ENABLE:-ON}" = ON ]; then
             if [ "$1" = "--" ]; then
                 shift
-                exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" -- "$WITHDKMLEXE_BUILDHOST" "$@"
+                exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" -- "$WITHDKMLEXE_BUILDHOST" "$@"
             else
-                exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$WITHDKMLEXE_BUILDHOST" "$@"
+                exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$WITHDKMLEXE_BUILDHOST" "$@"
             fi
         else
             # Since we do not yet have with-dkml.exe (ie. we are in the middle of a new installation / upgrade), supply the compiler as an
             # alternative so `opam exec -- dune build` works
-            exec_in_platform -c "$OPAMEXE" "$DKMLPLATFORM" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform -c "$OPAMEXE" "$DKMLABI" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         fi
     ;;
     *)
-        exec_in_platform "$DKMLPLATFORM" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+        exec_in_platform "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
     ;;
 esac

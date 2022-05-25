@@ -1,10 +1,10 @@
 #!/bin/sh
 # -------------------------------------------------------
-# init-opam-root.sh PLATFORM
+# init-opam-root.sh DKMLABI
 #
 # Purpose:
 # 1. Install an OPAMROOT (`opam init`) in $env:LOCALAPPDATA/opam or
-#    the PLATFORM's opam-root/ folder.
+#    the DKMLABI's opam-root/ folder.
 #
 # When invoked?
 # On Windows as part of `setup-userprofile.ps1`
@@ -22,12 +22,10 @@ set -euf
 usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    init-opam-root.sh -h                   Display this help message" >&2
-    printf "%s\n" "    init-opam-root.sh -p PLATFORM          (Deprecated) Initialize the Opam root" >&2
-    printf "%s\n" "    init-opam-root.sh [-d STATEDIR] -p DKMLPLATFORM  Initialize the Opam root" >&2
+    printf "%s\n" "    init-opam-root.sh [-d STATEDIR] -p DKMLABI  Initialize the Opam root" >&2
     printf "%s\n" "      Without '-d' the Opam root will be the Opam 2.2 default" >&2
     printf "%s\n" "Options:" >&2
-    printf "%s\n" "    -p PLATFORM: (Deprecated) The target platform or 'dev'" >&2
-    printf "%s\n" "    -p DKMLPLATFORM: The DKML platform (not 'dev')" >&2
+    printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam-real or bin/opam" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
@@ -37,13 +35,9 @@ usage() {
     printf "%s\n" "    -a Use local repository rather than git repository for diskuv-opam-repository. Requires rsync" >&2
 }
 
-PLATFORM=
+DKMLABI=
 STATEDIR=
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    USERMODE=OFF
-else
-    USERMODE=ON
-fi
+USERMODE=ON
 OPAMHOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
@@ -54,8 +48,8 @@ while getopts ":hp:d:o:v:a" opt; do
             exit 0
         ;;
         p )
-            PLATFORM=$OPTARG
-            if [ ! "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ] && [ "$PLATFORM" = dev ]; then
+            DKMLABI=$OPTARG
+            if [ "$DKMLABI" = dev ]; then
                 usage
                 exit 0
             fi
@@ -78,7 +72,7 @@ while getopts ":hp:d:o:v:a" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$PLATFORM" ]; then
+if [ -z "$DKMLABI" ]; then
     usage
     exit 1
 fi
@@ -220,15 +214,9 @@ fi
 # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND
 set_opamrootdir
 
-if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-    run_opamsys() {
-        log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s "$@" -p "$PLATFORM"
-    }
-else
-    run_opamsys() {
-        log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s  -p "$PLATFORM" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
-    }
-fi
+run_opamsys() {
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s  -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
+}
 
 # `opam init`.
 #
