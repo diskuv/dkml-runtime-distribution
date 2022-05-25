@@ -322,7 +322,7 @@ case "$subcommand" in
     switch)
         if [ "$1" = create ]; then
             # When a switch is created we need a commpiler
-            exec_in_platform -c "$OPAMEXE" "$DKMLABI" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform -c "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         else
             exec_in_platform "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         fi
@@ -332,7 +332,7 @@ case "$subcommand" in
         if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
             # When we are upgrading / installing a package in the host tools switch, we must have a compiler so we can compile
             # with-dkml.exe
-            exec_in_platform -c "$OPAMEXE" "$DKMLABI" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform -c "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         else
             # When we are upgrading / installing a package in any other switch, we will have a with-dkml.exe wrapper to
             # provide the compiler
@@ -357,7 +357,7 @@ case "$subcommand" in
         else
             # Since we do not yet have with-dkml.exe (ie. we are in the middle of a new installation / upgrade), supply the compiler as an
             # alternative so `opam exec -- dune build` works
-            exec_in_platform -c "$OPAMEXE" "$DKMLABI" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+            exec_in_platform -c "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         fi
     ;;
     *)
