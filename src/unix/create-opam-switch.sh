@@ -676,9 +676,14 @@ else
         log_shell "$WORK"/setrepos.sh
 
         {
-            cat "$WORK"/nonswitchexec.sh
+            printf "ec=0\n"
+            cat "$WORK"/nonswitchcall.sh
             printf "%s" "  update"
             if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+            # Bizarrely opam 2.1.0 on macOS can return exit code 40 (Sync error) when there
+            # are no sync changes. So both 0 and 40 are successes.
+            printf " || ec=\$?\n"
+            printf "%s\n" "if [ \$ec -eq 40 ] || [ \$ec -eq 0 ]; then exit 0; fi; exit \$ec"
         } > "$WORK"/update.sh
         log_shell "$WORK"/update.sh
     fi
