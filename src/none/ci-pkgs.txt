@@ -41,7 +41,7 @@ ocaml-config.3
 
 # Dune is needed to compile dkml-findup.exe
 # dune-* must be compatible with Dune
-dune.2.9.3
+dune.2.9.3+win32shim
 dune-action-plugin.2.9.3
 dune-glob.2.9.3
 dune-private-libs.2.9.3
