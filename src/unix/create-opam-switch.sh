@@ -37,7 +37,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     ocamlbuild,0.14.0
     ppx_expect,v0.14.1
 
-    dkml-c-probe,2.0.0~prerel2
+    dkml-c-probe,2.0.0~prerel3
     dkml-apps,0.4.0~prerel53
     opam-dkml,0.4.0~prerel53
     "
