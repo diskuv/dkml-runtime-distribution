@@ -2,7 +2,7 @@
 # the "dkml" system switch.
 
 # Each package must go into either:
-# 1. PINNED_PACKAGES_OPAM *and* [packages_fdopen_to_remove] or          {package defn is in opam repo}
+# 1. PINNED_PACKAGES_OPAM_* *and* [packages_fdopen_to_remove] or        {package defn is in opam repo}
 # 2. PINNED_PACKAGES_DKML_PATCHES *and* [packages_fdopen_to_remove] or  {package defn is in dkml repo}
 # 3. [pkgvers_fdopen_compiler_agnostic]                                 {package defn is in fdopen repo}
 
@@ -35,6 +35,9 @@
 # ocamlfind has hardcoded paths in lib/ocaml/topfind so make sure that it is
 # installed once in the system switch
 ocamlfind.1.9.1
+
+# ocaml-config.3 is first version supporting DKML compiler (and Windows)
+ocaml-config.3
 
 # Dune is needed to compile dkml-findup.exe
 # dune-* must be compatible with Dune
