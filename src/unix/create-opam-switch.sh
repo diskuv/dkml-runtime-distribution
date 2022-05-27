@@ -38,8 +38,8 @@ PINNED_PACKAGES_DKML_PATCHES="
     ppx_expect,v0.14.1
 
     dkml-c-probe,2.0.0~prerel3
-    dkml-apps,0.4.0~prerel57
-    opam-dkml,0.4.0~prerel57
+    dkml-apps,0.4.0~prerel58
+    opam-dkml,0.4.0~prerel58
     "
 
 # These MUST BE IN SYNC with vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
