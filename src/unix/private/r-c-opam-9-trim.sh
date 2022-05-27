@@ -78,9 +78,6 @@ fi
 # END Command line processing
 # ------------------
 
-# Need feature flag and usermode and statedir until all legacy code is removed in _common_tool.sh
-# shellcheck disable=SC2034
-DKML_FEATUREFLAG_CMAKE_PLATFORM=ON
 # shellcheck disable=SC2034
 USERMODE=ON
 # shellcheck disable=SC2034

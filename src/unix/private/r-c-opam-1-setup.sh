@@ -141,9 +141,6 @@ TRIM_ARGS+=( -e "$PRESERVEGIT" )
 # END Command line processing
 # ------------------
 
-# Need feature flag and usermode and statedir until all legacy code is removed in _common_tool.sh
-# shellcheck disable=SC2034
-DKML_FEATUREFLAG_CMAKE_PLATFORM=ON
 # shellcheck disable=SC2034
 USERMODE=ON
 # shellcheck disable=SC2034
@@ -223,17 +220,7 @@ fi
 
 # REPLACE - msvs-detect
 if [ ! -e "$OPAMSRC_UNIX"/shell/msvs-detect ] || [ ! -e "$OPAMSRC_UNIX"/shell/msvs-detect.complete ]; then
-    if [ "${DKML_FEATUREFLAG_CMAKE_PLATFORM:-OFF}" = OFF ]; then
-        if is_dev_platform; then
-            # Set BUILDHOST_ARCH
-            autodetect_buildhost_arch
-            DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$BUILDHOST_ARCH autodetect_compiler --msvs-detect "$WORK"/msvs-detect
-        else
-            DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$DKMLABI autodetect_compiler --msvs-detect "$WORK"/msvs-detect
-        fi
-    else
-        DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI=$DKMLABI autodetect_compiler --msvs-detect "$WORK"/msvs-detect
-    fi
+    DKML_TARGET_ABI=$DKMLABI autodetect_compiler --msvs-detect "$WORK"/msvs-detect
     install "$WORK"/msvs-detect "$OPAMSRC_UNIX"/shell/msvs-detect
     touch "$OPAMSRC_UNIX"/shell/msvs-detect.complete
 fi

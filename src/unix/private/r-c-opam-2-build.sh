@@ -97,9 +97,6 @@ fi
 # END Command line processing
 # ------------------
 
-# Need feature flag and usermode and statedir until all legacy code is removed in _common_tool.sh
-# shellcheck disable=SC2034
-DKML_FEATUREFLAG_CMAKE_PLATFORM=ON
 # shellcheck disable=SC2034
 USERMODE=ON
 # shellcheck disable=SC2034
@@ -155,7 +152,7 @@ autodetect_cpus
 autodetect_posix_shell
 
 # Autodetect compiler like Visual Studio on Windows.
-DKML_FEATUREFLAG_CMAKE_PLATFORM=ON DKML_TARGET_ABI="$DKMLABI" autodetect_compiler "$WORK"/launch-compiler.sh
+DKML_TARGET_ABI="$DKMLABI" autodetect_compiler "$WORK"/launch-compiler.sh
 if [ -n "$OCAML_HOST_TRIPLET" ]; then
     BOOTSTRAP_EXTRA_OPTS="--host=$OCAML_HOST_TRIPLET"
 else
