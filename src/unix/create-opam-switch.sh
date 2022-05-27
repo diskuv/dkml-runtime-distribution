@@ -79,7 +79,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     odoc-parser,0.9.0
     stdio,v0.14.0
     base,v0.14.2
-    dune,2.9.3+win32shim
+    dune,2.9.3+shim
     dune-action-plugin,2.9.3
     dune-glob,2.9.3
     dune-private-libs,2.9.3
