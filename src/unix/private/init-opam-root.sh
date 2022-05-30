@@ -299,9 +299,14 @@ if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/
         run_opamsys repository remove default --yes --all --dont-select
     fi
 fi
-# add back the default we want if a default is not there
+
+# add back the [default] repository we want if a [default] is not there
 if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
     run_opamsys repository add default https://opam.ocaml.org --yes --dont-select --rank=3
+# otherwise force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
+# [default] is not versioned (which means we have no way to tell it is up-to-date)
+else
+    run_opamsys update default --yes --all
 fi
 
 # Diagnostic
