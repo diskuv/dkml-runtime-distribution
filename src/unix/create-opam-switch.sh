@@ -56,12 +56,15 @@ PINNED_PACKAGES_DKML_PATCHES="
 # * (c) cmdliner and opam-client (+ opam-*) are needed to compile opam-dkml.exe; same `opam` as https://opam.ocaml.org/
 # * (a) alcotest.1.4.0 works with Win32 MSVC; 1.5.0 does not
 #
+# Exceptions:
+#    ocaml-config,3
+#    - forces OCaml 5 for non-Windows systems. We do _not_ want to pin it until we have safely moved to OCaml 5
+#
 # Sections:
 # 1. Subset of packages from ci-pkgs.txt, in `.txt` order
 # 2. Subset of packages from full-no-ci-pkgs.txt, in `.txt` order
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
 PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
-    ocaml-config,3
     bos,0.2.1
     fmt,0.9.0
     rresult,0.7.0

@@ -37,7 +37,9 @@
 ocamlfind.1.9.1
 
 # ocaml-config.3 is first version supporting DKML compiler (and Windows)
-ocaml-config.3
+# BUT ocaml-config.3 requires OCaml 5 for non-Windows machines. So do _not_ pin it
+# until we've upgraded to OCaml 5
+# ocaml-config.3
 
 # Dune is needed to compile dkml-findup.exe
 # dune-* must be compatible with Dune
