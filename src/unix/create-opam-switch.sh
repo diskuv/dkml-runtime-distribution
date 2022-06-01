@@ -20,7 +20,7 @@ PINNED_PACKAGES_DKML_PATCHES="
 
     ocp-indent,1.8.2-windowssupport
 
-    bigstringaf,0.8.0
+    bigstringaf,0.9.0+msvc
     core_kernel,v0.14.2
     ctypes-foreign,0.19.2-windowssupport-r4
     ctypes,0.19.2-windowssupport-r4
