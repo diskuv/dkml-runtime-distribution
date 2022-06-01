@@ -24,7 +24,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     core_kernel,v0.14.2
     ctypes-foreign,0.19.2-windowssupport-r4
     ctypes,0.19.2-windowssupport-r4
-    digestif,1.0.1
+    digestif,1.1.2+msvc
     dune-configurator,2.9.3
     feather,0.3.0
     mccs,1.1+13
