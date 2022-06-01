@@ -107,7 +107,6 @@ let packages_fdopen_to_remove =
     "mirage-crypto";
     "ocamlbuild";
     "ppx_expect";
-    "dkml-c-probe";
     "dkml-apps";
     "opam-dkml";
     (* 4th section corresponds to:
@@ -123,6 +122,7 @@ let packages_fdopen_to_remove =
     "cmdliner";
     "crunch";
     "uuidm";
+    "dkml-c-probe";
     "jingoo";
     "lsp";
     "ocaml-lsp-server";

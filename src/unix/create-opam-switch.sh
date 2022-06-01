@@ -37,7 +37,6 @@ PINNED_PACKAGES_DKML_PATCHES="
     ocamlbuild,0.14.0
     ppx_expect,v0.14.1
 
-    dkml-c-probe,2.0.0~prerel4
     dkml-apps,0.4.0~prerel63
     opam-dkml,0.4.0~prerel63
     "
@@ -71,6 +70,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     cmdliner,1.0.4
     crunch,3.2.0
     uuidm,0.9.7
+    dkml-c-probe,2.0.0
 
     jingoo,1.4.4
     ocamlformat,0.19.0
