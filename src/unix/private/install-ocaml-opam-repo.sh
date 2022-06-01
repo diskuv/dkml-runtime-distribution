@@ -47,7 +47,7 @@ fi
 
 # Get DKML_OCAMLHOME_UNIX, DKML_OCAMLHOME_BINDIR_UNIX and OCAMLVERSION
 validate_and_explore_ocamlhome "$OCAMLHOME"
-OCAMLEXE="$DKML_OCAMLHOME_UNIX/$DKML_OCAMLHOME_BINDIR_UNIX/ocamlc"
+OCAMLEXE="$DKML_OCAMLHOME_ABSBINDIR_UNIX/ocamlc"
 OCAML_VERSION=$("$OCAMLEXE" -config | awk '$1=="version:"{print $2}' | tr -d '\r')
 if [ -z "$OCAML_VERSION" ]; then
     printf "FATAL: %s -config failed to give the OCaml version\n" "$OCAMLEXE" >&2

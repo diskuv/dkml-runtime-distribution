@@ -366,7 +366,7 @@ case "$OCAMLVERSION_OR_HOME_UNIX" in
     /* | ?:*) # /a/b/c or C:\Windows
         validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"
         # the `awk ...` is dos2unix equivalent
-        OCAMLVERSION=$("$DKML_OCAMLHOME_UNIX/$DKML_OCAMLHOME_BINDIR_UNIX/ocamlc" -version | awk '{ sub(/\r$/,""); print }')
+        OCAMLVERSION=$("$DKML_OCAMLHOME_ABSBINDIR_UNIX/ocamlc" -version | awk '{ sub(/\r$/,""); print }')
         BUILD_OCAML_BASE=OFF
         ;;
     *)

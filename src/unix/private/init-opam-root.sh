@@ -136,6 +136,9 @@ fi
 # Set DKMLHOME_UNIX if available
 autodetect_dkmlvars || true
 
+# Set DKMLSYS_AWK and other things
+autodetect_system_binaries
+
 # -----------------------
 # BEGIN install opam repositories
 
@@ -249,9 +252,54 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
     fi
 fi
 
+# If we are not in USERMODE (ie. we have a state directory) then "sys-ocaml-*"
+# variables need to be searched from within the state directory
+if [ "$USERMODE" = OFF ]; then
+    case "$OCAMLVERSION_OR_HOME" in
+        /* | ?:*) # /a/b/c or C:\Windows
+            validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"
+            {
+                # ex.:
+                #   sed 's#"ocamlc"#"/tmp/dckbuild/darwin_x86_64/Debug/dksdk/ocaml/bin/ocamlc"#g'
+                # for ...
+                # eval-variables: [
+                #   [
+                #     sys-ocaml-version
+                #     ["ocamlc" "-vnum"]
+                #     "OCaml version present on your system independently of opam, if any"
+                #   ]
+                #   ...
+                # ]
+                #   shellcheck disable=SC2016
+                printf '/^eval-variables:/,/^]/s#"ocamlc"#"%s"#g\n' "$DKML_OCAMLHOME_ABSBINDIR_MIXED/ocamlc"
+                # ex.:
+                #   sed 's#"ocamlc -config#"/tmp/dckbuild/darwin_x86_64/Debug/dksdk/ocaml/bin/ocamlc -config#g'
+                # for ...
+                # eval-variables: [
+                #   [
+                #     sys-ocaml-arch
+                #    [
+                #      "sh"
+                #      "-c"
+                #      "ocamlc -config 2>/dev/null | tr -d '\\r' | grep '^architecture: ' | sed -e 's/.*: //' -e 's/i386/i686/' -e 's/amd64/x86_64/'"
+                #    ]                
+                #   ]
+                #   ...
+                # ]
+                #   shellcheck disable=SC2016
+                printf '/^eval-variables:/,/^]/s#"ocamlc -config#"%s#g\n' "$DKML_OCAMLHOME_ABSBINDIR_MIXED/ocamlc -config"
+            } > "$WORK/sys-ocaml.sed"
+            "$DKMLSYS_SED" -f "$WORK/sys-ocaml.sed" "$OPAMROOTDIR_BUILDHOST/config" > "$WORK/config.new"
+            if ! cmp -s "$WORK/config.new" "$OPAMROOTDIR_BUILDHOST/config"; then
+                mv "$WORK/config.new" "$OPAMROOTDIR_BUILDHOST/config"
+            fi
+            ;;
+    esac
+fi
+
 # If and only if we have Windows Opam root we have to configure its global options
 # to tell it to use `wget` instead of `curl`
-if is_unixy_windows_build_machine && is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
+if is_unixy_windows_build_machine; then
     WINDOWS_DOWNLOAD_COMMAND=wget
 
     # MSYS curl does not work with Opam. After debugging with `platform-opam-exec.sh ... reinstall ocaml-variants --debug` found it was calling:
@@ -309,8 +357,11 @@ else
     run_opamsys update default --yes --all
 fi
 
-# Diagnostic
+# Diagnostics
+log_trace echo '=== opam repository list --all ==='
 run_opamsys repository list --all
+log_trace echo '=== opam var --global ==='
+run_opamsys var --global
 
 # END opam init
 # -----------------------

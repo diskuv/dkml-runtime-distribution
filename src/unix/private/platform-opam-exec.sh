@@ -292,7 +292,7 @@ if [ -n "$OCAMLVERSION_OR_HOME" ]; then
         /* | ?:*) # /a/b/c or C:\Windows
             validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"
             {
-                printf "PATH='%s':\"\$PATH\"\n" "$DKML_OCAMLHOME_UNIX/$DKML_OCAMLHOME_BINDIR_UNIX"
+                printf "PATH='%s':\"\$PATH\"\n" "$DKML_OCAMLHOME_ABSBINDIR_UNIX"
                 if [ -n "$PLATFORM_EXEC_PRE_SINGLE" ]; then
                     printf "\n"
                     cat "$PLATFORM_EXEC_PRE_SINGLE"
