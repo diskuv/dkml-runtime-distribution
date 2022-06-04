@@ -178,6 +178,7 @@ fi
 if [ -n "$STATEDIR" ]; then
     USERMODE=OFF
 else
+    # shellcheck disable=SC2034
     USERMODE=ON
 fi
 
