@@ -19,17 +19,24 @@ set -euf
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    create-tools-switch.sh -h           Display this help message" >&2
-    printf "%s\n" "    create-tools-switch.sh -p DKMLABI              Create the Diskuv system switch" >&2
-    printf "%s\n" "                                                        at <DiskuvOCamlHome>/dkml on Windows or" >&2
-    printf "%s\n" "                                                        <OPAMROOT>/dkml/_opam on non-Windows" >&2
-    printf "%s\n" "    create-tools-switch.sh -d STATEDIR -p DKMLABI  Create the Diskuv system switch" >&2
-    printf "%s\n" "                                                        at <STATEDIR>/dkml" >&2
+    printf "%s\n" "    create-tools-switch.sh -h                      Display this help message" >&2
+    printf "%s\n" "    create-tools-switch.sh -p DKMLABI              Create the [dkml] switch" >&2
+    printf "%s\n" "Opam root directory:" >&2
+    printf "%s\n" "    If -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
+    printf "%s\n" "    Otherwise the Opam root directory is the user's standard Opam root directory." >&2
+    printf "%s\n" "Opam [dkml] switch:" >&2
+    printf "%s\n" "    The default [dkml] switch is the 'dkml' global switch." >&2
+    printf "%s\n" "    In highest precedence order:" >&2
+    printf "%s\n" "    1. If the environment variable DKSDK_INVOCATION is set to ON," >&2
+    printf "%s\n" "       the [dkml] switch will be the 'dksdk-<DKML_HOST_ABI>' global switch." >&2
+    printf "%s\n" "    2. If there is a Diskuv OCaml installation, then the [dkml] switch will be" >&2
+    printf "%s\n" "       the local <DiskuvOCamlHome>/dkml switch." >&2
+    printf "%s\n" "    These rules allow for the DKML OCaml system compiler to be distinct from" >&2
+    printf "%s\n" "    any DKSDK OCaml system compiler." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI for the tools" >&2
-    printf "%s\n" "    -d STATEDIR: If specified and -u ON enabled, use <STATEDIR>/opam as the Opam root" >&2
-    printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
-    printf "%s\n" "       If ON, uses Opam 2.2+ default root" >&2
+    printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
+    printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -f FLAVOR: Optional; defaults to CI. The flavor of system packages: 'CI' or 'Full'" >&2
     printf "%s\n" "       'Full' is the same as CI, but has packages for UIs like utop and a language server" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
@@ -56,7 +63,11 @@ while getopts ":hd:u:o:p:v:f:a:" opt; do
             STATEDIR=$OPTARG
         ;;
         u )
-            USERMODE=$OPTARG
+            if cmake_flag_off "$OPTARG"; then
+                USERMODE=OFF
+            else
+                USERMODE=ON
+            fi
         ;;
         v )
             OCAMLVERSION_OR_HOME=$OPTARG
@@ -141,7 +152,11 @@ get_ocamlver() {
 }
 
 # Just the OCaml compiler
-log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -d "$STATEDIR" -u "$USERMODE" -p "$DKMLABI"
+if [ "$USERMODE" = ON ]; then
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI"
+else
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI" -d "$STATEDIR"
+fi
 
 # Flavor packages
 {
@@ -163,7 +178,11 @@ log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLV
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac
 } > "$WORK"/config-dkml.sh
-log_shell "$WORK"/config-dkml.sh -d "$STATEDIR" -u "$USERMODE" -p "$DKMLABI"
+if [ "$USERMODE" = ON ]; then
+    log_shell "$WORK"/config-dkml.sh -p "$DKMLABI"
+else
+    log_shell "$WORK"/config-dkml.sh -p "$DKMLABI" -d "$STATEDIR"
+fi
 
 # END create system switch
 # -----------------------

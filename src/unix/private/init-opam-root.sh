@@ -217,8 +217,10 @@ fi
 # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND
 set_opamrootdir
 
-run_opamsys() {
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh -s  -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
+run_opam() {
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
+        -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" \
+        -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
 
 # `opam init`.
@@ -231,14 +233,14 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
     if is_unixy_windows_build_machine; then
         # We'll use `pendingremoval` as a signal that we can remove it later if it is the 'default' repository.
         # --disable-sandboxing: Sandboxing does not work on Windows
-        run_opamsys init --yes --no-setup --bare --disable-sandboxing --kind local "$OPAMREPOS_MIXED/$REPONAME_PENDINGREMOVAL"
+        run_opam init --yes --no-setup --bare --disable-sandboxing --kind local "$OPAMREPOS_MIXED/$REPONAME_PENDINGREMOVAL"
     elif [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
         # On WSL2 the bwrap sandboxing does not work.
         # See https://giters.com/realworldocaml/book/issues/3331 for one issue; jonahbeckford@ tested as well
         # with Ubuntu 20.04 LTS in WSL2 and got (paths are slightly changed):
         #   [ERROR] Sandboxing is not working on your platform ubuntu:
         #           "~/build/opam/opam-init/hooks/sandbox.sh build sh -c echo SUCCESS >$TMPDIR/opam-sandbox-check-out && cat $TMPDIR/opam-sandbox-check-out; rm -f $TMPDIR/opam-sandbox-check-out" exited with code 1 "bwrap: Can't bind mount /oldroot/mnt/z/source on /newroot/home/jonah/source: No such file or directory"
-        run_opamsys init --yes --no-setup --bare --disable-sandboxing
+        run_opam init --yes --no-setup --bare --disable-sandboxing
     elif [ -n "${DEFAULT_DOCKCROSS_IMAGE:-}" ] || [ -e /dockcross ]; then
         # Inside dockcross is already sandboxed. And often Docker containers can't
         # be nested, so bwrap probably won't work. Regardless, Opam will
@@ -246,9 +248,9 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
         #   [ERROR] Missing dependencies -- the following commands are required for opam to operate:
         #       - bwrap: Sandboxing tool bwrap was not found. You should install 'bubblewrap'. See https://opam.ocaml.org/doc/FAQ.html#Why-does-opam-require-bwrap.
         # which we shouldn't do anything about.
-        run_opamsys init --yes --no-setup --bare --disable-sandboxing
+        run_opam init --yes --no-setup --bare --disable-sandboxing
     else
-        run_opamsys init --yes --no-setup --bare
+        run_opam init --yes --no-setup --bare
     fi
 fi
 
@@ -310,7 +312,7 @@ if is_unixy_windows_build_machine; then
     # Goes away with wget!! With wget has no funny symbols ... it is like:
     #   C:\source\...\build\_tools\common\MSYS2\usr\bin\wget.exe --content-disposition -t 3 -O C:\Users\...\AppData\Local\Temp\opam-29232-cc6ec1\inline-flexdll.patch.part -U opam/2.1.0 -- https://gist.githubusercontent.com/fdopen/fdc645a61a208552ebac76a67eafd3ee/raw/9f521e91c8f0e9490652651ccdbfae88da701919/inline-flexdll.patch
     if ! grep -q '^download-command: wget' "$OPAMROOTDIR_BUILDHOST/config"; then
-        run_opamsys option --yes --global download-command=$WINDOWS_DOWNLOAD_COMMAND
+        run_opam option --yes --global download-command=$WINDOWS_DOWNLOAD_COMMAND
     fi
 fi
 
@@ -321,15 +323,15 @@ fi
 if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version.tar.gz" ]; then
     if [ "$DISKUVOPAMREPO" = LOCAL ]; then
         OPAMREPO_DISKUV="$OPAMREPOS_MIXED/diskuv-opam-repository"
-        run_opamsys repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
+        run_opam repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
     else
-        run_opamsys repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#v$dkml_root_version" --yes --dont-select --rank=1
+        run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#v$dkml_root_version" --yes --dont-select --rank=1
     fi
 fi
 # check if we can remove 'default' if it was pending removal.
 # sigh, we have to parse non-machine friendly output. we'll do safety checks.
 if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
-    run_opamsys repository list --all > "$WORK"/list
+    run_opam repository list --all > "$WORK"/list
     awk '$1=="default" {print $2}' "$WORK"/list > "$WORK"/default
     _NUMLINES=$(awk 'END{print NR}' "$WORK"/default)
     if [ "$_NUMLINES" -ne 1 ]; then
@@ -344,24 +346,24 @@ if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/
     fi
     if grep -q "/$REPONAME_PENDINGREMOVAL"$ "$WORK"/default; then
         # ok. is like file://C:/source/xxx/vendor/drd/repos/to-delete
-        run_opamsys repository remove default --yes --all --dont-select
+        run_opam repository remove default --yes --all --dont-select
     fi
 fi
 
 # add back the [default] repository we want if a [default] is not there
 if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
-    run_opamsys repository add default https://opam.ocaml.org --yes --dont-select --rank=3
+    run_opam repository add default https://opam.ocaml.org --yes --dont-select --rank=3
 # otherwise force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
 # [default] is not versioned (which means we have no way to tell it is up-to-date)
 else
-    run_opamsys update default --yes --all
+    run_opam update default --yes --all
 fi
 
 # Diagnostics
 log_trace echo '=== opam repository list --all ==='
-run_opamsys repository list --all
+run_opam repository list --all
 log_trace echo '=== opam var --global ==='
-run_opamsys var --global
+run_opam var --global
 
 # END opam init
 # -----------------------

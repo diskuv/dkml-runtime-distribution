@@ -1,12 +1,8 @@
 #!/bin/bash
 # -------------------------------------------------------
-# platform-opam-exec.sh [-s | -p PLATFORM] [--] install|clean|help|...
+# platform-opam-exec.sh [-s | -p DKMLABI] [--] install|clean|help|...
 #
-# PLATFORM=dev|linux_arm32v6|linux_arm32v7|windows_x86|...
-#
-#   The PLATFORM can be `dev` which means the dev platform using the native CPU architecture
-#   and system binaries for Opam from your development machine.
-#   Otherwise it is one of the "PLATFORMS" canonically defined in TOPDIR/Makefile.
+# DKMLABI=linux_arm32v6|linux_arm32v7|windows_x86|...
 # -------------------------------------------------------
 set -euf
 
@@ -22,31 +18,45 @@ DKMLDIR=$(cd "$DKMLDIR"/../../../../.. && pwd)
 usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    platform-opam-exec.sh -h                                     Display this help message" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -u ON -t OPAMSWITCH" >&2
-    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the specified" >&2
-    printf "%s\n" "                                                                 switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -s -u ON" >&2
-    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the global" >&2
-    printf "%s\n" "                                                                 'dkml' switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR [-u OFF]" >&2
-    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the local" >&2
-    printf "%s\n" "                                                                 switch prefix of STATEDIR/_opam" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR -s [-u OFF]" >&2
-    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command in the local" >&2
-    printf "%s\n" "                                                                 switch prefix of STATEDIR/dkml/_opam" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI" >&2
+    printf "%s\n" "                          [--] var|clean|help|...                Run the opam command with the user Opam root" >&2
+    printf "%s\n" "                                                                 without any switch selected" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI (-s|-n GLOBALOPAMSWITCH|-t LOCALOPAMSWITCH)" >&2
+    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command with the user Opam root" >&2
+    printf "%s\n" "                                                                 in the global [dkml] switch (if -s) or the" >&2
+    printf "%s\n" "                                                                 global GLOBALOPAMSWITCH switch or the local" >&2
+    printf "%s\n" "                                                                 LOCALOPAMSWITCH switch" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR" >&2
+    printf "%s\n" "                          [--] var|clean|help|...                Run the opam command with the Opam root" >&2
+    printf "%s\n" "                                                                 STATEDIR/opam without any Opam switch" >&2
+    printf "%s\n" "                                                                 selected" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR (-s|-n GLOBALOPAMSWITCH|-t LOCALOPAMSWITCH)" >&2
+    printf "%s\n" "                          [--] install|clean|help|...            Run the opam command with the Opam root" >&2
+    printf "%s\n" "                                                                 STATEDIR/opam in the global [dkml] switch (if -s)" >&2
+    printf "%s\n" "                                                                 or the global GLOBALOPAMSWITCH switch or the" >&2
+    printf "%s\n" "                                                                 local LOCALOPAMSWITCH switch" >&2
+    printf "%s\n" "" >&2
+    printf "%s\n" "Opam root directory:" >&2
+    printf "%s\n" "    If -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
+    printf "%s\n" "    Otherwise the Opam root directory is the user's standard Opam root directory." >&2
+    printf "%s\n" "Opam [dkml] switch:" >&2
+    printf "%s\n" "    The default [dkml] switch is the 'dkml' global switch." >&2
+    printf "%s\n" "    In highest precedence order:" >&2
+    printf "%s\n" "    1. If the environment variable DKSDK_INVOCATION is set to ON," >&2
+    printf "%s\n" "       the [dkml] switch will be the 'dksdk-<DKML_HOST_ABI>' global switch." >&2
+    printf "%s\n" "    2. If there is a Diskuv OCaml installation, then the [dkml] switch will be" >&2
+    printf "%s\n" "       the local <DiskuvOCamlHome>/dkml switch." >&2
+    printf "%s\n" "    These rules allow for the DKML OCaml system compiler to be distinct from" >&2
+    printf "%s\n" "    any DKSDK OCaml system compiler." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
-    printf "%s\n" "    -s: Select the 'dkml' switch. If specified adds --switch to opam" >&2
-    printf "%s\n" "    -t OPAMSWITCH: The target Opam switch. If specified adds --switch to opam" >&2
-    printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/_opam as the Opam switch prefix, unless [-s] is also" >&2
-    printf "%s\n" "       selected which uses <STATEDIR>/dkml/_opam, and unless [-s] [-u ON] is also" >&2
-    printf "%s\n" "       selected which uses <DiskuvOCamlHome>/dkml/_opam on Windows and" >&2
-    printf "%s\n" "       <OPAMROOT>/dkml/_opam on non-Windows." >&2
-    printf "%s\n" "       Opam init shell scripts search the ancestor paths for an '_opam' directory, so" >&2
-    printf "%s\n" "       the non-system switch will be found if you are in <STATEDIR>" >&2
-    printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
-    printf "%s\n" "       Defaults to ON; ie. using Opam 2.2+ default root." >&2
-    printf "%s\n" "       Also affects the Opam switches; see [-d STATEDIR] option" >&2
+    printf "%s\n" "    -s: Select the [dkml] switch. If specified adds --switch to opam" >&2
+    printf "%s\n" "    -n GLOBALOPAMSWITCH: The target global Opam switch. If specified adds --switch to opam" >&2
+    printf "%s\n" "    -t LOCALOPAMSWITCH: The target Opam switch. If specified adds --switch to opam." >&2
+    printf "%s\n" "       Usability enhancement: Opam init shell scripts search the ancestor paths for an" >&2
+    printf "%s\n" "       '_opam' directory, so the local switch will be found if you are in <LOCALOPAMSWITCH>" >&2
+    printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/opam as the Opam root directory" >&2
+    printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       The bin/ subdir of the Opam home is added to the PATH" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing bin/ocaml) to use." >&2
@@ -87,15 +97,15 @@ fi
 #   Any arguments that can go in 'opam --somearg somecommand' should be processed here
 #   and added to OPAM_OPTS. We'll parse 'somecommand ...' options in a second getopts loop.
 DKMLABI=
-DISKUV_TOOLS_SWITCH=OFF
+DKML_TOOLS_SWITCH=OFF
 STATEDIR=
 PREHOOK_SINGLE_EVAL=
 PREHOOK_DOUBLE_EVAL=
-TARGET_OPAMSWITCH=
-USERMODE=ON
+TARGETLOCAL_OPAMSWITCH=
+TARGETGLOBAL_OPAMSWITCH=
 OPAMHOME=
 OCAMLVERSION_OR_HOME=
-while getopts ":h0:1:sp:t:d:u:o:v:" opt; do
+while getopts ":h0:1:p:sn:t:d:u:o:v:" opt; do
     case ${opt} in
         h )
             usage
@@ -108,19 +118,13 @@ while getopts ":h0:1:sp:t:d:u:o:v:" opt; do
                 exit 0
             fi
         ;;
-        s )
-            DISKUV_TOOLS_SWITCH=ON
-        ;;
         d )
             STATEDIR=$OPTARG
         ;;
-        u )
-            # shellcheck disable=SC2034
-            USERMODE=$OPTARG
-        ;;
-        t )
-            TARGET_OPAMSWITCH=$OPTARG
-        ;;
+        u ) true ;;
+        s ) DKML_TOOLS_SWITCH=ON ;;
+        n ) TARGETGLOBAL_OPAMSWITCH=$OPTARG ;;
+        t ) TARGETLOCAL_OPAMSWITCH=$OPTARG ;;
         o ) OPAMHOME=$OPTARG ;;
         v ) OCAMLVERSION_OR_HOME=$OPTARG ;;
         0 )
@@ -138,16 +142,23 @@ while getopts ":h0:1:sp:t:d:u:o:v:" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$STATEDIR" ] && cmake_flag_off "$USERMODE"; then
-    usage
-    exit 1
-fi
 if [ -z "${DKMLABI:-}" ]; then
-    printf "Missing -p DKMLABI option\n" >&2
+    echo "FATAL: Missing -p DKMLABI option" >&2
     usage
     exit 1
 fi
-if [ "$DISKUV_TOOLS_SWITCH" = OFF ] && [ -z "$TARGET_OPAMSWITCH" ] && ! cmake_flag_off "$USERMODE"; then
+
+#   At most one of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH
+_switch_count=
+if [ "$DKML_TOOLS_SWITCH" = ON ]; then _switch_count="x$_switch_count"; fi
+if [ -n "$TARGETLOCAL_OPAMSWITCH" ]; then _switch_count="x$_switch_count"; fi
+if [ -n "$TARGETGLOBAL_OPAMSWITCH" ]; then _switch_count="x$_switch_count"; fi
+if [ -z "$_switch_count" ]; then
+    USE_SWITCH=OFF
+elif [ "$_switch_count" = x ]; then
+    USE_SWITCH=ON
+else
+    echo "FATAL: At most one of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH may be specified" >&2
     usage
     exit 1
 fi
@@ -162,6 +173,12 @@ fi
 # Win32 conversions
 if [ -x /usr/bin/cygpath ]; then
     if [ -n "$OPAMHOME" ]; then OPAMHOME=$(/usr/bin/cygpath -am "$OPAMHOME"); fi
+fi
+
+if [ -n "$STATEDIR" ]; then
+    USERMODE=OFF
+else
+    USERMODE=ON
 fi
 
 if [ -n "${STATEDIR:-}" ]; then
@@ -207,8 +224,12 @@ set_opamrootdir
 OPAM_ROOT_OPT=() # we have a separate array for --root since --root is mandatory for `opam init`
 if is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
     OPAM_ROOT_OPT+=( --root "$OPAMROOTDIR_EXPAND" )
-    # `--set-switch` will output the globally selected switch, if any.
-    OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root --set-switch || true'
+    if [ "$USE_SWITCH" = ON ]; then
+        # `--set-switch` will output the globally selected switch, if any.
+        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root --set-switch || true'
+    else
+        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root || true'
+    fi
 fi
 
 # END --root
@@ -217,44 +238,41 @@ fi
 # ------------
 # BEGIN --switch
 
-# Set $DKMLHOME_UNIX, $DKMLPARENTHOME_BUILDHOST and other vars
-autodetect_dkmlvars || true
+if [ "$USE_SWITCH" = ON ]; then
 
-# Q: What if there was no switch but there was a root?
-# Ans: This section would be skipped, and the earlier `opam env --root yyy --set-root` would have captured the environment with its OPAM_ENV_STMT.
+    # Set $DKMLHOME_UNIX, $DKMLPARENTHOME_BUILDHOST and other vars
+    autodetect_dkmlvars || true
 
-# The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
-# switches. Whether the `dkml` switch is being created or being used, we need
-# to know where it is.
-#   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
-#   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
-set_opamswitchdir_of_system "$DKMLABI"
+    # Q: What if there was no switch but there was a root?
+    # Ans: This section would be skipped, and the earlier `opam env --root yyy --set-root` would have captured the environment with its OPAM_ENV_STMT.
 
-# Set or reset OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND if there is a switch specified
-if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
-    # Already set correctly above with 'set_opamswitchdir_of_system'
-    true
-elif [ -n "${STATEDIR:-}" ]; then
-    # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
-    set_opamrootandswitchdir
-elif [ -n "$TARGET_OPAMSWITCH" ]; then
-    # Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
-    if [ -x /usr/bin/cygpath ]; then
-        TARGET_OPAMSWITCH_BUILDHOST=$(/usr/bin/cygpath -aw "$TARGET_OPAMSWITCH")
+    # The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
+    # switches. Whether the `dkml` switch is being created or being used, we need
+    # to know where it is or where it will be.
+    #   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+    #   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
+    set_opamswitchdir_of_system "$DKMLABI"
+
+    # Now we need the specified switch's OPAMSWITCHFINALDIR_BUILDHOST and OPAMSWITCHNAME_EXPAND
+    if [ "$DKML_TOOLS_SWITCH" = ON ]; then
+        # Already set in set_opamswitchdir_of_system
+        true
     else
-        TARGET_OPAMSWITCH_BUILDHOST="$TARGET_OPAMSWITCH"
+        # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
+        set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
     fi
-    OPAMSWITCHFINALDIR_BUILDHOST="$TARGET_OPAMSWITCH_BUILDHOST/_opam"
-    OPAMSWITCHNAME_EXPAND="$TARGET_OPAMSWITCH_BUILDHOST" # this won't work in containers, but target is meant for 'dev' platform (perhaps we should check_state?)
-fi
 
-# We check if the switch exists before we add --switch. Otherwise `opam` will complain:
-#   [ERROR] The selected switch C:/source/xxx/build/dev/Debug is not installed.
-if [ -n "${OPAMSWITCHFINALDIR_BUILDHOST:-}" ] && [ -n "${OPAMSWITCHNAME_EXPAND:-}" ] &&
-is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
-    OPAM_OPTS+=( --switch "$OPAMSWITCHNAME_EXPAND" )
-    OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --switch "'$OPAMSWITCHNAME_EXPAND'" --set-root --set-switch || true'
-fi
+    # We check if the switch exists before we add --switch. Otherwise `opam` will complain:
+    #   [ERROR] The selected switch C:/source/xxx/build/dev/Debug is not installed.
+    if {
+        [ -n "${OPAMSWITCHFINALDIR_BUILDHOST:-}" ] &&
+        [ -n "${OPAMSWITCHNAME_EXPAND:-}" ] &&
+        is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST" 
+    }; then
+        OPAM_OPTS+=( --switch "$OPAMSWITCHNAME_EXPAND" )
+        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --switch "'$OPAMSWITCHNAME_EXPAND'" --set-root --set-switch || true'
+    fi
+fi # [ "$USE_SWITCH" = ON ]
 
 # END --switch
 # ------------
@@ -329,7 +347,7 @@ case "$subcommand" in
     ;;
     install | upgrade | pin)
         # FYI: `pin add` and probably other pin commands can (re-)install packages, so compiler is needed
-        if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
+        if [ "$DKML_TOOLS_SWITCH" = ON ]; then
             # When we are upgrading / installing a package in the host tools switch, we must have a compiler so we can compile
             # with-dkml.exe
             exec_in_platform -c "$DKMLABI" "$OPAMEXE" "$subcommand" "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
@@ -347,16 +365,20 @@ case "$subcommand" in
         #    will fail without dkmlvars.sexp (or worse, it will use an _old_ dkmlvars.sexp).
         # 2. When compiling with-dkml.exe itself, we do not want to use an old with-dkml.exe (or any with-dkml.exe) to do
         #    so, even if it mostly harmless
-        if [ -e "$WITHDKMLEXE_BUILDHOST" ] && [ "${WITHDKML_ENABLE:-ON}" = ON ]; then
+        if [ "$USE_SWITCH" = OFF ]; then
+            # There is no switch in use. So don't need with-dkml.exe nor do we need a C compiler.
+            exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
+        elif [ -e "$WITHDKMLEXE_BUILDHOST" ] && [ "${WITHDKML_ENABLE:-ON}" = ON ]; then
             if [ "$1" = "--" ]; then
                 shift
                 exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" -- "$WITHDKMLEXE_BUILDHOST" "$@"
             else
                 exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$WITHDKMLEXE_BUILDHOST" "$@"
-            fi
+            fi            
         else
-            # Since we do not yet have with-dkml.exe (ie. we are in the middle of a new installation / upgrade), supply the compiler as an
-            # alternative so `opam exec -- dune build` works
+            # We were asked to use a switch. But we do not yet have with-dkml.exe
+            # (ie. we are in the middle of a new installation / upgrade), so supply
+            # the compiler as an alternative so `opam exec -- dune build` (etc.) works
             exec_in_platform -c "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
         fi
     ;;

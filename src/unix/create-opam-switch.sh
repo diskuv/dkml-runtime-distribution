@@ -129,36 +129,47 @@ usage() {
     printf "%s\n" "  Will pre-pin package versions based on the installed Diskuv OCaml distribution." >&2
     printf "%s\n" "  Will set switch options pin package versions needed to compile on Windows." >&2
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    create-opam-switch.sh -h                          Display this help message" >&2
-    printf "%s\n" "    create-opam-switch.sh -u OFF|ON -p DKMLABI   Create the Opam switch." >&2
-    printf "%s\n" "                                                      If an OCaml home is specified with the -v option, then the" >&2
-    printf "%s\n" "                                                      switch will have a 'system' OCaml compiler that uses OCaml from the" >&2
-    printf "%s\n" "                                                      PATH. If an OCaml version is specified with the -v option, and the" >&2
-    printf "%s\n" "                                                      -p option is used, then the switch will build a 'base' OCaml compiler." >&2
-    printf "%s\n" "                                                      Otherwise (ie. OCaml version specified with the -v option but no -p option, or" >&2
-    printf "%s\n" "                                                      the -v option not specified) the switch must be created by the DKSDK product;" >&2
-    printf "%s\n" "                                                      DKSDK will supply environment variables so that the switch can build a" >&2
-    printf "%s\n" "                                                      'base' OCaml compiler, although this path is rare since DKSDK will typically" >&2
-    printf "%s\n" "                                                      create and use an OCaml home. DKSDK will also supply variables so that the" >&2
-    printf "%s\n" "                                                      -b option is not needed; otherwise -b option is required." >&2
+    printf "%s\n" "    create-opam-switch.sh -h           Display this help message" >&2
+    printf "%s\n" "    create-opam-switch.sh -p DKMLABI (-s|-n GLOBALOPAMSWITCH|-t LOCALOPAMSWITCH)" >&2
+    printf "%s\n" "                                       Create the Opam switch." >&2
+    printf "%s\n" "                                       If an OCaml home is specified with the -v option, then the" >&2
+    printf "%s\n" "                                       switch will have a 'system' OCaml compiler that uses OCaml from the" >&2
+    printf "%s\n" "                                       PATH. If an OCaml version is specified with the -v option, and the" >&2
+    printf "%s\n" "                                       -p option is used, then the switch will build a 'base' OCaml compiler." >&2
+    printf "%s\n" "                                       Otherwise (ie. OCaml version specified with the -v option but no -p option, or" >&2
+    printf "%s\n" "                                       the -v option not specified) the switch must be created by the DKSDK product;" >&2
+    printf "%s\n" "                                       DKSDK will supply environment variables so that the switch can build a" >&2
+    printf "%s\n" "                                       'base' OCaml compiler, although this path is rare since DKSDK will typically" >&2
+    printf "%s\n" "                                       create and use an OCaml home. DKSDK will also supply variables so that the" >&2
+    printf "%s\n" "                                       -b option is not needed; otherwise -b option is required." >&2
+    printf "%s\n" "Opam root directory:" >&2
+    printf "%s\n" "    If -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
+    printf "%s\n" "    Otherwise the Opam root directory is the user's standard Opam root directory." >&2
+    printf "%s\n" "Opam [dkml] switch:" >&2
+    printf "%s\n" "    The default [dkml] switch is the 'dkml' global switch." >&2
+    printf "%s\n" "    In highest precedence order:" >&2
+    printf "%s\n" "    1. If the environment variable DKSDK_INVOCATION is set to ON," >&2
+    printf "%s\n" "       the [dkml] switch will be the 'dksdk-<DKML_HOST_ABI>' global switch." >&2
+    printf "%s\n" "    2. If there is a Diskuv OCaml installation, then the [dkml] switch will be" >&2
+    printf "%s\n" "       the local <DiskuvOCamlHome>/dkml switch." >&2
+    printf "%s\n" "    These rules allow for the DKML OCaml system compiler to be distinct from" >&2
+    printf "%s\n" "    any DKSDK OCaml system compiler." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev'). Determines how to make an OCaml home if a version number is specified" >&2
     printf "%s\n" "       (or nothing) using -v option. Also part of the name for the dkml switch if -s option" >&2
-    printf "%s\n" "    -d STATEDIR: Create <STATEDIR>/_opam as an Opam switch prefix, unless [-s] is also" >&2
-    printf "%s\n" "        selected which creates <STATEDIR>/dkml, and unless [-s] [-u ON] is also" >&2
-    printf "%s\n" "        selected which creates <DiskuvOCamlHome>/dkml/_opam on Windows and" >&2
-    printf "%s\n" "        <OPAMROOT>/dkml/_opam on non-Windows. See also -t option" >&2
-    printf "%s\n" "    -s: Create the dkml or dkml switch. See the -d option for the rules" >&2
+    printf "%s\n" "    -s: Create the [dkml] switch" >&2
+    printf "%s\n" "    -n GLOBALOPAMSWITCH: The target global Opam switch. If specified adds --switch to opam" >&2
+    printf "%s\n" "    -t LOCALOPAMSWITCH: The target Opam switch. If specified adds --switch to opam." >&2
+    printf "%s\n" "       Usability enhancement: Opam init shell scripts search the ancestor paths for an" >&2
+    printf "%s\n" "       '_opam' directory, so the local switch will be found if you are in <LOCALOPAMSWITCH>" >&2
+    printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/opam as the Opam root directory" >&2
     printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
     printf "%s\n" "        Debug" >&2
     printf "%s\n" "        Release - Most optimal code. Should be faster than ReleaseCompat* builds" >&2
     printf "%s\n" "        ReleaseCompatPerf - Compatibility with 'perf' monitoring tool." >&2
     printf "%s\n" "        ReleaseCompatFuzz - Compatibility with 'afl' fuzzing tool." >&2
     printf "%s\n" "       Ignored when -v OCAMLHOME is a OCaml home" >&2
-    printf "%s\n" "    -t OPAMSWITCH: Create <OPAMSWITCH>/_opam as an Opam switch prefix when -u ON but not -s." >&2
-    printf "%s\n" "       Optional when -d option supplied; defaults to <STATEDIR>/_opam" >&2
-    printf "%s\n" "    -u ON|OFF: User mode. If OFF, sets Opam --root to <STATEDIR>/opam." >&2
-    printf "%s\n" "       If ON, uses Opam 2.2+ default root" >&2
+    printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -224,10 +235,9 @@ add_do_var() {
 }
 
 BUILDTYPE=
-DISKUV_TOOLS_SWITCH=OFF
+DKML_TOOLS_SWITCH=OFF
 STATEDIR=
 YES=OFF
-USERMODE=ON
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
 OPAMHOME=
 DKMLABI=
@@ -238,7 +248,9 @@ PREBUILDS=
 POSTINSTALLS=
 PREREMOVES=
 EXTRAINVARIANTS=
-while getopts ":hb:p:sd:u:o:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
+TARGETLOCAL_OPAMSWITCH=
+TARGETGLOBAL_OPAMSWITCH=
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
     case ${opt} in
         h )
             usage
@@ -254,18 +266,13 @@ while getopts ":hb:p:sd:u:o:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
         b )
             BUILDTYPE=$OPTARG
         ;;
-        s )
-            DISKUV_TOOLS_SWITCH=ON
-        ;;
         d)
             STATEDIR=$OPTARG
         ;;
-        t)
-            TARGET_OPAMSWITCH=$OPTARG
-        ;;
-        u )
-            USERMODE=$OPTARG
-        ;;
+        s ) DKML_TOOLS_SWITCH=ON ;;
+        n ) TARGETGLOBAL_OPAMSWITCH=$OPTARG ;;
+        t ) TARGETLOCAL_OPAMSWITCH=$OPTARG ;;
+        u ) true ;;
         y)
             YES=ON
         ;;
@@ -296,22 +303,25 @@ while getopts ":hb:p:sd:u:o:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLABI" ] || [ -z "$USERMODE" ]; then
+if [ -z "${DKMLABI:-}" ]; then
+    echo "FATAL: Missing -p DKMLABI option" >&2
     usage
     exit 1
 fi
-if [ ! "$USERMODE" = ON ] && [ ! "$USERMODE" = OFF ]; then
+
+#   At most one of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH
+_switch_count=
+if [ "$DKML_TOOLS_SWITCH" = ON ]; then _switch_count="x$_switch_count"; fi
+if [ -n "$TARGETLOCAL_OPAMSWITCH" ]; then _switch_count="x$_switch_count"; fi
+if [ -n "$TARGETGLOBAL_OPAMSWITCH" ]; then _switch_count="x$_switch_count"; fi
+if [ -z "$_switch_count" ]; then
+    echo "FATAL: One of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH must be specified" >&2
     usage
-    printf "FATAL: Invalid -u USERMODE\n" >&2
     exit 1
-fi
-if [ "$USERMODE" = OFF ] && [ -z "$STATEDIR" ] && [ "$DISKUV_TOOLS_SWITCH" = OFF ]; then
+elif [ ! "$_switch_count" = x ]; then
+    echo "FATAL: At most one of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH may be specified" >&2
     usage
-    printf "FATAL: Missing -d STATEDIR or -s\n" >&2
     exit 1
-fi
-if [ -z "${TARGET_OPAMSWITCH:-}" ] && [ -n "$STATEDIR" ]; then
-    TARGET_OPAMSWITCH="$STATEDIR"
 fi
 
 # END Command line processing
@@ -327,6 +337,12 @@ if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not embedded within
 if [ -n "$STATEDIR" ]; then
     # shellcheck disable=SC2034
     TOPDIR="$STATEDIR"
+fi
+
+if [ -n "$STATEDIR" ]; then
+    USERMODE=OFF
+else
+    USERMODE=ON
 fi
 
 # shellcheck disable=SC1091
@@ -520,14 +536,14 @@ fi
 set_opamswitchdir_of_system "$DKMLABI"
 
 # Make launchers for opam switch create <...> and for opam <...>
-if [ "$DISKUV_TOOLS_SWITCH" = ON ]; then
+if [ "$DKML_TOOLS_SWITCH" = ON ]; then
     OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLABI' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
 else
     # (Re-)Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_BUILDHOST, OPAMSWITCHNAME_EXPAND, OPAMSWITCHISGLOBAL
     # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
-    set_opamrootandswitchdir
+    set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
 
-    OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGET_OPAMSWITCH' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGETLOCAL_OPAMSWITCH' -n '$TARGETGLOBAL_OPAMSWITCH' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
 fi
 printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh
@@ -899,7 +915,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
 fi
 
 # We don't put with-dkml.exe into the `dkml` tools switch because with-dkml.exe (currently) needs a tools switch to compile itself.
-if [ "$DISKUV_TOOLS_SWITCH" = OFF ] && \
+if [ "$DKML_TOOLS_SWITCH" = OFF ] && \
         [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$WRAP_COMMANDS_CACHE_KEY" ]; then
     printf "%s" "$WITHDKMLEXE_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
     DOW_PATH=$(cat "$WORK"/dow.path)
