@@ -195,7 +195,12 @@ if [ -d "$GIT_COMMITID_TAG_OR_DIR" ]; then
         log_trace git -C "$OPAMSRC_MIXED" config user.name  "Auto Committer"
         log_trace git -C "$OPAMSRC_MIXED" add -A
         log_trace git -C "$OPAMSRC_MIXED" commit -m "Commit from source tree"
+        log_trace git -C "$OPAMSRC_MIXED" tag r-c-opam-1-setup-srctree
     fi
+
+    # Move the repository to the expected tag
+    log_trace git -C "$OPAMSRC_MIXED" stash
+    log_trace git -C "$OPAMSRC_MIXED" -c advice.detachedHead=false checkout r-c-opam-1-setup-srctree
 else
     if [ ! -e "$OPAMSRC_UNIX/Makefile" ] || [ ! -e "$OPAMSRC_UNIX/.git" ]; then
         log_trace rm -rf "$OPAMSRC_UNIX" # clean any partial downloads
@@ -206,13 +211,15 @@ else
         log_trace git -C "$OPAMSRC_MIXED" fetch --depth 1 origin "$GIT_COMMITID_TAG_OR_DIR"
         log_trace git -C "$OPAMSRC_MIXED" reset --hard FETCH_HEAD
     else
-        # Git fetch can be very expensive after a shallow clone; we skip advancing the repository
-        # if the expected tag/commit is a commit and the actual git commit is the expected git commit
+        # Move the repository to the expected commit
+        #   Git fetch can be very expensive after a shallow clone; we skip advancing the repository
+        #   if the expected tag/commit is a commit and the actual git commit is the expected git commit
         git_head=$(log_trace git -C "$OPAMSRC_MIXED" rev-parse HEAD)
         if [ ! "$git_head" = "$GIT_COMMITID_TAG_OR_DIR" ]; then
             if git -C "$OPAMSRC_MIXED" tag -l "$GIT_COMMITID_TAG_OR_DIR" | awk 'BEGIN{nonempty=0} NF>0{nonempty+=1} END{exit nonempty==0}'; then git -C "$OPAMSRC_MIXED" tag -d "$GIT_COMMITID_TAG_OR_DIR"; fi # allow tag to move (for development and for emergency fixes)
             log_trace git -C "$OPAMSRC_MIXED" remote set-url origin "$GIT_URL"
             log_trace git -C "$OPAMSRC_MIXED" fetch origin --tags
+            log_trace git -C "$OPAMSRC_MIXED" stash
             log_trace git -C "$OPAMSRC_MIXED" -c advice.detachedHead=false checkout "$GIT_COMMITID_TAG_OR_DIR"
         fi
     fi
