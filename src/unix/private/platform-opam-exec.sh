@@ -182,13 +182,8 @@ else
     USERMODE=ON
 fi
 
-if [ -n "${STATEDIR:-}" ]; then
-    # shellcheck disable=SC1091
-    . "$DKMLDIR"/vendor/drc/unix/_common_build.sh
-else
-    # shellcheck disable=SC1091
-    . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
-fi
+# shellcheck disable=SC1091
+. "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the TOPDIR (just like the container
