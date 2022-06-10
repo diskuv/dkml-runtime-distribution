@@ -327,6 +327,13 @@ fi
 # END Command line processing
 # ------------------
 
+# Set deprecated, implicit USERMODE
+if [ -n "$STATEDIR" ]; then
+    USERMODE=OFF
+else
+    USERMODE=ON
+fi
+
 if [ -z "${DKMLDIR:-}" ]; then
     DKMLDIR=$(dirname "$0")
     DKMLDIR=$(cd "$DKMLDIR/../../../.." && pwd)
@@ -337,12 +344,6 @@ if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not embedded within
 if [ -n "$STATEDIR" ]; then
     # shellcheck disable=SC2034
     TOPDIR="$STATEDIR"
-fi
-
-if [ -n "$STATEDIR" ]; then
-    USERMODE=OFF
-else
-    USERMODE=ON
 fi
 
 # shellcheck disable=SC1091

@@ -37,7 +37,6 @@ usage() {
 
 DKMLABI=
 STATEDIR=
-USERMODE=ON
 OPAMHOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
@@ -54,10 +53,7 @@ while getopts ":hp:d:o:v:a" opt; do
                 exit 0
             fi
         ;;
-        d )
-            STATEDIR=$OPTARG
-            USERMODE=OFF
-        ;;
+        d ) STATEDIR=$OPTARG ;;
         o ) OPAMHOME=$OPTARG ;;
         v )
             OCAMLVERSION_OR_HOME=$OPTARG
@@ -79,6 +75,13 @@ fi
 
 # END Command line processing
 # ------------------
+
+# Set deprecated, implicit USERMODE
+if [ -n "$STATEDIR" ]; then
+    USERMODE=OFF
+else
+    USERMODE=ON
+fi
 
 DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
@@ -254,9 +257,9 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
     fi
 fi
 
-# If we are not in USERMODE (ie. we have a state directory) then "sys-ocaml-*"
+# If we have a state directory then "sys-ocaml-*"
 # variables need to be searched from within the state directory
-if [ "$USERMODE" = OFF ]; then
+if [ -n "$STATEDIR" ]; then
     case "$OCAMLVERSION_OR_HOME" in
         /* | ?:*) # /a/b/c or C:\Windows
             validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"

@@ -47,7 +47,6 @@ usage() {
 }
 
 STATEDIR=
-USERMODE=ON
 OCAMLVERSION_OR_HOME=
 OPAMHOME=
 FLAVOR=CI
@@ -62,13 +61,7 @@ while getopts ":hd:u:o:p:v:f:a:" opt; do
         d )
             STATEDIR=$OPTARG
         ;;
-        u )
-            if cmake_flag_off "$OPTARG"; then
-                USERMODE=OFF
-            else
-                USERMODE=ON
-            fi
-        ;;
+        u ) true ;;
         v )
             OCAMLVERSION_OR_HOME=$OPTARG
         ;;
@@ -114,6 +107,14 @@ if [ -z "$DKMLABI" ]; then
     exit 1
 fi
 
+# Set deprecated, implicit USERMODE
+if [ -n "$STATEDIR" ]; then
+    USERMODE=OFF
+else
+    # shellcheck disable=SC2034
+    USERMODE=ON
+fi
+
 DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
 
@@ -152,10 +153,10 @@ get_ocamlver() {
 }
 
 # Just the OCaml compiler
-if [ "$USERMODE" = ON ]; then
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI"
-else
+if [ -n "$STATEDIR" ]; then
     log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI" -d "$STATEDIR"
+else
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI"
 fi
 
 # Flavor packages
@@ -178,10 +179,10 @@ fi
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac
 } > "$WORK"/config-dkml.sh
-if [ "$USERMODE" = ON ]; then
-    log_shell "$WORK"/config-dkml.sh -p "$DKMLABI"
-else
+if [ -n "$STATEDIR" ]; then
     log_shell "$WORK"/config-dkml.sh -p "$DKMLABI" -d "$STATEDIR"
+else
+    log_shell "$WORK"/config-dkml.sh -p "$DKMLABI"
 fi
 
 # END create system switch

@@ -175,6 +175,7 @@ if [ -x /usr/bin/cygpath ]; then
     if [ -n "$OPAMHOME" ]; then OPAMHOME=$(/usr/bin/cygpath -am "$OPAMHOME"); fi
 fi
 
+# Set deprecated, implicit USERMODE
 if [ -n "$STATEDIR" ]; then
     USERMODE=OFF
 else
