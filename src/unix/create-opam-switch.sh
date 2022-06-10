@@ -185,10 +185,10 @@ usage() {
     printf "%s\n" "    -r NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
     printf "%s\n" "       than the implicit repositories like the default opam.ocaml.org repository. First repository listed on command" >&2
     printf "%s\n" "       line will be highest priority of the extra repositories." >&2
-    printf "%s\n" "    -i HOOK: Commands that will be run after the Opam switch has been created." >&2
+    printf "%s\n" "    -i HOOK: Optional; may be repeated. Command that will be run after the Opam switch has been created." >&2
     printf "%s\n" "       The hook file must be a /bin/sh script (POSIX compatible script, not Bash!)." >&2
     printf "%s\n" "       Opam commands should be platform-neutral, and will be executed after the switch has been initially" >&2
-    printf "%s\n" "       created with a minimal OCaml compiler, and after DKML pins and options are set for the switch." >&2
+    printf "%s\n" "       created with a minimal OCaml compiler, and after pins and options are set for the switch." >&2
     printf "%s\n" "       The Opam commands should use \$OPAMEXE as the path to the Opam executable." >&2
     printf "%s\n" "          Example: \$OPAMEXE pin add --yes opam-lib 'https://github.com/ocaml/opam.git#1.2'" >&2
     printf "%s\n" "       The hook file must use LF (not CRLF) line terminators. In a git project we recommend including" >&2
@@ -233,6 +233,18 @@ add_do_var() {
         DO_VARS=$(printf "%s ; do_var %s" "$DO_VARS" "$add_do_var_ESCAPED")
     fi
 }
+DO_HOOKS=
+add_do_hook() {
+    add_do_hook_CMD=$1
+    shift
+    add_do_hook_ESCAPED=$(__escape_args_for_shell "$add_do_hook_CMD")
+    # newlines are stripped by MSYS2 dash, so use semicolons as separator
+    if [ -z "$DO_HOOKS" ]; then
+        DO_HOOKS=$(printf "do_hook %s" "$add_do_hook_ESCAPED")
+    else
+        DO_HOOKS=$(printf "%s ; do_hook %s" "$DO_HOOKS" "$add_do_hook_ESCAPED")
+    fi
+}
 
 BUILDTYPE=
 DKML_TOOLS_SWITCH=OFF
@@ -243,7 +255,6 @@ OPAMHOME=
 DKMLABI=
 EXTRAPATH=
 EXTRAREPOCMDS=
-HOOK_POSTCREATE=
 PREBUILDS=
 POSTINSTALLS=
 PREREMOVES=
@@ -289,7 +300,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
             fi
             EXTRAREPOCMDS="${EXTRAREPOCMDS}add_extra_repo '${OPTARG}'"
         ;;
-        i ) HOOK_POSTCREATE=$OPTARG ;;
+        i ) add_do_hook "$OPTARG" ;;
         j ) PREBUILDS="${PREBUILDS} [$OPTARG]" ;;
         k ) POSTINSTALLS="${POSTINSTALLS} [$OPTARG]" ;;
         l ) PREREMOVES="${PREREMOVES} [$OPTARG]" ;;
@@ -788,8 +799,8 @@ if [ -n "$DO_VARS" ]; then
         printf "  do_var_ARG_CHKSUM=\$(sha256compute '%s'/do_var_value.%s.txt)\n" \
             "$WORK" \
             '$$'
-        printf "  if [ -e '%s'/setenv-\${do_var_NAME}.\${do_var_ARG_CHKSUM}.once ]; then return 0; fi\n" \
-            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
+        printf "  if [ -e '%s'/do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once ]; then return 0; fi\n" \
+            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
         # shellcheck disable=SC2016
         printf "  do_var_VALUE=\$(%s)\n" \
             'printf "%s" "$do_var_ARG" | PATH=/usr/bin:/bin sed "s/^[^=]*=//"'
@@ -802,8 +813,8 @@ if [ -n "$DO_VARS" ]; then
         if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi; printf "\n"
 
         #       Done. Don't repeat anymore
-        printf "  touch '%s'/setenv-\${do_var_NAME}.\${do_var_ARG_CHKSUM}.once\n" \
-            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
+        printf "  touch '%s'/do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once\n" \
+            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
 
         printf "}\n"
 
@@ -875,8 +886,8 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "  do_setenv_option_ARG_CHKSUM=\$(sha256compute '%s'/do_setenv_option_value.%s.txt)\n" \
             "$WORK" \
             '$$'
-        printf "  if [ -e '%s'/setenv-\${do_setenv_option_NAME}.\${do_setenv_option_ARG_CHKSUM}.once ]; then return 0; fi\n" \
-            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
+        printf "  if [ -e '%s'/do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once ]; then return 0; fi\n" \
+            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
         # shellcheck disable=SC2016
         printf "  do_setenv_option_VALUE=\$(%s)\n" \
             'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^=]*=//"'
@@ -894,8 +905,8 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
 
         printf "  modifications=ON\n"
         #       Done. Don't repeat anymore
-        printf "  touch '%s'/setenv-\${do_setenv_option_NAME}.\${do_setenv_option_ARG_CHKSUM}.once\n" \
-            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
+        printf "  touch '%s'/do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once\n" \
+            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
 
         printf "}\n"
 
@@ -1060,25 +1071,39 @@ fi
 # --------------------------------
 # BEGIN opam post create hook
 
-if [ -n "$HOOK_POSTCREATE" ]; then
-    HOOK_KEY_POSTCREATE=$(sha256compute "$HOOK_POSTCREATE")
-    if [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/hook-postcreate.$dkml_root_version.$HOOK_KEY_POSTCREATE" ]; then
-        # If Windows, expect the commands to be executed in Windows/DOS context,
-        # not a MSYS2 context. So use mixed and host paths rather than Unix paths.
-        if [ -x /usr/bin/cygpath ]; then
-            DKMLSYS_ENV_MIXED=$(/usr/bin/cygpath -am "$DKMLSYS_ENV")
-        else
-            DKMLSYS_ENV_MIXED=$DKMLSYS_ENV
-        fi
-        {
-            cat "$WORK"/nonswitchexec.sh
-            printf "  exec -- '%s' 'OPAMEXE=%s' '__INTERNAL__DKMLDIR=%s' '%s' '%s'" "$DKMLSYS_ENV_MIXED" "$OPAMEXE" "$DKMLDIR" "$DKML_HOST_POSIX_SHELL" "$HOOK_POSTCREATE"
-        } > "$WORK"/postcreate.sh
-        log_shell "$WORK"/postcreate.sh
-
-        # Done until the next DKML version or the next update to the hook
-        touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/hook-postcreate.$dkml_root_version.$HOOK_KEY_POSTCREATE"
+if [ -n "$DO_HOOKS" ]; then
+    # If Windows, expect the commands to be executed in Windows/DOS context,
+    # not a MSYS2 context. So use mixed and host paths rather than Unix paths.
+    if [ -x /usr/bin/cygpath ]; then
+        DKMLSYS_ENV_MIXED=$(/usr/bin/cygpath -am "$DKMLSYS_ENV")
+    else
+        DKMLSYS_ENV_MIXED=$DKMLSYS_ENV
     fi
+    {
+        printf "#!%s\n" "$DKML_POSIX_SHELL"
+        printf ". '%s'\n" "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
+
+        printf "do_hook() {\n"
+        printf "  do_hook_FILE=\$1\n"
+        printf "  shift\n"
+        printf "  do_hook_FILE_CHKSUM=\$(sha256compute \"\$do_hook_FILE\")\n"
+        printf "  if [ -e '%s'/do_hook-%s.\${do_hook_FILE_CHKSUM}.once ]; then return 0; fi\n" \
+            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
+
+        printf "  ";  cat "$WORK"/nonswitchcall.sh
+        printf "    exec -- '%s' 'OPAMEXE=%s' '__INTERNAL__DKMLDIR=%s' '%s' \"\$do_hook_FILE\"" \
+            "$DKMLSYS_ENV_MIXED" "$OPAMEXE" "$DKMLDIR" "$DKML_HOST_POSIX_SHELL"
+        if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi; printf "\n"
+
+        #       Done. Don't repeat anymore
+        printf "  touch '%s'/do_hook-%s.\${do_hook_FILE_CHKSUM}.once\n" \
+            "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
+
+        printf "}\n"
+
+        printf "%s" "$DO_HOOKS" ; printf "\n"
+    } > "$WORK"/hooks.sh
+    log_shell "$WORK"/hooks.sh
 fi
 
 # END opam post create hook
