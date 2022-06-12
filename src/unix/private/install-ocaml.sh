@@ -22,7 +22,9 @@ shift
 
 # Because Cygwin has a max 260 character limit of absolute file names, we place the working directories in /tmp. We do not need it
 # relative to TOPDIR since we are not using sandboxes.
-DKML_TMP_PARENTDIR=$(mktemp -d /tmp/dkmlp.XXXXX)
+if [ -z "${DKML_TMP_PARENTDIR:-}" ]; then
+    DKML_TMP_PARENTDIR=$(mktemp -d /tmp/dkmlp.XXXXX)
+fi
 
 # Keep the create_workdir() provided temporary directory, even when we switch
 # into the reproducible directory so the reproducible directory does not leak
