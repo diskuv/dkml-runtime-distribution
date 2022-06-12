@@ -368,9 +368,6 @@ cd "$TOPDIR"
 # From here onwards everything should be run using RELATIVE PATHS ...
 # >>>>>>>>>
 
-# --------------------------------
-# BEGIN opam switch create
-
 # Set OPAMEXE
 set_opamexe
 
@@ -385,6 +382,43 @@ set_dkmlparenthomedir
 
 # Set DKMLSYS_*
 autodetect_system_binaries
+
+# The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
+# switches. Whether the `dkml` switch is being created or being used, we need
+# to know where it is.
+#
+# Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+# and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
+set_opamswitchdir_of_system "$DKMLABI"
+TOOLS_OPAMROOTDIR_BUILDHOST="$OPAMROOTDIR_BUILDHOST"
+TOOLS_WITHDKMLEXE_BUILDHOST="$WITHDKMLEXE_BUILDHOST"
+#   Since these 'tools' variables may not correspond to the user's selected
+#   switch, we avoid bugs by clearing the variables from the environment.
+unset OPAMSWITCHFINALDIR_BUILDHOST OPAMSWITCHNAME_EXPAND WITHDKMLEXE_BUILDHOST
+unset OPAMROOTDIR_BUILDHOST OPAMROOTDIR_EXPAND
+
+# --------------------------------
+# BEGIN Opam troubleshooting script
+
+cat > "$WORK"/troubleshoot-opam.sh <<EOF
+#!/bin/sh
+set -euf
+OPAMROOT='$TOOLS_OPAMROOTDIR_BUILDHOST'
+printf "\n\n========= [START OF TROUBLESHOOTING] ===========\n\n" >&2
+find "\$OPAMROOT"/log -mindepth 1 -maxdepth 1 -name "*.out" ! -name "log-*.out" ! -name "ocaml-variants-*.out" | while read -r dump_on_error_LOG; do
+    dump_on_error_BLOG=\$(basename "\$dump_on_error_LOG")
+    printf "\n\n========= [TROUBLESHOOTING] %s ===========\n\n" "\$dump_on_error_BLOG" >&2
+    awk -v BLOG="\$dump_on_error_BLOG" '{print "[" BLOG "]", \$0}' "\$dump_on_error_LOG" >&2
+done
+printf "\nScroll up to see the [TROUBLESHOOTING] logs that begin at the [START OF TROUBLESHOOTING] line\n" >&2
+EOF
+chmod +x "$WORK"/troubleshoot-opam.sh
+
+# END Opam troubleshooting script
+# --------------------------------
+
+# --------------------------------
+# BEGIN opam switch create
 
 # Get the OCaml version and check whether to build an OCaml base (ocamlc compiler, etc.)
 if [ -x /usr/bin/cygpath ]; then
@@ -541,18 +575,14 @@ else
     OCAMLVARIANT="ocaml-system.$OCAMLVERSION"
 fi
 
-# The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
-# switches. Whether the `dkml` switch is being created or being used, we need
-# to know where it is.
-#   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
-#   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
-set_opamswitchdir_of_system "$DKMLABI"
-
 # Make launchers for opam switch create <...> and for opam <...>
 if [ "$DKML_TOOLS_SWITCH" = ON ]; then
     OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLABI' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
+
+    # Set OPAMROOTDIR_BUILDHOST
+    OPAMROOTDIR_BUILDHOST="$TOOLS_OPAMROOTDIR_BUILDHOST"
 else
-    # (Re-)Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_BUILDHOST, OPAMSWITCHNAME_EXPAND, OPAMSWITCHISGLOBAL
+    # Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_BUILDHOST, OPAMSWITCHNAME_EXPAND, OPAMSWITCHISGLOBAL
     # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
     set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
 
@@ -671,7 +701,11 @@ if ! is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
     printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
     cat "$WORK"/switchcreateargs.sh >> "$WORK"/switchcreateexec.sh
     printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchcreateexec.sh
-    log_shell "$WORK"/switchcreateexec.sh
+    #   Do troubleshooting if the initial switch creation fails (it shouldn't fail!)
+    if ! log_shell "$WORK"/switchcreateexec.sh; then
+        "$WORK"/troubleshoot-opam.sh
+        exit 107
+    fi
 
     # the switch create already set the invariant
     NEEDS_INVARIANT=OFF
@@ -930,7 +964,7 @@ fi
 # We don't put with-dkml.exe into the `dkml` tools switch because with-dkml.exe (currently) needs a tools switch to compile itself.
 if [ "$DKML_TOOLS_SWITCH" = OFF ] && \
         [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$WRAP_COMMANDS_CACHE_KEY" ]; then
-    printf "%s" "$WITHDKMLEXE_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
+    printf "%s" "$TOOLS_WITHDKMLEXE_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
     DOW_PATH=$(cat "$WORK"/dow.path)
     {
         cat "$WORK"/nonswitchexec.sh
@@ -1136,7 +1170,11 @@ if [ "$NEEDS_INVARIANT" = ON ]; then
             if [ "$YES" = ON ]; then printf " --yes"; fi
             if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
         } > "$WORK"/upgrade.sh
-        log_shell "$WORK"/upgrade.sh
+        #   Troubleshoot if the upgrade fails (it shouldn't!)
+        if ! log_shell "$WORK"/upgrade.sh; then
+            "$WORK"/troubleshoot-opam.sh
+            exit 107
+        fi
     fi
 fi
 
