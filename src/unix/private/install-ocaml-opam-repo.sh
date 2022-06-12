@@ -22,15 +22,15 @@ shift
 
 # Because Cygwin has a max 260 character limit of absolute file names, we place the working directories in /tmp. We do not need it
 # relative to TOPDIR since we are not using sandboxes.
-TMPPARENTDIR_BUILDHOST=$(mktemp -d /tmp/dkmlp.XXXXX)
+DKML_TMP_PARENTDIR=$(mktemp -d /tmp/dkmlp.XXXXX)
 
 # Keep the create_workdir() provided temporary directory, even when we switch
 # into the reproducible directory so the reproducible directory does not leak
 # anything
-export TMPPARENTDIR_BUILDHOST
+export DKML_TMP_PARENTDIR
 
 # Change the EXIT trap to clean our shorter tmp dir
-trap 'rm -rf "$TMPPARENTDIR_BUILDHOST"' EXIT
+trap 'rm -rf "$DKML_TMP_PARENTDIR"' EXIT
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the DKMLDIR (just like the container
