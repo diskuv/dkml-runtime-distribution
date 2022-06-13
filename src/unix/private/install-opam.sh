@@ -21,15 +21,15 @@ shift
 # relative to TOPDIR since we are not using sandboxes.
 if [ -z "${DKML_TMP_PARENTDIR:-}" ]; then
     DKML_TMP_PARENTDIR=$(mktemp -d /tmp/dkmlp.XXXXX)
+
+    # Change the EXIT trap to clean our shorter tmp dir
+    trap 'rm -rf "$DKML_TMP_PARENTDIR"' EXIT
 fi
 
 # Keep the create_workdir() provided temporary directory, even when we switch
 # into the reproducible directory so the reproducible directory does not leak
 # anything
 export DKML_TMP_PARENTDIR
-
-# Change the EXIT trap to clean our shorter tmp dir
-trap 'rm -rf "$DKML_TMP_PARENTDIR"' EXIT
 
 # To be portable whether we build scripts in the container or not, we
 # change the directory to always be in the DKMLDIR (just like the container
