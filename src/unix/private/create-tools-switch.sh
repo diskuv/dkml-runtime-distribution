@@ -159,7 +159,36 @@ else
     log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI"
 fi
 
-# Flavor packages
+# END create system switch
+# -----------------------
+
+# --------------------------------
+# BEGIN Opam troubleshooting script
+
+# Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+# and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
+set_opamswitchdir_of_system "$DKMLABI"
+
+cat > "$WORK"/troubleshoot-opam.sh <<EOF
+#!/bin/sh
+set -euf
+OPAMROOT='$OPAMROOTDIR_BUILDHOST'
+printf "\n\n========= [START OF TROUBLESHOOTING] ===========\n\n" >&2
+find "\$OPAMROOT"/log -mindepth 1 -maxdepth 1 -name "*.out" ! -name "log-*.out" ! -name "ocaml-variants-*.out" | while read -r dump_on_error_LOG; do
+    dump_on_error_BLOG=\$(basename "\$dump_on_error_LOG")
+    printf "\n\n========= [TROUBLESHOOTING] %s ===========\n\n" "\$dump_on_error_BLOG" >&2
+    awk -v BLOG="\$dump_on_error_BLOG" '{print "[" BLOG "]", \$0}' "\$dump_on_error_LOG" >&2
+done
+printf "\nScroll up to see the [TROUBLESHOOTING] logs that begin at the [START OF TROUBLESHOOTING] line\n" >&2
+EOF
+chmod +x "$WORK"/troubleshoot-opam.sh
+
+# END Opam troubleshooting script
+# --------------------------------
+
+# --------------------------------
+# BEGIN Flavor packages
+
 {
     printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" install -y"
     printf " %s" "--jobs=$NUMCPUS"
@@ -180,10 +209,16 @@ fi
     esac
 } > "$WORK"/config-dkml.sh
 if [ -n "$STATEDIR" ]; then
-    log_shell "$WORK"/config-dkml.sh -p "$DKMLABI" -d "$STATEDIR"
+    if ! log_shell "$WORK"/config-dkml.sh -p "$DKMLABI" -d "$STATEDIR"; then
+        "$WORK"/troubleshoot-opam.sh
+        exit 107
+    fi
 else
-    log_shell "$WORK"/config-dkml.sh -p "$DKMLABI"
+    if ! log_shell "$WORK"/config-dkml.sh -p "$DKMLABI"; then
+        "$WORK"/troubleshoot-opam.sh
+        exit 107
+    fi
 fi
 
-# END create system switch
-# -----------------------
+# END Flavor packages
+# --------------------------------
