@@ -231,7 +231,7 @@ run_opam() {
 # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
 #             the home directory inside the Docker container is not persistent anyways.
 # --bare: so we can configure its settings before adding the OCaml system compiler.
-REPONAME_PENDINGREMOVAL=to-delete
+REPONAME_PENDINGREMOVAL=to-delete-9be511c3b60a0b49
 if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
     if is_unixy_windows_build_machine; then
         # We'll use `pendingremoval` as a signal that we can remove it later if it is the 'default' repository.
