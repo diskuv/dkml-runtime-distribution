@@ -280,6 +280,20 @@ if [ -n "${PLATFORM_EXEC_PRE_DOUBLE:-}" ]; then PLATFORM_EXEC_PRE_DOUBLE="; $PLA
 # shellcheck disable=SC2034 disable=SC2016
 PLATFORM_EXEC_PRE_DOUBLE="${OPAM_ENV_STMT:-} ${PLATFORM_EXEC_PRE_DOUBLE:-}"
 
+# We make another prehook to set the TEMP and TMPDIR environment variables.
+export_safe_tmpdir
+{
+    printf "TMPDIR='%s'\n" "$TMPDIR"
+    printf "TEMP='%s'\n" "$TEMP"
+    if [ -n "$PLATFORM_EXEC_PRE_SINGLE" ]; then
+        printf "\n"
+        cat "$PLATFORM_EXEC_PRE_SINGLE"
+        printf "\n"
+    fi
+} > "$WORK"/platform-opam-exec.sh.opamhome.prehook.source.sh
+# shellcheck disable=SC2034
+PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.opamhome.prehook.source.sh
+
 # We make another prehook so that `PATH=<OPAMHOME>/bin:"$PATH"` at the beginning of all the hooks.
 # That way `opam-real` or `opam` will work including from any child processes that opam spawns.
 if [ -n "$OPAMHOME" ]; then
