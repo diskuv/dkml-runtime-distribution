@@ -348,7 +348,7 @@ if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/
         cat "$WORK"/list
         exit 107
     fi
-    if grep -q "/$REPONAME_PENDINGREMOVAL"$ "$WORK"/default || grep -q "/$REPONAME_PENDINGREMOVAL[ \t]" "$WORK/default"; then
+    if grep -q "/${REPONAME_PENDINGREMOVAL}"$ "$WORK"/default || grep -q "/${REPONAME_PENDINGREMOVAL}[ \t]" "$WORK/default"; then
         # ok. is like: default file://C:/source 123/xxx/vendor/drd/repos/to-delete <default>
         run_opam repository remove default --yes --all --dont-select
     fi
