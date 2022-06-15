@@ -290,9 +290,9 @@ export_safe_tmpdir
         cat "$PLATFORM_EXEC_PRE_SINGLE"
         printf "\n"
     fi
-} > "$WORK"/platform-opam-exec.sh.opamhome.prehook.source.sh
+} > "$WORK"/platform-opam-exec.sh.opamhome.prehook1.source.sh
 # shellcheck disable=SC2034
-PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.opamhome.prehook.source.sh
+PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.opamhome.prehook1.source.sh
 
 # We make another prehook so that `PATH=<OPAMHOME>/bin:"$PATH"` at the beginning of all the hooks.
 # That way `opam-real` or `opam` will work including from any child processes that opam spawns.
@@ -305,9 +305,9 @@ if [ -n "$OPAMHOME" ]; then
             cat "$PLATFORM_EXEC_PRE_SINGLE"
             printf "\n"
         fi
-    } > "$WORK"/platform-opam-exec.sh.opamhome.prehook.source.sh
+    } > "$WORK"/platform-opam-exec.sh.opamhome.prehook2.source.sh
     # shellcheck disable=SC2034
-    PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.opamhome.prehook.source.sh
+    PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.opamhome.prehook2.source.sh
 fi
 # Ditto for `ocaml`
 if [ -n "$OCAMLVERSION_OR_HOME" ]; then
@@ -327,9 +327,9 @@ if [ -n "$OCAMLVERSION_OR_HOME" ]; then
                     cat "$PLATFORM_EXEC_PRE_SINGLE"
                     printf "\n"
                 fi
-            } > "$WORK"/platform-opam-exec.sh.ocamlhome.prehook.source.sh
+            } > "$WORK"/platform-opam-exec.sh.ocamlhome.prehook3.source.sh
             # shellcheck disable=SC2034
-            PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.ocamlhome.prehook.source.sh
+            PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.ocamlhome.prehook3.source.sh
         ;;
     esac
 fi
