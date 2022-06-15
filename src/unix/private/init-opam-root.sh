@@ -335,7 +335,8 @@ fi
 # sigh, we have to parse non-machine friendly output. we'll do safety checks.
 if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
     run_opam repository list --all > "$WORK"/list
-    awk '$1=="default" {print $2}' "$WORK"/list > "$WORK"/default
+    # find the 'default' repository. only want the URL but if it has spaces we can't parse out just the URL
+    awk '$1=="default" {print}' "$WORK"/list > "$WORK"/default
     _NUMLINES=$(awk 'END{print NR}' "$WORK"/default)
     if [ "$_NUMLINES" -ne 1 ]; then
         printf "%s\n" "FATAL: init-opam-root.sh does not understand the Opam repo format used at $OPAMROOTDIR_BUILDHOST/repo/default" >&2
@@ -347,8 +348,8 @@ if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/
         cat "$WORK"/list
         exit 107
     fi
-    if grep -q "/$REPONAME_PENDINGREMOVAL"$ "$WORK"/default; then
-        # ok. is like file://C:/source/xxx/vendor/drd/repos/to-delete
+    if grep -q "/$REPONAME_PENDINGREMOVAL"$ "$WORK"/default || grep -q "/$REPONAME_PENDINGREMOVAL[ \t]" "$WORK/default"; then
+        # ok. is like: default file://C:/source 123/xxx/vendor/drd/repos/to-delete <default>
         run_opam repository remove default --yes --all --dont-select
     fi
 fi
