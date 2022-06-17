@@ -834,7 +834,7 @@ if [ -n "$DO_VARS" ]; then
             'printf "%s" "$do_var_ARG"' \
             "$WORK" \
             '$$'
-        printf "  do_var_ARG_CHKSUM=\$(sha256compute '%s'/do_var_value.%s.txt)\n" \
+        printf "  do_var_ARG_CHKSUM=\$(cachekey_for_filename '%s'/do_var_value.%s.txt)\n" \
             "$WORK" \
             '$$'
         printf "  if [ -e '%s'/do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once ]; then return 0; fi\n" \
@@ -921,7 +921,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
             'printf "%s" "$do_setenv_option_ARG"' \
             "$WORK" \
             '$$'
-        printf "  do_setenv_option_ARG_CHKSUM=\$(sha256compute '%s'/do_setenv_option_value.%s.txt)\n" \
+        printf "  do_setenv_option_ARG_CHKSUM=\$(cachekey_for_filename '%s'/do_setenv_option_value.%s.txt)\n" \
             "$WORK" \
             '$$'
         printf "  if [ -e '%s'/do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once ]; then return 0; fi\n" \
@@ -999,7 +999,7 @@ option_command() {
     option_command_VALUE=$1
     shift
     printf "%s|%s" "$dkml_root_version" "$option_command_VALUE" > "$WORK"/"$option_command_OPTION".key
-    option_command_CACHE_KEY="$option_command_OPTION"."$dkml_root_version".$(sha256compute "$WORK"/"$option_command_OPTION".key)
+    option_command_CACHE_KEY="$option_command_OPTION"."$dkml_root_version".$(cachekey_for_filename "$WORK"/"$option_command_OPTION".key)
     if [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$option_command_CACHE_KEY" ]; then
         option_command_ESCAPED=$(escape_args_for_shell "$option_command_VALUE")
         {
@@ -1124,7 +1124,7 @@ if [ -n "$DO_HOOKS" ]; then
         printf "do_hook() {\n"
         printf "  do_hook_FILE=\$1\n"
         printf "  shift\n"
-        printf "  do_hook_FILE_CHKSUM=\$(sha256compute \"\$do_hook_FILE\")\n"
+        printf "  do_hook_FILE_CHKSUM=\$(cachekey_for_filename \"\$do_hook_FILE\")\n"
         printf "  if [ -e '%s'/do_hook-%s.\${do_hook_FILE_CHKSUM}.once ]; then return 0; fi\n" \
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
 
@@ -1153,7 +1153,7 @@ fi
 if [ "$NEEDS_INVARIANT" = ON ]; then
     # We also should change the switch invariant if an upgrade occurred. The best way to detect
     # that we need to upgrade after the switch invariant change is to see if the switch-config changed
-    OLD_HASH=$(sha256compute "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/switch-config")
+    OLD_HASH=$(cachekey_for_filename "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/switch-config")
     {
         cat "$WORK"/nonswitchexec.sh
         printf "  switch set-invariant --packages="
@@ -1166,7 +1166,7 @@ if [ "$NEEDS_INVARIANT" = ON ]; then
     } > "$WORK"/set-invariant.sh
     log_shell "$WORK"/set-invariant.sh
 
-    NEW_HASH=$(sha256compute "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/switch-config")
+    NEW_HASH=$(cachekey_for_filename "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/switch-config")
     if [ ! "$OLD_HASH" = "$NEW_HASH" ]; then
         {
             cat "$WORK"/nonswitchexec.sh
