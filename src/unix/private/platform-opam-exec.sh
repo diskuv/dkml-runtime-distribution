@@ -18,6 +18,9 @@ DKMLDIR=$(cd "$DKMLDIR"/../../../../.. && pwd)
 usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    platform-opam-exec.sh -h                                     Display this help message" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI [-b]" >&2
+    printf "%s\n" "                          [--] dkml|...                          Run the opam command with no Opam root selected" >&2
+    printf "%s\n" "                                                                 and no switch selected" >&2
     printf "%s\n" "    platform-opam-exec.sh -p DKMLABI" >&2
     printf "%s\n" "                          [--] var|clean|help|...                Run the opam command with the user Opam root" >&2
     printf "%s\n" "                                                                 without any switch selected" >&2
@@ -50,6 +53,7 @@ usage() {
     printf "%s\n" "    any DKSDK OCaml system compiler." >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
+    printf "%s\n" "    -b: No Opam root will be used. No Opam switch will be used." >&2
     printf "%s\n" "    -s: Select the [dkml] switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -n GLOBALOPAMSWITCH: The target global Opam switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -t LOCALOPAMSWITCH: The target Opam switch. If specified adds --switch to opam." >&2
@@ -105,7 +109,8 @@ TARGETLOCAL_OPAMSWITCH=
 TARGETGLOBAL_OPAMSWITCH=
 OPAMHOME=
 OCAMLVERSION_OR_HOME=
-while getopts ":h0:1:p:sn:t:d:u:o:v:" opt; do
+USE_ROOT=ON
+while getopts ":h0:1:p:sn:t:d:u:o:v:b" opt; do
     case ${opt} in
         h )
             usage
@@ -122,6 +127,7 @@ while getopts ":h0:1:p:sn:t:d:u:o:v:" opt; do
             STATEDIR=$OPTARG
         ;;
         u ) true ;;
+        b ) USE_ROOT=OFF ;;
         s ) DKML_TOOLS_SWITCH=ON ;;
         n ) TARGETGLOBAL_OPAMSWITCH=$OPTARG ;;
         t ) TARGETLOCAL_OPAMSWITCH=$OPTARG ;;
@@ -159,6 +165,13 @@ elif [ "$_switch_count" = x ]; then
     USE_SWITCH=ON
 else
     echo "FATAL: At most one of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH may be specified" >&2
+    usage
+    exit 1
+fi
+
+#   The switches cannot be used with -b
+if [ "$USE_SWITCH" = ON ] && [ "$USE_ROOT" = OFF ]; then
+    echo "FATAL: Cannot use -t LOCALOPAMSWITCH, -s or -n GLOBALOPAMSWITCH with the -b option" >&2
     usage
     exit 1
 fi
@@ -214,18 +227,20 @@ OPAM_ENV_STMT=
 # Set OPAMEXE
 set_opamexe
 
-# Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND
-set_opamrootdir
-
-# We check if the root exists before we add --root
 OPAM_ROOT_OPT=() # we have a separate array for --root since --root is mandatory for `opam init`
-if is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
-    OPAM_ROOT_OPT+=( --root "$OPAMROOTDIR_EXPAND" )
-    if [ "$USE_SWITCH" = ON ]; then
-        # `--set-switch` will output the globally selected switch, if any.
-        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root --set-switch || true'
-    else
-        OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root || true'
+if [ "$USE_ROOT" = ON ]; then
+    # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND
+    set_opamrootdir
+
+    # We check if the root exists before we add --root
+    if is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
+        OPAM_ROOT_OPT+=( --root "$OPAMROOTDIR_EXPAND" )
+        if [ "$USE_SWITCH" = ON ]; then
+            # `--set-switch` will output the globally selected switch, if any.
+            OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root --set-switch || true'
+        else
+            OPAM_ENV_STMT="'$OPAMEXE'"' env --quiet --root "'$OPAMROOTDIR_EXPAND'" --set-root || true'
+        fi
     fi
 fi
 
