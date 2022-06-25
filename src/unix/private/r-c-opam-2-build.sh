@@ -48,17 +48,22 @@ usage() {
     printf "%s\n" "      will not choose a compiler based on environment variables." >&2
     printf "%s\n" "      Confer with https://github.com/metastack/msvs-tools#msvs-detect" >&2
     printf "%s\n" "   -c OCAMLHOME: Optional. The home directory for OCaml containing usr/bin/ocamlc or bin/ocamlc," >&2
-    printf "%s\n" "      and other OCaml binaries and libraries. If not specified will bootstrap its own OCaml home" >&2
+    printf "%s\n" "      and other OCaml binaries and libraries. If both -c and -f not specified then will this script" >&2
+    printf "%s\n" "      will bootstrap its own OCaml home" >&2
+    printf "%s\n" "   -f OCAMLBINDIR: Optional. The binary directory for OCaml ocamlc, and other OCaml binaries and" >&2
+    printf "%s\n" "      and libraries. If both -c and -f not specified then will this script will bootstrap its own" >&2
+    printf "%s\n" "      OCaml home" >&2
     printf "%s\n" "   -e ON|OFF: Optional; default is OFF. If ON will preserve .git folders in the target directory" >&2
 }
 
 DKMLDIR=
 TARGETDIR=
 OCAMLHOME=
+OCAMLBINDIR=
 NUMCPUS=
 PRESERVEGIT=OFF
 DKMLABI=
-while getopts ":d:t:n:a:b:c:e:h" opt; do
+while getopts ":d:t:n:a:b:c:e:f:h" opt; do
     case ${opt} in
         h )
             usage
@@ -78,6 +83,7 @@ while getopts ":d:t:n:a:b:c:e:h" opt; do
         a ) DKMLABI="$OPTARG";;
         b ) OPT_MSVS_PREFERENCE="$OPTARG";;
         c ) OCAMLHOME="$OPTARG";;
+        f ) OCAMLBINDIR="$OPTARG";;
         e ) PRESERVEGIT="$OPTARG";;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
@@ -137,6 +143,23 @@ if [ -n "$OCAMLHOME" ]; then
     validate_and_explore_ocamlhome "$OCAMLHOME"
     # add ocaml, ocamlc, etc.
     POST_BOOTSTRAP_PATH="$DKML_OCAMLHOME_UNIX"/"$DKML_OCAMLHOME_BINDIR_UNIX":"$PATH"
+    USE_BOOTSTRAP=OFF
+elif [ -n "$OCAMLBINDIR" ]; then
+    if [ ! -x "$OCAMLBINDIR/ocaml" ] && [ ! -x "$OCAMLBINDIR/ocaml.exe" ]; then
+        printf "FATAL: No ocaml found in -f %s\n" "$OCAMLBINDIR" >&2
+        exit 1
+    fi
+    if [ ! -x "$OCAMLBINDIR/ocamlc" ] && [ ! -x "$OCAMLBINDIR/ocamlc.exe" ]; then
+        printf "FATAL: No ocamlc found in -f %s\n" "$OCAMLBINDIR" >&2
+        exit 1
+    fi
+    if [ -x /usr/bin/cygpath ]; then
+        OCAMLBINDIR_UNIX=$(/usr/bin/cygpath -a "$OCAMLBINDIR")
+    else
+        OCAMLBINDIR_UNIX=$OCAMLBINDIR
+    fi
+    # add ocaml, ocamlc, etc.
+    POST_BOOTSTRAP_PATH="$OCAMLBINDIR_UNIX":"$PATH"
     USE_BOOTSTRAP=OFF
 else
     # add the bootstrap that Opam builds with `lib-pkg`. The packages are all

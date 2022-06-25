@@ -44,7 +44,7 @@ OPT_MSVS_PREFERENCE='VS16.*;VS15.*;VS14.0' # KEEP IN SYNC with 2-build.sh
 usage() {
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    r-c-opam-1-setup.sh" >&2
-    printf "%s\n" "        -h                                       Display this help message." >&2
+    printf "%s\n" "        -h                                  Display this help message." >&2
     printf "%s\n" "        -d DIR -t DIR -v COMMIT -a DKMLABI  Setup compilation of Opam." >&2
     printf "%s\n" "Options" >&2
     printf "%s\n" "   -d DIR: DKML directory containing a .dkmlroot file" >&2
@@ -60,7 +60,11 @@ usage() {
     printf "%s\n" "      will not choose a compiler based on environment variables." >&2
     printf "%s\n" "      Confer with https://github.com/metastack/msvs-tools#msvs-detect" >&2
     printf "%s\n" "   -c OCAMLHOME: Optional. The home directory for OCaml containing usr/bin/ocamlc or bin/ocamlc," >&2
-    printf "%s\n" "      and other OCaml binaries and libraries. If not specified will bootstrap its own OCaml home" >&2
+    printf "%s\n" "      and other OCaml binaries and libraries. If both -c and -f not specified then will this script" >&2
+    printf "%s\n" "      will bootstrap its own OCaml home" >&2
+    printf "%s\n" "   -f OCAMLBINDIR: Optional. The binary directory for OCaml ocamlc, and other OCaml binaries and" >&2
+    printf "%s\n" "      and libraries. If both -c and -f not specified then will this script will bootstrap its own" >&2
+    printf "%s\n" "      OCaml home" >&2
     printf "%s\n" "   -e ON|OFF: Optional; default is OFF. If ON will preserve .git folders in the target directory" >&2
 }
 
@@ -70,7 +74,7 @@ GIT_COMMITID_TAG_OR_DIR=
 TARGETDIR=
 PRESERVEGIT=OFF
 DKMLABI=
-while getopts ":d:u:v:t:a:b:c:e:h" opt; do
+while getopts ":d:u:v:t:a:b:c:e:f:h" opt; do
     case ${opt} in
         h )
             usage
@@ -119,6 +123,10 @@ while getopts ":d:u:v:t:a:b:c:e:h" opt; do
         e )
             PRESERVEGIT="$OPTARG"
             SETUP_ARGS+=( -e "$PRESERVEGIT" )
+        ;;
+        f )
+            BUILD_ARGS+=( -f "$OPTARG" )
+            SETUP_ARGS+=( -f "$OPTARG" )
         ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
