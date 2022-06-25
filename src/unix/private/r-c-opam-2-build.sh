@@ -250,10 +250,18 @@ if [ "$USE_BOOTSTRAP" = ON ]; then
     # Should not be needed: QUERIED_OCAMLFIND_CONF=$(env PATH="$POST_BOOTSTRAP_PATH" ocamlfind printconf conf)
 fi
 
-# Don't let any parent Opam / Dune context interfere with the building of Opam
+# Don't let any parent Opam / Dune / OCaml context interfere with the building of Opam
 safe_run() {
     # OCAMLFIND_CONF="$QUERIED_OCAMLFIND_CONF"
-    log_trace env -u DUNE_SOURCEROOT -u DUNE_OCAML_HARDCODED -u OCAML_TOPLEVEL_PATH -u OPAM_SWITCH_PREFIX -u OCAMLFIND_CONF PATH="$POST_BOOTSTRAP_PATH" "$@"
+    log_trace env \
+        -u DUNE_SOURCEROOT \
+        -u DUNE_OCAML_HARDCODED \
+        -u OCAML_TOPLEVEL_PATH \
+        -u CAML_LD_LIBRARY_PATH \
+        -u OPAM_SWITCH_PREFIX \
+        -u OCAMLFIND_CONF \
+        PATH="$POST_BOOTSTRAP_PATH" \
+        "$@"
 }
 
 # At this point we have compiled _all_ of Opam dependencies if we used `lib-pkg` ...
