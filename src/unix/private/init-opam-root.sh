@@ -120,6 +120,9 @@ set_dkmlparenthomedir
 # on Windows, and dkmlvars.sexp should only be written at the end of a successful install, we explicitly only
 # set dkmlvars.sexp for non-Windows.
 # Some don't make sense for Unix (MSYS2Dir, Home) and some we don't have (DeploymentId).
+#
+# dkml-runtime-apps' dkml_context.ml, among others, uses [DiskuvOCamlVarsVersion] and
+# [DiskuvOCamlVersion] as the minimal environment variables.
 
 if ! is_unixy_windows_build_machine && [ ! -e "$DKMLPARENTHOME_BUILDHOST"/dkmlvars-v2.sexp ] ; then
     install -d "$DKMLPARENTHOME_BUILDHOST"
