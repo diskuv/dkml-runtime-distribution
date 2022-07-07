@@ -73,7 +73,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     cmdliner,1.0.4
     crunch,3.2.0
     uuidm,0.9.7
-    dkml-c-probe,2.0.0
+    dkml-c-probe,3.0.0
 
     jingoo,1.4.4
     ocamlformat,0.19.0
