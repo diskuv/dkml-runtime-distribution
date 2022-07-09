@@ -84,7 +84,7 @@ case "$ABSOLUTE_REFERENT" in
             exit 0
         fi
         # manual testing 20210807: both cygpath -a 'Z:\Windows\' and cygpath -a 'Z:\Windows\\' gave /cygdrive/z/Windows/
-        DESIRED_SYSTEMROOT=$(cygpath -a "$SYSTEMROOT\\")
+        DESIRED_SYSTEMROOT=$(/usr/bin/cygpath -a "$SYSTEMROOT\\")
         # Tricky thing is getting quoting correct while only replacing the first /cygdrive/c.
         # we delegate to Bash to do it right.
         tmpe="$(mktemp)"
