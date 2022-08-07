@@ -86,17 +86,19 @@ then
         layer="$MOBYDIR"/"$layer_name"
         head --bytes=10 "$layer" > "$WORK"/rhs
         if printf '%s' '{"errors":' | cmp -s - "$WORK"/rhs 2>/dev/null; then
-            echo "Skipping   $OCAML_OPAM_PORT $layer"
+            echo "Skipping   $OCAML_OPAM_PORT $layer" >&2
             continue
         fi
+
+        # New incoming/ every iteration
+        install -d "$WORK/incoming"
 
         # We want to extract the subfolder Files/ but without many of its subfolders.
         # Some layers may effectively have no files though, so we can't use a 'Files/' argument; if
         # we did we would get 'tar: Files: Not found in archive'.
         # Instead we extract everything with as many --exclude as appropriate, and then rsync the Files/
         # subfolder (if any) into the correct location.
-        echo "Scanning   $OCAML_OPAM_PORT $layer"
-        install -d "$WORK/incoming"
+        echo "Scanning   $OCAML_OPAM_PORT $layer" >&2
         set +e
         tar x --file "$layer" --directory "$WORK/incoming" \
             --overwrite --warning=no-unknown-keyword --wildcards --ignore-zeros \
@@ -126,19 +128,22 @@ then
             if [ -e "$layer" ]; then
                 mv "$layer" "$layer.badread"
             fi
-            exit $ec
+            echo "FATAL: tar gave back exit code $ec. You may have a corrupted download. If you have a cache you should clear it. Exiting with code 103 to signal to clear any cache" >&2
+            exit 103
         else
             # Since we had a successful read, remove any old bad read attempts
             rm -f "$layer.badread"
         fi
         set -e
 
-        # Fix any 0o000 perms
-        chmod -R 755 "$WORK/incoming"
+        # Fix any 0o000 perms; at least try
+        set -x
+        chmod -R 755 "$WORK/incoming" || find "$WORK/incoming" -exec chmod 755 {} \; || true
+        set +x
 
         # Copy 'Files/'
         if [ -e "$WORK"/incoming/Files/ ]; then
-            echo "Extracting $OCAML_OPAM_PORT $layer"
+            echo "Extracting $OCAML_OPAM_PORT $layer" >&2
             # As one more safeguard we avoid 'rsync -p' option so that
             # we do _not_ copy '0o000' permissions
             rsync -a --prune-empty-dirs "$WORK/incoming/Files/" "$OUTDIR/"
@@ -162,4 +167,6 @@ repositories: [
 ]
 EOF
 
+    echo "Done extracting Opam root" >&2
 fi
+
