@@ -136,9 +136,10 @@ then
         fi
         set -e
 
-        # Fix any 0o000 perms; at least try
+        # Fix any 0o000 perms; at least try. chmod can fail because of dangling symlinks:
+        #   chmod: cannot operate on dangling symlink '/cygdrive/c/GitLab-Runner/builds/diskuv/diskuv-ocaml/_ci/moby/tmp/tmp.QMKLxFu9WD/incoming/Files/cygwin64/etc/postinstall/zp_zcygsympathy.sh'        
         set -x
-        chmod -R 755 "$WORK/incoming" || find "$WORK/incoming" -exec chmod 755 {} \; || true
+        chmod -R 755 "$WORK/incoming" || find "$WORK/incoming" -print0 | xargs -0 --no-run-if-empty chmod 755 || true
         set +x
 
         # Copy 'Files/'
