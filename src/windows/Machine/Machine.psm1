@@ -11,7 +11,7 @@ Import-Module DeploymentHash # for Get-Sha256Hex16OfText
 # * Semver numbers
 
 #   OCaml on Windows 32-bit requires Windows SDK 10.0.18362.0 (MSVC bug). Let's be consistent and use it for 64-bit as well.
-$Windows10SdkVer = "18362"        # KEEP IN SYNC with WindowsAdministrator.rst
+$Windows10SdkVer = "18362"        # KEEP IN SYNC with WindowsAdministrator.rst and dkml-installer-ocaml/installer/winget/manifest/Diskuv.OCaml.installer.yaml
 $Windows10SdkFullVer = "10.0.$Windows10SdkVer.0"
 
 # Visual Studio minimum version
