@@ -22,8 +22,8 @@ PINNED_PACKAGES_DKML_PATCHES="
 
     bigstringaf,0.9.0+msvc
     core_kernel,v0.14.2
-    ctypes-foreign,0.19.2-windowssupport-r4
-    ctypes,0.19.2-windowssupport-r4
+    ctypes-foreign,0.19.2-windowssupport-r5
+    ctypes,0.19.2-windowssupport-r5
     digestif,1.1.2+msvc
     dune-configurator,2.9.3
     feather,0.3.0
