@@ -91,7 +91,9 @@ let packages_fdopen_to_remove =
     *)
     "ocamlfind";
     "ptime";
+
     "ocp-indent";
+
     "bigstringaf";
     "core_kernel";
     "ctypes-foreign";
@@ -101,6 +103,8 @@ let packages_fdopen_to_remove =
     "feather";
     "ocamlbuild";
     "ppx_expect";
+    "yaml";
+
     "dkml-apps";
     "opam-dkml";
     (* 4th section corresponds to:
