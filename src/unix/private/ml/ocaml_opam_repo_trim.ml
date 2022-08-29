@@ -99,12 +99,6 @@ let packages_fdopen_to_remove =
     "digestif";
     "dune-configurator";
     "feather";
-    "mirage-crypto-ec";
-    "mirage-crypto-pk";
-    "mirage-crypto-rng-async";
-    "mirage-crypto-rng-mirage";
-    "mirage-crypto-rng";
-    "mirage-crypto";
     "ocamlbuild";
     "ppx_expect";
     "dkml-apps";

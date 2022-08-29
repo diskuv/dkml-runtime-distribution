@@ -28,12 +28,6 @@ PINNED_PACKAGES_DKML_PATCHES="
     dune-configurator,2.9.3
     feather,0.3.0
     mccs,1.1+13
-    mirage-crypto-ec,0.10.4-windowssupport
-    mirage-crypto-pk,0.10.4-windowssupport
-    mirage-crypto-rng-async,0.10.4-windowssupport
-    mirage-crypto-rng-mirage,0.10.4-windowssupport
-    mirage-crypto-rng,0.10.4-windowssupport
-    mirage-crypto,0.10.4-windowssupport
     ocamlbuild,0.14.0
     ppx_expect,v0.14.1
 
