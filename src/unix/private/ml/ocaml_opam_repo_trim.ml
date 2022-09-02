@@ -301,13 +301,23 @@ let find_latest_package_version pkg pkg_loc =
   *)
   let is_jane_street_pkg opam_loc =
     let opam_contents = read_whole_file opam_loc in
-    try
+    let in_homepage = try
       Str.(
         search_forward
           (regexp_string "homepage: \"https://github.com/janestreet/")
           opam_contents 0)
       >= 0
-    with Not_found -> false
+    with Not_found -> false in
+    (*    Ex: https://github.com/fdopen/opam-repository-mingw/blob/opam2/packages/fieldslib/fieldslib.108.00.02/opam
+            maintainer: "Jane Street developers" *)
+    let in_maintainer = try
+      Str.(
+        search_forward
+          (regexp_string "maintainer: \"Jane Street")
+          opam_contents 0)
+      >= 0
+    with Not_found -> false in
+    in_homepage || in_maintainer
   in
   let plausible_ver_plus_semver_pairs =
     List.filter_map
