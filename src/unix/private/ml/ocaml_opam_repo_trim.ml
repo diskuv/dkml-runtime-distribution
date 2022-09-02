@@ -1,5 +1,4 @@
 #load "str.cma"
-
 #load "unix.cma"
 
 (* To test in Cygwin:
@@ -91,9 +90,7 @@ let packages_fdopen_to_remove =
     *)
     "ocamlfind";
     "ptime";
-
     "ocp-indent";
-
     "bigstringaf";
     "core_kernel";
     "ctypes-foreign";
@@ -104,7 +101,6 @@ let packages_fdopen_to_remove =
     "ocamlbuild";
     "ppx_expect";
     "yaml";
-
     "dkml-apps";
     "opam-dkml";
     (* 4th section corresponds to:
@@ -195,19 +191,19 @@ let ocamlversion =
 
 let oorepo_p =
   let ( / ) = Filename.concat in
-  Filename.(!targetdir / "share" / "dkml" / "repro" / !ocamlversion_s)
+  !targetdir / "share" / "dkml" / "repro" / !ocamlversion_s
 
 let oorepo_packages_p =
   let ( / ) = Filename.concat in
-  Filename.(oorepo_p / "packages")
+  oorepo_p / "packages"
 
 let repodir_p =
   let ( / ) = Filename.concat in
-  Filename.(!targetdir / "full-opam-root")
+  !targetdir / "full-opam-root"
 
 let basedir_in_full_opamroot_p =
   let ( / ) = Filename.concat in
-  Filename.(repodir_p / Format.sprintf "msvc-%s" !dockerarch)
+  repodir_p / Format.sprintf "msvc-%s" !dockerarch
 
 let pins : string array = [||]
 
@@ -342,17 +338,17 @@ let find_latest_package_version pkg pkg_loc =
   in
   let sorted_desc_plausible_ver_plus_semver_pairs =
     List.fast_sort
-      (fun (a_ver, a_semver) (b_ver, b_semver) ->
+      (fun (_a_ver, a_semver) (_b_ver, b_semver) ->
         Int.neg @@ String.compare a_semver b_semver)
       plausible_ver_plus_semver_pairs
   in
   Format.(
     printf "[%s] Plausible semantic versions: @[%a@]@\n" pkg pp_lst
       (List.map
-         (fun (a_ver, a_semver) -> a_semver)
+         (fun (_a_ver, a_semver) -> a_semver)
          sorted_desc_plausible_ver_plus_semver_pairs));
   match sorted_desc_plausible_ver_plus_semver_pairs with
-  | (fst_ver, fst_semver) :: rst -> Some fst_ver
+  | (fst_ver, _fst_semver) :: _rst -> Some fst_ver
   | _ -> None
 
 let pkgvers_contains_package pkgvers pkg = List.mem_assoc pkg pkgvers
