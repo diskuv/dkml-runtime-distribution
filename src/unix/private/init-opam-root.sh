@@ -376,11 +376,14 @@ fi
 #       MINGW_PREFIX=/clang64
 #       MINGW_PACKAGE_PREFIX=mingw-w64-clang-x86_64
 #
-#   Those environment variables are mastered in
+#   The `MSYSTEM` comes from https://www.msys2.org/docs/environments/
+#
+#   The remaining environment variables are mastered in
 #   https://github.com/msys2/MSYS2-packages/blob/1ff9c79a6b6b71492c4824f9888a15314b85f5fa/filesystem/msystem:
 #       MSYSTEM_PREFIX MSYSTEM_CARCH MSYSTEM_CHOST MINGW_CHOST MINGW_PREFIX MINGW_PACKAGE_PREFIX
 #
 #   Opam Global Variables (part 1):
+#       msystem=CLANG64
 #       msystem-prefix=/clang64
 #       msystem-carch=x86_64
 #       msystem-chost=x86_64-w64-mingw32
@@ -389,33 +392,16 @@ fi
 #       mingw-package-prefix=mingw-w64-clang-x86_64
 #   
 #   Opam Global Variables (part 2):
-#       msys2-msys-unixdir=/c/msys64
-#       msys2-msys-nativedir=C:\msys64
-#       msys2-clang64-unixdir=/c/msys64
-#       msys2-clang64-nativedir=C:\msys64
-#
-#   The "part 2" naming convention is:
-#       msys2-{environment}-unixdir=...
-#       msys2-{environment}-nativedir=...
-#   The `{environment}` comes from https://www.msys2.org/docs/environments/ .
-#   In particular, all environments have an MSYS environment:
-#   > The MSYS environment contains the unix-like/cygwin based tools, lives
-#   > under /usr and are special in that it is always active. All the other
-#   > environments inherit from the MSYS environment and add various things
-#   > on top of it.
-if [ -n "${DKMLMSYS2DIR_UNIX:-}" ] && [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
+#       msys2-nativedir=C:\msys64
+if [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
+    run_opam var --global "msystem=$MSYSTEM"
     run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}"
     run_opam var --global "msystem-carch=${MSYSTEM_CARCH:-}"
     run_opam var --global "msystem-chost=${MSYSTEM_CHOST:-}"
     run_opam var --global "mingw-chost=${MINGW_CHOST:-}"
     run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}"
     run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}"
-    #   CLANG64 -> clang64
-    msystem_lower=$(printf "%s" "$MSYSTEM" | $DKMLSYS_TR A-Z a-z)
-    run_opam var --global "msys2-msys-unixdir=$DKMLMSYS2DIR_UNIX"
-    run_opam var --global "msys2-msys-nativedir=$DKMLMSYS2DIR_BUILDHOST"
-    run_opam var --global "msys2-$msystem_lower-unixdir=$DKMLMSYS2DIR_UNIX"
-    run_opam var --global "msys2-$msystem_lower-nativedir=$DKMLMSYS2DIR_BUILDHOST"
+    run_opam var --global "msys2-nativedir=$DKMLMSYS2DIR_BUILDHOST"
 fi
 
 # Diagnostics
