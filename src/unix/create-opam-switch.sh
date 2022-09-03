@@ -34,6 +34,7 @@ PINNED_PACKAGES_DKML_PATCHES="
 
     dkml-apps,1.0.1~prerel3
     opam-dkml,1.0.1~prerel3
+    with-dkml,1.0.1~prerel3
     "
 
 # These MUST BE IN SYNC with vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
