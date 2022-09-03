@@ -73,14 +73,13 @@ let packages_fdopen_to_remove =
   [
     (* The first section is where we don't care what pkg version is used, but we know we don't want fdopen's version:
        * depext is unnecessary as of Opam 2.1
-       * ocaml-compiler-libs,v0.12.4 and jst-config,v0.14.1 and dune-build-info,2.9.3 are part of the good set, but not part of the fdopen repository snapshot. So we remove it in
+       * ocaml-compiler-libs,v0.12.4 and dune-build-info,2.9.3 are part of the good set, but not part of the fdopen repository snapshot. So we remove it in
          r-f-oorepo-9-trim.sh so the default Opam repository is used.
        * jbuilder should always be the 'transition' version
     *)
     "depext";
     "dune-build-info";
     "jbuilder";
-    "jst-config";
     "ocaml-compiler-libs";
     (* The second section is where we need all the DKML patched package versions for:
        * ocaml-variants since which package to choose is an install-time calculation (32/64 bit, dkml/dksdk, 4.12.1/4.13.1)
