@@ -119,7 +119,6 @@ let packages_fdopen_to_remove =
     "crunch";
     "uuidm";
     "dkml-c-probe";
-    "jingoo";
     "lsp";
     "ocaml-lsp-server";
     "jsonrpc";

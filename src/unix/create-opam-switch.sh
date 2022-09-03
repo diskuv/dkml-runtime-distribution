@@ -71,7 +71,6 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     uuidm,0.9.7
     dkml-c-probe,3.0.0
 
-    jingoo,1.4.4
     ocamlformat,0.19.0
     ocamlformat-rpc,0.19.0
     ocamlformat-rpc-lib,0.19.0
