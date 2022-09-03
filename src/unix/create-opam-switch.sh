@@ -47,6 +47,11 @@ PINNED_PACKAGES_DKML_PATCHES="
 # Callouts:
 # * (a) ppxlib incorrectly did not use a major version bump and caused major breaking changes to downstream packages.
 #   That is, ppxlib.0.23.0 breaks ppx_variants_conv.v0.14.1. PR to fix is https://github.com/janestreet/ppx_variants_conv/pull/9
+#   This has a ripple effect that the Jane Street PPX can only be v0.14.x or lower. Easiest to find dependencies by
+#   installing ppx_jane.v0.14.0 in a minimal Opam switch and then doing a
+#     `opam list | awk '$2 ~ /^v0[.]14[.]/ {printf "%s,%s\n", $1, $2}'`.
+#   We can't list other pinned Jane Street dependencies, so filter with
+#     `| grep -v base, | grep -v stdio, | grep -v core_kernel, | grep -v ppx_expect, | grep -v sexplib,`
 # * (b) jsonrpc, lsp and ocaml-lsp-server as of 2021-11-22 was not present in the fdopen repository, but was needed by lsp.1.9.0
 # * (c) bos, sha and sexplib are needed to compile with-dkml.exe; bos needs rresult and fmt, and fdopen `opam` files are same as https://opam.ocaml.org/
 # * (c) cmdliner and opam-client (+ opam-*) are needed to compile opam-dkml.exe; same `opam` as https://opam.ocaml.org/
@@ -58,8 +63,9 @@ PINNED_PACKAGES_DKML_PATCHES="
 #
 # Sections:
 # 1. Subset of packages from ci-pkgs.txt, in `.txt` order
-# 2. Subset of packages from full-no-ci-pkgs.txt, in `.txt` order
-# 3. Any packages that don't belong in #1 and #2, in alphabetical order
+# 2. Subset of packages from full-anyver-no-ci-pkgs.txt, in `.txt` order
+# 3. ppxlib and ppx_jane.v0.14.0 and its dependencies (except those from #1 and #2)
+# 4. Any packages that don't belong in #1 and #2 and #3, in alphabetical order
 PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     bos,0.2.1
     fmt,0.9.0
@@ -86,6 +92,43 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     utop,2.9.0
 
     ppxlib,0.22.0
+    base_quickcheck,v0.14.1
+    bin_prot,v0.14.1
+    fieldslib,v0.14.0
+    jane-street-headers,v0.14.0
+    jst-config,v0.14.1
+    ppx_assert,v0.14.0
+    ppx_bench,v0.14.1
+    ppx_bin_prot,v0.14.0
+    ppx_cold,v0.14.0
+    ppx_compare,v0.14.0
+    ppx_custom_printf,v0.14.1
+    ppx_enumerate,v0.14.0
+    ppx_fields_conv,v0.14.2
+    ppx_fixed_literal,v0.14.0
+    ppx_hash,v0.14.0
+    ppx_here,v0.14.0
+    ppx_inline_test,v0.14.1
+    ppx_jane,v0.14.0
+    ppx_js_style,v0.14.1
+    ppx_let,v0.14.0
+    ppx_module_timer,v0.14.0
+    ppx_optcomp,v0.14.3
+    ppx_optional,v0.14.0
+    ppx_pipebang,v0.14.0
+    ppx_sexp_conv,v0.14.3
+    ppx_sexp_message,v0.14.1
+    ppx_sexp_value,v0.14.0
+    ppx_stable,v0.14.1
+    ppx_string,v0.14.1
+    ppx_typerep_conv,v0.14.2
+    ppx_variants_conv,v0.14.2
+    sexplib0,v0.14.0
+    splittable_random,v0.14.0
+    time_now,v0.14.0
+    typerep,v0.14.0
+    variantslib,v0.14.0
+
     alcotest,1.4.0
     alcotest-async,1.4.0
     alcotest-js,1.4.0
