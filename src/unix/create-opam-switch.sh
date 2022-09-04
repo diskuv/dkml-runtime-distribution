@@ -52,6 +52,7 @@ PINNED_PACKAGES_DKML_PATCHES="
 #     `opam list | awk '$2 ~ /^v0[.]14[.]/ {printf "%s,%s\n", $1, $2}'`.
 #   We can't list other pinned Jane Street dependencies, so filter with
 #     `| grep -v base, | grep -v stdio, | grep -v core_kernel, | grep -v ppx_expect, | grep -v sexplib,`
+#   2022-09-03: ppxlib.0.22.0 is no longer needed. Just use ppxlib.0.25.1
 # * (b) jsonrpc, lsp and ocaml-lsp-server as of 2021-11-22 was not present in the fdopen repository, but was needed by lsp.1.9.0
 # * (c) bos, sha and sexplib are needed to compile with-dkml.exe; bos needs rresult and fmt, and fdopen `opam` files are same as https://opam.ocaml.org/
 # * (c) cmdliner and opam-client (+ opam-*) are needed to compile opam-dkml.exe; same `opam` as https://opam.ocaml.org/
@@ -91,7 +92,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     dune-site,2.9.3
     utop,2.9.0
 
-    ppxlib,0.22.0
+    ppxlib,0.25.1
     base_quickcheck,v0.14.1
     bin_prot,v0.14.1
     fieldslib,v0.14.0
