@@ -1,0 +1,3 @@
+(executable
+ (name read_pkgs)
+ (libraries ))

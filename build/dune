@@ -1,0 +1,27 @@
+(rule
+ (deps)
+ (target config.ml)
+ (action
+  (with-stdout-to
+   %{target}
+   (progn
+    (echo "type directive = Global_install | Global_compile\n")
+    ; ci
+    (with-stdin-from
+     ../src/none/ci-pkgs.txt
+     (run config/read_pkgs.exe "ci_pkgs"))
+    ; full-anyver
+    (with-stdin-from
+     ../src/none/full-anyver-no-ci-pkgs.txt
+     (run config/read_pkgs.exe "full_anyver_pkgs"))
+    ; full-<ocamlver>
+    (echo "let ocaml_version = {version|%{ocaml_version}|version}\n")
+    (with-stdin-from
+     ../src/none/full-%{ocaml_version}-no-ci-pkgs.txt
+     (run config/read_pkgs.exe "full_ocamlver_pkgs"))
+    (echo "let full_pkgs = full_anyver_pkgs @ full_ocamlver_pkgs\n")))))
+
+(library
+ (name dkml_runtime_distribution)
+ (public_name dkml-runtime-distribution)
+ (libraries))
