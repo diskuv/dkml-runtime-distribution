@@ -48,7 +48,7 @@ log_trace "$DKMLDIR"/vendor/dkml-compiler/src/r-c-ocaml-1-setup.sh \
     -t "$INSTALLDIR" \
     -v "$GIT_TAG_OR_COMMIT" \
     -e "$DKMLHOSTABI" \
-    -k vendor/dkml-compiler/src/standard-compiler-env-to-ocaml-configure-env.sh
+    -k vendor/dkml-compiler/env/standard-compiler-env-to-ocaml-configure-env.sh
 
 # Use reproducible directory created by setup
 cd "$INSTALLDIR"
