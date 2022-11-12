@@ -7,7 +7,7 @@ set -euf
 #
 # The format is `PACKAGE_NAME,PACKAGE_VERSION`. Notice the **comma** inside the quotes!
 
-# These MUST BE IN SYNC with vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
+# These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
 # Summary: DKML provides patches for these
 #
 # Sections:
@@ -37,7 +37,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     with-dkml,1.0.2~prerel2
     "
 
-# These MUST BE IN SYNC with vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
+# These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
 # Summary: Packages which MUST be pinned and come from the central Opam repository.
 # Reasons:
 # a) pkg used a major version bump and caused major breaking changes to downstream packages or broke OS (ex. Win32) compatibility

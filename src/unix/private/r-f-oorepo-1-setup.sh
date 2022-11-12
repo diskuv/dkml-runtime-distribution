@@ -153,7 +153,7 @@ install_reproducible_system_packages  vendor/drd/src/unix/private/r-f-oorepo-0-s
 install_reproducible_script_with_args vendor/drd/src/unix/private/r-f-oorepo-1-setup.sh "${COMMON_ARGS[@]}" "${SETUP_ARGS[@]}"
 install_reproducible_script_with_args vendor/drd/src/unix/private/r-f-oorepo-2-build.sh "${COMMON_ARGS[@]}" "${BUILD_ARGS[@]}"
 install_reproducible_script_with_args vendor/drd/src/unix/private/r-f-oorepo-9-trim.sh  "${COMMON_ARGS[@]}" "${TRIM_ARGS[@]}"
-install_reproducible_file             vendor/drd/src/unix/private/ml/ocaml_opam_repo_trim.ml
+install_reproducible_file             vendor/drd/src/ml/ocaml_opam_repo_trim.ml
 install_reproducible_file             vendor/drd/src/unix/private/download-moby-downloader.sh
 install_reproducible_file             vendor/drd/src/unix/private/moby-download-docker-image.sh
 install_reproducible_file             vendor/drd/src/unix/private/moby-extract-opam-root.sh
