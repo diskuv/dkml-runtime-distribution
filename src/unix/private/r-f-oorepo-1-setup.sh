@@ -45,9 +45,10 @@ usage() {
     printf "%s\n" "   -v IMAGE: Docker image" >&2
     printf "%s\n" "   -a ARCH: Docker architecture. Ex. amd64" >&2
     printf "%s\n" "   -b OCAMLVERSION: OCaml language version to setup. Ex. 4.12.1" >&2
-    printf "%s\n" "   -c OCAMLHOME: Optional. The home directory for OCaml containing usr/bin/ocamlc or bin/ocamlc," >&2
-    printf "%s\n" "      and other OCaml binaries and libraries. If not specified expects ocaml to be in the system PATH." >&2
-    printf "%s\n" "      OCaml 4.08 and higher should work, and only the OCaml interpreter and Unix and Str modules are needed" >&2
+    printf "%s\n" "   -c OCAML_BC_HOME: Optional. The home directory for OCaml containing bin/ocamlrun and the bytecode standard" >&2
+    printf "%s\n" "      library." >&2
+    printf "%s\n" "      Must be OCaml 4.12.1 or higher should work, and only the Unix and Str modules are needed" >&2
+    printf "%s\n" "   -e OOREPO_TRIM_BYTECODE: The OCaml bytecode (.bc) to trim the ocaml-opam-repo" >&2
 }
 
 DKMLDIR=
@@ -55,7 +56,8 @@ DOCKER_IMAGE=
 DOCKER_ARCH=
 TARGETDIR=
 OCAML_LANG_VERSION=
-while getopts ":d:v:t:a:b:c:h" opt; do
+OOREPO_TRIM_BYTECODE=
+while getopts ":d:v:t:a:b:c:e:h" opt; do
     case ${opt} in
         h )
             usage
@@ -100,6 +102,11 @@ while getopts ":d:v:t:a:b:c:h" opt; do
             SETUP_ARGS+=( -c "$OPTARG" )
             TRIM_ARGS+=( -c "$OPTARG" )
         ;;
+        e )
+            OOREPO_TRIM_BYTECODE=$OPTARG
+            SETUP_ARGS+=( -e "$OPTARG" )
+            TRIM_ARGS+=( -e "$OPTARG" )
+        ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -109,7 +116,7 @@ while getopts ":d:v:t:a:b:c:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLDIR" ] || [ -z "$DOCKER_IMAGE" ] || [ -z "$TARGETDIR" ] || [ -z "$DOCKER_ARCH" ] || [ -z "$OCAML_LANG_VERSION" ]; then
+if [ -z "$DKMLDIR" ] || [ -z "$DOCKER_IMAGE" ] || [ -z "$TARGETDIR" ] || [ -z "$DOCKER_ARCH" ] || [ -z "$OCAML_LANG_VERSION" ] || [ -z "$OCAML_BC_HOME" ] || [ -z "$OOREPO_TRIM_BYTECODE" ]; then
     printf "%s\n" "Missing required options" >&2
     usage
     exit 1

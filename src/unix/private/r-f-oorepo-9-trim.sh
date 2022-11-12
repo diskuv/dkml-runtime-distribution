@@ -42,9 +42,10 @@ usage() {
     printf "%s\n" "   -p PACKAGE: Consider only the named package" >&2
     printf "%s\n" "   -a ARCH: Docker architecture that was downloaded. Ex. amd64" >&2
     printf "%s\n" "   -b OCAMLVERSION: OCaml language version. Ex. 4.12.1" >&2
-    printf "%s\n" "   -c OCAMLHOME: Optional. The home directory for OCaml containing usr/bin/ocaml or bin/ocaml," >&2
-    printf "%s\n" "      and other OCaml binaries and libraries. If not specified expects ocaml to be in the system PATH." >&2
-    printf "%s\n" "      OCaml 4.08 and higher should work, and only the OCaml interpreter and Unix and Str modules are needed" >&2
+    printf "%s\n" "   -c OCAML_BC_HOME: Optional. The home directory for OCaml containing bin/ocamlrun and the bytecode standard" >&2
+    printf "%s\n" "      library." >&2
+    printf "%s\n" "      Must be OCaml 4.12.1 or higher should work, and only the Unix and Str modules are needed" >&2
+    printf "%s\n" "   -e OOREPO_TRIM_BYTECODE: The OCaml bytecode (.bc) to trim the ocaml-opam-repo" >&2
 }
 
 DKMLDIR=
@@ -52,9 +53,10 @@ TARGETDIR=
 DOCKER_ARCH=
 SINGLEPACKAGE=
 OCAML_LANG_VERSION=
-OCAMLHOME=/
+OCAML_BC_HOME=
+OOREPO_TRIM_BYTECODE=
 export DRYRUN=OFF
-while getopts ":d:t:np:a:b:c:h" opt; do
+while getopts ":d:t:np:a:b:c:e:h" opt; do
     case ${opt} in
         h )
             usage
@@ -84,7 +86,10 @@ while getopts ":d:t:np:a:b:c:h" opt; do
             OCAML_LANG_VERSION="$OPTARG"
         ;;
         c )
-            OCAMLHOME="$OPTARG"
+            OCAML_BC_HOME="$OPTARG"
+        ;;
+        e )
+            OOREPO_TRIM_BYTECODE="$OPTARG"
         ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
@@ -95,7 +100,7 @@ while getopts ":d:t:np:a:b:c:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLDIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DOCKER_ARCH" ] || [ -z "$OCAML_LANG_VERSION" ]; then
+if [ -z "$DKMLDIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DOCKER_ARCH" ] || [ -z "$OCAML_LANG_VERSION" ] || [ -z "$OCAML_BC_HOME" ] || [ -z "$OOREPO_TRIM_BYTECODE" ]; then
     printf "%s\n" "Missing required options" >&2
     usage
     exit 1
@@ -127,9 +132,8 @@ BASEDIR_IN_FULL_OPAMROOT=${REPODIR_UNIX}/msvc-"$DOCKER_ARCH"
 # sets the directory to be /work)
 cd "$DKMLDIR"
 
-# Set OCAML_INTERPRETER_PATH
-validate_and_explore_ocamlhome "$OCAMLHOME"
-OCAML_INTERPRETER_PATH="$DKML_OCAMLHOME_UNIX"/"$DKML_OCAMLHOME_BINDIR_UNIX":"$PATH"
+# Set BUILDHOST_ARCH
+autodetect_buildhost_arch
 
 # Install files and directories into $OOREPO_UNIX:
 # - /packages/
@@ -149,8 +153,39 @@ else
     printf "%s\n" "Would have synchronized the '$BASEDIR_IN_FULL_OPAMROOT'/cygwin64/home/opam/opam-repository/packages/ directory with $OOREPO_UNIX/packages/"
 fi
 
+# Mimic dkml-component-staging-ocamlrun.api's spawn_ocamlrun
+case "$BUILDHOST_ARCH" in
+windows_*)
+    spawn_ocamlrun() {
+        log_trace env OCAMLRUNPARAM=b \
+            "OCAMLLIB=$OCAML_BC_HOME/lib/ocaml" \
+            "PATH=$OCAML_BC_HOME/lib/ocaml/stublibs:${PATH:-}" \
+            "$OCAML_BC_HOME/bin/ocamlrun" \
+            "$@"
+    }
+    ;;
+darwin_*)
+    spawn_ocamlrun() {
+        log_trace env OCAMLRUNPARAM=b \
+            "OCAMLLIB=$OCAML_BC_HOME/lib/ocaml" \
+            "DYLD_FALLBACK_LIBRARY_PATH=$OCAML_BC_HOME/lib/ocaml/stublibs:${DYLD_FALLBACK_LIBRARY_PATH:-}" \
+            "$OCAML_BC_HOME/bin/ocamlrun" \
+            "$@"
+    }
+    ;;
+*)
+    spawn_ocamlrun() {
+        log_trace env OCAMLRUNPARAM=b \
+            "OCAMLLIB=$OCAML_BC_HOME/lib/ocaml" \
+            "LD_LIBRARY_PATH=$OCAML_BC_HOME/lib/ocaml/stublibs:${LD_LIBRARY_PATH:-}" \
+            "$OCAML_BC_HOME/bin/ocamlrun" \
+            "$@"
+    }
+    ;;
+esac
+
 # Do bulk of trimming in OCaml interpreter for speed (much faster than shell script!)
-log_trace env PATH="$OCAML_INTERPRETER_PATH" OCAMLRUNPARAM=b ocaml vendor/drd/src/ml/ocaml_opam_repo_trim.ml -t "$TARGETDIR_BUILDHOST" -b "$OCAML_LANG_VERSION" -a "$DOCKER_ARCH" -p "$SINGLEPACKAGE"
+spawn_ocamlrun "$OOREPO_TRIM_BYTECODE" -t "$TARGETDIR_BUILDHOST" -b "$OCAML_LANG_VERSION" -a "$DOCKER_ARCH" -p "$SINGLEPACKAGE"
 
 # Install files and directories into $OOREPO_UNIX:
 # - /repo

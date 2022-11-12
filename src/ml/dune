@@ -1,4 +1,4 @@
-; This is purely for IDE support (vscode-ocaml-platform). All ocaml code is actually run through `ocaml` interpreter
-
-(library
- (name everything_in_directory))
+(executable
+ (name ocaml_opam_repo_trim)
+ (modes byte exe)
+ (libraries str unix))

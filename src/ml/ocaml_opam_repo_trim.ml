@@ -1,6 +1,3 @@
-#load "str.cma"
-#load "unix.cma"
-
 (* To test in Cygwin:
 
    0. Install `jq` in Cygwin
