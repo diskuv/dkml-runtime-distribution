@@ -57,6 +57,7 @@ DOCKER_IMAGE=
 DOCKER_ARCH=
 TARGETDIR=
 OCAML_LANG_VERSION=
+OCAML_BC_HOME=
 OOREPO_TRIM_BYTECODE=
 while getopts ":d:v:t:a:b:c:e:h" opt; do
     case ${opt} in
@@ -100,6 +101,7 @@ while getopts ":d:v:t:a:b:c:e:h" opt; do
             TRIM_ARGS+=( -b "$OCAML_LANG_VERSION" )
         ;;
         c )
+            OCAML_BC_HOME=$OPTARG
             SETUP_ARGS+=( -c "$OPTARG" )
             TRIM_ARGS+=( -c "$OPTARG" )
         ;;
