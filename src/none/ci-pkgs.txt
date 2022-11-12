@@ -55,8 +55,8 @@ uuidm.0.9.7
 dkml-c-probe.3.0.0
 ##      global-install
 #       bin/dkml-fswatch.exe
-dkml-apps.1.0.2~prerel4
-opam-dkml.1.0.2~prerel4
+dkml-apps.1.0.2~prerel5
+opam-dkml.1.0.2~prerel5
 ##      global-install
 #       bin/with-dkml.exe
-with-dkml.1.0.2~prerel4
+with-dkml.1.0.2~prerel5
