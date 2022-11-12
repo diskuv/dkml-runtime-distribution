@@ -48,7 +48,8 @@ usage() {
     printf "%s\n" "   -c OCAML_BC_HOME: Optional. The home directory for OCaml containing bin/ocamlrun and the bytecode standard" >&2
     printf "%s\n" "      library." >&2
     printf "%s\n" "      Must be OCaml 4.12.1 or higher should work, and only the Unix and Str modules are needed" >&2
-    printf "%s\n" "   -e OOREPO_TRIM_BYTECODE: The OCaml bytecode (.bc) to trim the ocaml-opam-repo" >&2
+    printf "%s\n" "   -e OOREPO_TRIM_BYTECODE: Path within DKML directory of the OCaml bytecode (.bc) to trim the ocaml-opam-repo." >&2
+    printf "%s\n" "      Example (after compiling with dune): vendor/drd/src/ml/ocaml_opam_repo_trim.bc"
 }
 
 DKMLDIR=
@@ -105,7 +106,6 @@ while getopts ":d:v:t:a:b:c:e:h" opt; do
         e )
             OOREPO_TRIM_BYTECODE=$OPTARG
             SETUP_ARGS+=( -e "$OPTARG" )
-            TRIM_ARGS+=( -e "$OPTARG" )
         ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
@@ -164,7 +164,6 @@ install_reproducible_file             vendor/drd/src/ml/ocaml_opam_repo_trim.ml
 install_reproducible_file             vendor/drd/src/unix/private/download-moby-downloader.sh
 install_reproducible_file             vendor/drd/src/unix/private/moby-download-docker-image.sh
 install_reproducible_file             vendor/drd/src/unix/private/moby-extract-opam-root.sh
-if is_cygwin_build_machine; then
-    install_reproducible_file         vendor/drd/src/cygwin/idempotent-fix-symlink.sh
-fi
+install_reproducible_file             vendor/drd/src/cygwin/idempotent-fix-symlink.sh
+install_reproducible_file             "$OOREPO_TRIM_BYTECODE" # ex. vendor/drd/src/ml/ocaml_opam_repo_trim.bc
 install_reproducible_generated_file   "$WORK"/download-frozen-image-v2.sh vendor/drd/src/unix/private/download-frozen-image-v2.sh

@@ -45,7 +45,6 @@ usage() {
     printf "%s\n" "   -c OCAML_BC_HOME: Optional. The home directory for OCaml containing bin/ocamlrun and the bytecode standard" >&2
     printf "%s\n" "      library." >&2
     printf "%s\n" "      Must be OCaml 4.12.1 or higher should work, and only the Unix and Str modules are needed" >&2
-    printf "%s\n" "   -e OOREPO_TRIM_BYTECODE: The OCaml bytecode (.bc) to trim the ocaml-opam-repo" >&2
 }
 
 DKMLDIR=
@@ -54,9 +53,8 @@ DOCKER_ARCH=
 SINGLEPACKAGE=
 OCAML_LANG_VERSION=
 OCAML_BC_HOME=
-OOREPO_TRIM_BYTECODE=
 export DRYRUN=OFF
-while getopts ":d:t:np:a:b:c:e:h" opt; do
+while getopts ":d:t:np:a:b:c:h" opt; do
     case ${opt} in
         h )
             usage
@@ -87,9 +85,6 @@ while getopts ":d:t:np:a:b:c:e:h" opt; do
         ;;
         c )
             OCAML_BC_HOME="$OPTARG"
-        ;;
-        e )
-            OOREPO_TRIM_BYTECODE="$OPTARG"
         ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
@@ -185,7 +180,7 @@ darwin_*)
 esac
 
 # Do bulk of trimming in OCaml interpreter for speed (much faster than shell script!)
-spawn_ocamlrun "$OOREPO_TRIM_BYTECODE" -t "$TARGETDIR_BUILDHOST" -b "$OCAML_LANG_VERSION" -a "$DOCKER_ARCH" -p "$SINGLEPACKAGE"
+spawn_ocamlrun vendor/drd/src/ml/ocaml_opam_repo_trim.bc -t "$TARGETDIR_BUILDHOST" -b "$OCAML_LANG_VERSION" -a "$DOCKER_ARCH" -p "$SINGLEPACKAGE"
 
 # Install files and directories into $OOREPO_UNIX:
 # - /repo
