@@ -95,7 +95,7 @@ while getopts ":d:t:np:a:b:c:h" opt; do
 done
 shift $((OPTIND -1))
 
-if [ -z "$DKMLDIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DOCKER_ARCH" ] || [ -z "$OCAML_LANG_VERSION" ] || [ -z "$OCAML_BC_HOME" ] || [ -z "$OOREPO_TRIM_BYTECODE" ]; then
+if [ -z "$DKMLDIR" ] || [ -z "$TARGETDIR" ] || [ -z "$DOCKER_ARCH" ] || [ -z "$OCAML_LANG_VERSION" ] || [ -z "$OCAML_BC_HOME" ]; then
     printf "%s\n" "Missing required options" >&2
     usage
     exit 1
