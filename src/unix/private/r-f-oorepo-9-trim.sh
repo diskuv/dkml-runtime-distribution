@@ -114,9 +114,13 @@ TARGETDIR_UNIX=$(install -d "$TARGETDIR" && cd "$TARGETDIR" && pwd) # better tha
 if [ -x /usr/bin/cygpath ]; then
     OOREPO_UNIX=$(/usr/bin/cygpath -au "$TARGETDIR_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH/$OCAML_LANG_VERSION")
     TARGETDIR_BUILDHOST=$(/usr/bin/cygpath -aw "$TARGETDIR_UNIX")
+    OCAML_BC_HOME_UNIX=$(/usr/bin/cygpath -au "$OCAML_BC_HOME")
+    OCAMLLIB_BUILDHOST=$(/usr/bin/cygpath -aw "$OCAML_BC_HOME/lib/ocaml")
 else
     OOREPO_UNIX="$TARGETDIR_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH/$OCAML_LANG_VERSION"
     TARGETDIR_BUILDHOST="$TARGETDIR_UNIX"
+    OCAML_BC_HOME_UNIX="$OCAML_BC_HOME"
+    OCAMLLIB_BUILDHOST="$OCAML_BC_HOME/lib/ocaml"
 fi
 export OOREPO_UNIX
 REPODIR_UNIX=${TARGETDIR_UNIX}/full-opam-root
@@ -153,27 +157,27 @@ case "$BUILDHOST_ARCH" in
 windows_*)
     spawn_ocamlrun() {
         log_trace env OCAMLRUNPARAM=b \
-            "OCAMLLIB=$OCAML_BC_HOME/lib/ocaml" \
-            "PATH=$OCAML_BC_HOME/lib/ocaml/stublibs:${PATH:-}" \
-            "$OCAML_BC_HOME/bin/ocamlrun" \
+            "OCAMLLIB=$OCAMLLIB_BUILDHOST" \
+            "PATH=$OCAML_BC_HOME_UNIX/lib/ocaml/stublibs:${PATH:-}" \
+            "$OCAML_BC_HOME_UNIX/bin/ocamlrun" \
             "$@"
     }
     ;;
 darwin_*)
     spawn_ocamlrun() {
         log_trace env OCAMLRUNPARAM=b \
-            "OCAMLLIB=$OCAML_BC_HOME/lib/ocaml" \
+            "OCAMLLIB=$OCAMLLIB_BUILDHOST" \
             "DYLD_FALLBACK_LIBRARY_PATH=$OCAML_BC_HOME/lib/ocaml/stublibs:${DYLD_FALLBACK_LIBRARY_PATH:-}" \
-            "$OCAML_BC_HOME/bin/ocamlrun" \
+            "$OCAML_BC_HOME_UNIX/bin/ocamlrun" \
             "$@"
     }
     ;;
 *)
     spawn_ocamlrun() {
         log_trace env OCAMLRUNPARAM=b \
-            "OCAMLLIB=$OCAML_BC_HOME/lib/ocaml" \
+            "OCAMLLIB=$OCAMLLIB_BUILDHOST" \
             "LD_LIBRARY_PATH=$OCAML_BC_HOME/lib/ocaml/stublibs:${LD_LIBRARY_PATH:-}" \
-            "$OCAML_BC_HOME/bin/ocamlrun" \
+            "$OCAML_BC_HOME_UNIX/bin/ocamlrun" \
             "$@"
     }
     ;;
