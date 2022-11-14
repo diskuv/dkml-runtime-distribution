@@ -20,4 +20,11 @@
 * a user profile (ex. OCaml binaries installed within the user's home directory)
 * a machine (ex. system or Administrator assembly/C compilers)")
  (depends
+  (ocaml
+    ; src/none/full-<VER>-no-ci-pkgs.txt has a list of DKML packages for that version of OCaml
+    (or
+      (and (>= 4.12.1~) (< 4.12.2~))
+      (and (>= 4.13.1~) (< 4.13.2~))
+    )
+  )
   (diskuvbox (and (>= 0.1.0) :build))))
