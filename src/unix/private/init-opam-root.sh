@@ -8,10 +8,10 @@
 #
 # When invoked?
 # On Windows as part of `setup-userprofile.ps1`
-# which is itself invoked by `install-world.ps1`. On both
-# Windows and Unix it is also invoked as part of `build-sandbox-init-common.sh`.
+# which is itself invoked by `install-world.ps1`. Also in CMake (DKSDK) for a
+# CMake specific root.
 #
-# Prerequisites: A working build/_tools/common/ directory.
+# Should be idempotent. Can be used for upgrades.
 #
 # -------------------------------------------------------
 set -euf
@@ -100,7 +100,6 @@ cd "$TOPDIR"
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # BEGIN         ON-DEMAND VERSIONED GLOBAL INSTALLS
 #
-# The user experience for Unix is that `./makeit build-dev` should just work.
 # Anything that is in DiskuvOCamlHome is really just for platforms like Windows
 # that must have pre-installed software (for Windows that is MSYS2 or we couldn't
 # even run this script).
@@ -109,8 +108,6 @@ cd "$TOPDIR"
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Set DKMLPARENTHOME_BUILDHOST
-# TODO: These implementation won't work in containers; needs a mount point for the opam repositories, and
-# an @@EXPAND_DKMLPARENTHOME@@ macro
 set_dkmlparenthomedir
 
 # -------------------
