@@ -379,7 +379,7 @@ fi
 #   https://github.com/msys2/MSYS2-packages/blob/1ff9c79a6b6b71492c4824f9888a15314b85f5fa/filesystem/msystem:
 #       MSYSTEM_PREFIX MSYSTEM_CARCH MSYSTEM_CHOST MINGW_CHOST MINGW_PREFIX MINGW_PACKAGE_PREFIX
 #
-#   Opam Global Variables (part 1):
+#   Opam Global Variables (part 1 ... these will end up as compiler flags or a conf package):
 #       msystem=CLANG64
 #       msystem-prefix=/clang64
 #       msystem-carch=x86_64
@@ -390,7 +390,9 @@ fi
 #   
 #   Opam Global Variables (part 2):
 #       msys2-nativedir=C:\msys64
+#       os-distribution=msys2
 if [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
+    run_opam var --global "os-distribution=msys2"
     run_opam var --global "msystem=$MSYSTEM"
     run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}"
     run_opam var --global "msystem-carch=${MSYSTEM_CARCH:-}"
