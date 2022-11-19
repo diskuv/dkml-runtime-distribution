@@ -79,18 +79,22 @@ function Invoke-CygwinCommand {
 }
 Export-ModuleMember -Function Invoke-CygwinCommand
 
+$INVOKER_MSYSTEM_PREFIX = "/clang64"
+Export-ModuleMember -Variable INVOKER_MSYSTEM_PREFIX
+
 function Invoke-MSYS2Command {
     <#
         .SYNOPSIS
             Run an MSYS command.
 
         .DESCRIPTION
-            Either run shell statements, or run a shell script.
+            Run a shell command.
+
+        .PARAMETER Command
+            The command to execute, like "sh" or "ls".
 
         .PARAMETER Arguments
-            An array of shell script arguments, when specified.
-            If not specified, the Command is interpreted as shell
-            statements.
+            An array of Command arguments.
     #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '',
     Justification='Unread $handle is a fix to a Powershell bug')]
@@ -107,26 +111,12 @@ function Invoke-MSYS2Command {
         [switch]
         $IgnoreErrors
     )
-    if ($ArgumentList) {
-        $arglist = @("MSYSTEM=CLANG64",
-            "MSYSTEM_PREFIX=/clang64",
-            "HOME=/home/$env:USERNAME",
-            "PATH=/clang64/bin:/usr/bin:/bin"
-            $Command,
-            $ArgumentList)
-    } else {
-        $arglist = @("MSYSTEM=CLANG64",
-            "MSYSTEM_PREFIX=/clang64",
-            "HOME=/home/$env:USERNAME",
-            "bash",
-            "-lc",
-            ('"' +
-            "export PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin:" +
-            '\"$PATH\"' +
-            "; { " +
-            ($Command -replace '"', '\"') +
-            '; } 2>&1 "'))
-    }
+    $arglist = @("MSYSTEM=CLANG64",
+        "MSYSTEM_PREFIX=$INVOKER_MSYSTEM_PREFIX",
+        "HOME=/home/$env:USERNAME",
+        "PATH=$INVOKER_MSYSTEM_PREFIX/bin:/usr/bin:/bin"
+        $Command,
+        $ArgumentList)
     if ($TailFunction) {
         $RedirectStandardOutput = New-TemporaryFile
         $RedirectStandardError = New-TemporaryFile
