@@ -42,13 +42,14 @@ usage() {
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
-    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam or bin/opam.exe" >&2
+    printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
+    printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -a EXTRAPKG: Optional; can be repeated. An extra package to install in the tools switch" >&2
 }
 
 STATEDIR=
 OCAMLVERSION_OR_HOME=
-OPAMHOME=
+OPAMEXE_OR_HOME=
 FLAVOR=CI
 DKMLABI=
 EXTRAPKGS=
@@ -65,7 +66,7 @@ while getopts ":hd:u:o:p:v:f:a:" opt; do
         v )
             OCAMLVERSION_OR_HOME=$OPTARG
         ;;
-        o ) OPAMHOME=$OPTARG ;;
+        o ) OPAMEXE_OR_HOME=$OPTARG ;;
         p )
             DKMLABI=$OPTARG
             if [ "$DKMLABI" = dev ]; then
@@ -154,9 +155,9 @@ get_ocamlver() {
 
 # Just the OCaml compiler
 if [ -n "$STATEDIR" ]; then
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI" -d "$STATEDIR"
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI" -d "$STATEDIR"
 else
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMHOME" -b Release -p "$DKMLABI"
+    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI"
 fi
 
 # END create system switch
@@ -190,7 +191,7 @@ chmod +x "$WORK"/troubleshoot-opam.sh
 # BEGIN Flavor packages
 
 {
-    printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMHOME' \"\$@\" install -y"
+    printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMEXE_OR_HOME' \"\$@\" install -y"
     printf " %s" "--jobs=$NUMCPUS"
     if [ -n "$EXTRAPKGS" ]; then
         printf " %s" "$EXTRAPKGS"

@@ -212,7 +212,8 @@ usage() {
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
-    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam or bin/opam.exe" >&2
+    printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
+    printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -y Say yes to all questions (can be overridden with DKML_OPAM_FORCE_INTERACTIVE=ON)" >&2
     printf "%s\n" "    -c EXTRAPATH: Optional. Semicolon separated PATH that should be available to all users of and packages" >&2
     printf "%s\n" "       in the switch. Since the PATH is affected the EXTRAPATH must be for the host ABI." >&2
@@ -290,7 +291,7 @@ DKML_TOOLS_SWITCH=OFF
 STATEDIR=
 YES=OFF
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
-OPAMHOME=
+OPAMEXE_OR_HOME=
 DKMLABI=
 EXTRAPATH=
 EXTRAREPOCMDS=
@@ -329,7 +330,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
         v )
             if [ -n "$OPTARG" ]; then OCAMLVERSION_OR_HOME=$OPTARG; fi
         ;;
-        o ) OPAMHOME=$OPTARG ;;
+        o ) OPAMEXE_OR_HOME=$OPTARG ;;
         c ) EXTRAPATH=$OPTARG ;;
         e ) add_do_setenv_option "$OPTARG" ;;
         f ) add_do_var "$OPTARG" ;;
@@ -618,7 +619,7 @@ fi
 
 # Make launchers for opam switch create <...> and for opam <...>
 if [ "$DKML_TOOLS_SWITCH" = ON ]; then
-    OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLABI' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLABI' -u $USERMODE -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
 
     # Set OPAMROOTDIR_BUILDHOST and OPAMSWITCHFINALDIR_BUILDHOST
     OPAMROOTDIR_BUILDHOST="$TOOLS_OPAMROOTDIR_BUILDHOST"
@@ -629,7 +630,7 @@ else
     # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
     set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
 
-    OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGETLOCAL_OPAMSWITCH' -n '$TARGETGLOBAL_OPAMSWITCH' -u $USERMODE -o '$OPAMHOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGETLOCAL_OPAMSWITCH' -n '$TARGETGLOBAL_OPAMSWITCH' -u $USERMODE -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
 fi
 printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh

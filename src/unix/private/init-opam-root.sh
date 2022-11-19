@@ -27,7 +27,8 @@ usage() {
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
-    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam-real or bin/opam" >&2
+    printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
+    printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use." >&2
     printf "%s\n" "       The bin/ subdir of the OCaml home is added to the PATH; currently, passing an OCaml version does nothing" >&2
@@ -37,7 +38,7 @@ usage() {
 
 DKMLABI=
 STATEDIR=
-OPAMHOME=
+OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
 while getopts ":hp:d:o:v:a" opt; do
@@ -54,7 +55,7 @@ while getopts ":hp:d:o:v:a" opt; do
             fi
         ;;
         d ) STATEDIR=$OPTARG ;;
-        o ) OPAMHOME=$OPTARG ;;
+        o ) OPAMEXE_OR_HOME=$OPTARG ;;
         v )
             OCAMLVERSION_OR_HOME=$OPTARG
         ;;
@@ -223,7 +224,7 @@ set_opamrootdir
 run_opam() {
     log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
         -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" \
-        -o "$OPAMHOME" -v "$OCAMLVERSION_OR_HOME" "$@"
+        -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
 
 # `opam init`.

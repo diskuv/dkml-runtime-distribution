@@ -61,8 +61,9 @@ usage() {
     printf "%s\n" "       '_opam' directory, so the local switch will be found if you are in <LOCALOPAMSWITCH>" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/opam as the Opam root directory" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
-    printf "%s\n" "    -o OPAMHOME: Optional. Home directory for Opam containing bin/opam-real or bin/opam." >&2
-    printf "%s\n" "       The bin/ subdir of the Opam home is added to the PATH" >&2
+    printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
+    printf "%s\n" "       If it is a directory, the bin/ subdir of the Opam home is added to the PATH." >&2
+    printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)." >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing bin/ocaml) to use." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
     printf "%s\n" "       The bin/ subdir of the OCaml home is added to the PATH; currently, passing an OCaml version does nothing" >&2
@@ -107,7 +108,7 @@ PREHOOK_SINGLE_EVAL=
 PREHOOK_DOUBLE_EVAL=
 TARGETLOCAL_OPAMSWITCH=
 TARGETGLOBAL_OPAMSWITCH=
-OPAMHOME=
+OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 USE_ROOT=ON
 while getopts ":h0:1:p:sn:t:d:u:o:v:b" opt; do
@@ -131,7 +132,7 @@ while getopts ":h0:1:p:sn:t:d:u:o:v:b" opt; do
         s ) DKML_TOOLS_SWITCH=ON ;;
         n ) TARGETGLOBAL_OPAMSWITCH=$OPTARG ;;
         t ) TARGETLOCAL_OPAMSWITCH=$OPTARG ;;
-        o ) OPAMHOME=$OPTARG ;;
+        o ) OPAMEXE_OR_HOME=$OPTARG ;;
         v ) OCAMLVERSION_OR_HOME=$OPTARG ;;
         0 )
             PREHOOK_SINGLE_EVAL=$OPTARG
@@ -185,7 +186,7 @@ fi
 
 # Win32 conversions
 if [ -x /usr/bin/cygpath ]; then
-    if [ -n "$OPAMHOME" ]; then OPAMHOME=$(/usr/bin/cygpath -am "$OPAMHOME"); fi
+    if [ -n "$OPAMEXE_OR_HOME" ]; then OPAMEXE_OR_HOME=$(/usr/bin/cygpath -am "$OPAMEXE_OR_HOME"); fi
 fi
 
 # Set deprecated, implicit USERMODE
@@ -225,7 +226,13 @@ OPAM_ENV_STMT=
 # BEGIN --root
 
 # Set OPAMEXE
-set_opamexe
+if [ -d "$OPAMEXE_OR_HOME" ]; then
+    # shellcheck disable=SC2034
+    OPAMHOME=$OPAMEXE_OR_HOME
+    set_opamexe
+else
+    OPAMEXE=$OPAMEXE_OR_HOME
+fi
 
 OPAM_ROOT_OPT=() # we have a separate array for --root since --root is mandatory for `opam init`
 if [ "$USE_ROOT" = ON ]; then
@@ -311,8 +318,8 @@ PLATFORM_EXEC_PRE_SINGLE="$WORK"/platform-opam-exec.sh.opamhome.prehook1.source.
 
 # We make another prehook so that `PATH=<OPAMHOME>/bin:"$PATH"` at the beginning of all the hooks.
 # That way `opam-real` or `opam` will work including from any child processes that opam spawns.
-if [ -n "$OPAMHOME" ]; then
-    OPAMEXEDIR=$(dirname "$OPAMEXE")
+if [ -n "$OPAMEXE_OR_HOME" ] && [ -d "$OPAMEXE_OR_HOME" ]; then
+    OPAMEXEDIR=$(dirname "$OPAMEXE_OR_HOME")
     {
         printf "PATH='%s':\"\$PATH\"\n" "$OPAMEXEDIR"
         if [ -n "$PLATFORM_EXEC_PRE_SINGLE" ]; then
