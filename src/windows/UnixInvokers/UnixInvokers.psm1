@@ -80,6 +80,18 @@ function Invoke-CygwinCommand {
 Export-ModuleMember -Function Invoke-CygwinCommand
 
 function Invoke-MSYS2Command {
+    <#
+        .SYNOPSIS
+            Run an MSYS command.
+
+        .DESCRIPTION
+            Either run shell statements, or run a shell script.
+
+        .PARAMETER Arguments
+            An array of shell script arguments, when specified.
+            If not specified, the Command is interpreted as shell
+            statements.
+    #>
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '',
     Justification='Unread $handle is a fix to a Powershell bug')]
     param (
@@ -87,22 +99,34 @@ function Invoke-MSYS2Command {
         $Command,
         [Parameter(Mandatory=$true)]
         $MSYS2Dir,
+        [Parameter()]
+        [string[]]
+        $ArgumentList,
         $AuditLog,
         $TailFunction,
         [switch]
         $IgnoreErrors
     )
-    $arglist = @("MSYSTEM=CLANG64",
-        "MSYSTEM_PREFIX=/clang64",
-        "HOME=/home/$env:USERNAME",
-        "bash",
-        "-lc",
-        ('"' +
-        "export PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin:" +
-        '\"$PATH\"' +
-        "; { " +
-        ($Command -replace '"', '\"') +
-        '; } 2>&1 "'))
+    if ($ArgumentList) {
+        $arglist = @("MSYSTEM=CLANG64",
+            "MSYSTEM_PREFIX=/clang64",
+            "HOME=/home/$env:USERNAME",
+            "PATH=/clang64/bin:/usr/bin:/bin"
+            $Command,
+            $ArgumentList)
+    } else {
+        $arglist = @("MSYSTEM=CLANG64",
+            "MSYSTEM_PREFIX=/clang64",
+            "HOME=/home/$env:USERNAME",
+            "bash",
+            "-lc",
+            ('"' +
+            "export PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin:" +
+            '\"$PATH\"' +
+            "; { " +
+            ($Command -replace '"', '\"') +
+            '; } 2>&1 "'))
+    }
     if ($TailFunction) {
         $RedirectStandardOutput = New-TemporaryFile
         $RedirectStandardError = New-TemporaryFile
