@@ -92,10 +92,10 @@ function Invoke-MSYS2Command {
         [switch]
         $IgnoreErrors
     )
-    # Note: We use the same environment variable settings as make.cmd
     $arglist = @("MSYSTEM=CLANG64",
+        "MSYSTEM_PREFIX=/clang64",
         "HOME=/home/$env:USERNAME",
-        "$MSYS2Dir\usr\bin\bash.exe",
+        "bash",
         "-lc",
         ('"' +
         "export PATH=/usr/local/bin:/usr/bin:/bin:/opt/bin:" +
