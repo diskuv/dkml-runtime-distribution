@@ -4,9 +4,6 @@
     Target="AvailableOpamVersion")]
 Param()
 
-$DV_AvailableOpamVersion = "2.2.0-dkml20220503T201312Z" # needs to be a real Opam tag in https://github.com/jonahbeckford/opam!
-Export-ModuleMember -Variable DV_AvailableOpamVersion
-
 # https://hub.docker.com/r/ocaml/opam/tags?page=1&ordering=last_updated&name=windows-msvc-ltsc2022-ocaml
 # Q: Why use LTSC kernel? Ans:
 #    1. The 2022 LTSC Windows image (https://docs.microsoft.com/en-us/windows-server/get-started/servicing-channels-comparison#long-term-servicing-channel-ltsc)
