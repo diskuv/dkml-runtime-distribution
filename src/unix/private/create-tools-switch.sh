@@ -37,8 +37,9 @@ usage() {
     printf "%s\n" "    -p DKMLABI: The DKML ABI for the tools" >&2
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
-    printf "%s\n" "    -f FLAVOR: Optional; defaults to CI. The flavor of system packages: 'CI' or 'Full'" >&2
+    printf "%s\n" "    -f FLAVOR: Optional. The flavor of system packages: 'CI' or 'Full'" >&2
     printf "%s\n" "       'Full' is the same as CI, but has packages for UIs like utop and a language server" >&2
+    printf "%s\n" "       If not specified, no system packages are installed unless [-a EXTRAPKG] is used" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -50,7 +51,7 @@ usage() {
 STATEDIR=
 OCAMLVERSION_OR_HOME=
 OPAMEXE_OR_HOME=
-FLAVOR=CI
+FLAVOR=
 DKMLABI=
 EXTRAPKGS=
 while getopts ":hd:u:o:p:v:f:a:" opt; do
@@ -197,6 +198,8 @@ chmod +x "$WORK"/troubleshoot-opam.sh
         printf " %s" "$EXTRAPKGS"
     fi
     case "$FLAVOR" in
+        "")
+            ;;
         CI)
             awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-pkgs.txt | tr -d '\r'
             ;;
