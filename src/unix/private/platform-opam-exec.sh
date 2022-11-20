@@ -225,14 +225,8 @@ OPAM_ENV_STMT=
 # ------------
 # BEGIN --root
 
-# Set OPAMEXE
-if [ -d "$OPAMEXE_OR_HOME" ]; then
-    # shellcheck disable=SC2034
-    OPAMHOME=$OPAMEXE_OR_HOME
-    set_opamexe
-else
-    OPAMEXE=$OPAMEXE_OR_HOME
-fi
+# Set OPAMEXE from OPAMEXE_OR_HOME
+set_opamexe
 
 OPAM_ROOT_OPT=() # we have a separate array for --root since --root is mandatory for `opam init`
 if [ "$USE_ROOT" = ON ]; then

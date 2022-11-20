@@ -408,7 +408,7 @@ cd "$TOPDIR"
 # From here onwards everything should be run using RELATIVE PATHS ...
 # >>>>>>>>>
 
-# Set OPAMEXE
+# Set OPAMEXE from OPAMEXE_OR_HOME
 set_opamexe
 
 # Set DKML_POSIX_SHELL
