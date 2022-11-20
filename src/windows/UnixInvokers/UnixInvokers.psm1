@@ -141,7 +141,7 @@ function Invoke-MSYS2Command {
             if (-not $IgnoreErrors -and $exitCode -ne 0) {
                 $err = Get-Content -Path $RedirectStandardError -Raw
                 if ($null -eq $err -or "" -eq $err) { $err = Get-Content -Path $RedirectStandardOutput -Tail 5 -ErrorAction Ignore }
-                throw "MSYS2 command failed! Exited with $exitCode. Command was: $Command`nError was: $err"
+                throw "MSYS2 command failed! Exited with $exitCode. Command was: $Command $($arglist -join ' ')`nError was: $err"
             }
         } finally {
             if ($null -ne $RedirectStandardOutput -and (Test-Path $RedirectStandardOutput)) {
@@ -163,7 +163,7 @@ function Invoke-MSYS2Command {
         }
         $ErrorActionPreference = $oldeap
         if (-not $IgnoreErrors -and $LastExitCode -ne 0) {
-            throw "MSYS2 command failed! Exited with $LastExitCode. Command was: $Command"
+            throw "MSYS2 command failed! Exited with $LastExitCode. Command was: $Command $($arglist -join ' ')"
         }
     }
 }
