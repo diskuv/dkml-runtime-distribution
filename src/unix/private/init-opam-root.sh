@@ -329,7 +329,7 @@ if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version" ] && [ ! -e "$
         OPAMREPO_DISKUV="$OPAMREPOS_MIXED/diskuv-opam-repository"
         run_opam repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
     else
-        run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#v$dkml_root_version" --yes --dont-select --rank=1
+        run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
     fi
 fi
 # check if we can remove 'default' if it was pending removal.
