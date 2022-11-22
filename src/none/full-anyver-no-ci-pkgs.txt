@@ -22,7 +22,13 @@ base.v0.14.2
 #   mdx 2.1.0+ requires odoc-parser >= 1.0.0, so use mdx 2.0.0
 mdx.2.0.0
 
+##      global-install
+#       bin/ocp-indent
+#       man/man1/ocp-indent.1
+#       share/emacs/site-lisp/ocp-indent.el
+#       share/ocp-indent/vim/indent/ocaml.vim
 ocp-indent.1.8.2-windowssupport
+
 ##      global-compile
 #       note: this could be global-install if we had a shim.
 #             bin/utop and bin/utop-full are bytecode ocamlrun
