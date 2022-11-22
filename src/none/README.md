@@ -1,5 +1,16 @@
 # Distribution Packages
 
+## Flavors
+
+### CI
+
+These are the packages required to build most OCaml packages on a CI system.
+Interactive developer tools are almost never part of a CI system.
+
+### Full
+
+Should align very closely to the [OCaml Platform](https://ocaml.org/docs/platform)
+
 ## File Format
 
 Lexical rules:
