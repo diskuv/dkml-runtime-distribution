@@ -85,7 +85,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     stdio,v0.14.0
     base,v0.14.2
     mdx,2.0.0
-    dune,2.9.3+shim.1.0.2~r8
+    dune,2.9.3+shim.1.0.2~r13
     dune-action-plugin,2.9.3
     dune-glob,2.9.3
     dune-private-libs,2.9.3
