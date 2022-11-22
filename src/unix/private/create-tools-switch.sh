@@ -176,7 +176,12 @@ cat > "$WORK"/troubleshoot-opam.sh <<EOF
 set -euf
 OPAMROOT='$OPAMROOTDIR_BUILDHOST'
 printf "\n\n========= [START OF TROUBLESHOOTING] ===========\n\n" >&2
-find "\$OPAMROOT"/log -mindepth 1 -maxdepth 1 \( -name "*.out" -o -name "*.env" \) ! -name "log-*.out" ! -name "ocaml-variants-*.out" | while read -r dump_on_error_LOG; do
+if find . -maxdepth 0 -mmin -240 2>/dev/null >/dev/null; then
+    FINDARGS="-mmin -240" # is -mmin supported? BSD (incl. macOS), MSYS2, GNU
+else
+    FINDARGS="-mtime -1" # use 1 day instead. Solaris
+fi
+find "\$OPAMROOT"/log -mindepth 1 -maxdepth 1 \$FINDARGS \( -name "*.out" -o -name "*.env" \) ! -name "log-*.out" ! -name "ocaml-variants-*.out" | while read -r dump_on_error_LOG; do
     dump_on_error_BLOG=\$(basename "\$dump_on_error_LOG")
     printf "\n\n========= [TROUBLESHOOTING] %s ===========\n\n" "\$dump_on_error_BLOG" >&2
     awk -v BLOG="\$dump_on_error_BLOG" '{print "[" BLOG "]", \$0}' "\$dump_on_error_LOG" >&2
