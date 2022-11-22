@@ -209,6 +209,7 @@ usage() {
     printf "%s\n" "        ReleaseCompatFuzz - Compatibility with 'afl' fuzzing tool." >&2
     printf "%s\n" "       Ignored when -v OCAMLHOME is a OCaml home" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
+    printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -301,7 +302,8 @@ PREREMOVES=
 EXTRAINVARIANTS=
 TARGETLOCAL_OPAMSWITCH=
 TARGETGLOBAL_OPAMSWITCH=
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
+DISABLE_UPDATE=OFF
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:w" opt; do
     case ${opt} in
         h )
             usage
@@ -345,6 +347,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:" opt; do
         k ) POSTINSTALLS="${POSTINSTALLS} [$OPTARG]" ;;
         l ) PREREMOVES="${PREREMOVES} [$OPTARG]" ;;
         m ) EXTRAINVARIANTS="$EXTRAINVARIANTS,$OPTARG" ;;
+        w ) DISABLE_UPDATE=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -792,17 +795,20 @@ else
         } > "$WORK"/setrepos.sh
         log_shell "$WORK"/setrepos.sh
 
-        {
-            printf "ec=0\n"
-            cat "$WORK"/nonswitchcall.sh
-            printf "%s" "  update"
-            if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-            # Bizarrely opam 2.1.0 on macOS can return exit code 40 (Sync error) when there
-            # are no sync changes. So both 0 and 40 are successes.
-            printf " || ec=\$?\n"
-            printf "%s\n" "if [ \$ec -eq 40 ] || [ \$ec -eq 0 ]; then exit 0; fi; exit \$ec"
-        } > "$WORK"/update.sh
-        log_shell "$WORK"/update.sh
+        #   This part can be time-consuming
+        if [ "$DISABLE_UPDATE" = OFF ]; then
+            {
+                printf "ec=0\n"
+                cat "$WORK"/nonswitchcall.sh
+                printf "%s" "  update"
+                if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+                # Bizarrely opam 2.1.0 on macOS can return exit code 40 (Sync error) when there
+                # are no sync changes. So both 0 and 40 are successes.
+                printf " || ec=\$?\n"
+                printf "%s\n" "if [ \$ec -eq 40 ] || [ \$ec -eq 0 ]; then exit 0; fi; exit \$ec"
+            } > "$WORK"/update.sh
+            log_shell "$WORK"/update.sh
+        fi
     fi
 
     # A DKML upgrade could have changed the invariant; we do not change it here; instead we wait until after

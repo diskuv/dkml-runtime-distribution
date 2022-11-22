@@ -37,6 +37,7 @@ usage() {
     printf "%s\n" "    -p DKMLABI: The DKML ABI for the tools" >&2
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
+    printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -f FLAVOR: Optional. The flavor of system packages: 'CI' or 'Full'" >&2
     printf "%s\n" "       'Full' is the same as CI, but has packages for UIs like utop and a language server" >&2
     printf "%s\n" "       If not specified, no system packages are installed unless [-a EXTRAPKG] is used" >&2
@@ -54,7 +55,8 @@ OPAMEXE_OR_HOME=
 FLAVOR=
 DKMLABI=
 EXTRAPKGS=
-while getopts ":hd:u:o:p:v:f:a:" opt; do
+DISABLE_UPDATE=OFF
+while getopts ":hd:u:o:p:v:f:a:w" opt; do
     case ${opt} in
         h )
             usage
@@ -91,6 +93,7 @@ while getopts ":hd:u:o:p:v:f:a:" opt; do
             fi
             EXTRAPKGS="$EXTRAPKGS $OPTARG"
         ;;
+        w ) DISABLE_UPDATE=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -155,11 +158,25 @@ get_ocamlver() {
 }
 
 # Just the OCaml compiler
-if [ -n "$STATEDIR" ]; then
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI" -d "$STATEDIR"
+if [ "$DISABLE_UPDATE" = ON ]; then
+    do_cos1() {
+        log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI" -w
+    }
 else
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI"
+    do_cos1() {
+        log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI"
+    }
 fi
+if [ -n "$STATEDIR" ]; then
+    do_cos2() {
+        do_cos1 -d "$STATEDIR"
+    }
+else
+    do_cos2() {
+        do_cos1
+    }
+fi
+do_cos2
 
 # END create system switch
 # -----------------------
