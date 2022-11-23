@@ -210,7 +210,6 @@ usage() {
     printf "%s\n" "       Ignored when -v OCAMLHOME is a OCaml home" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
-    printf "%s\n" "    -x WITH_DKML_EXE: Optional. Location of with-dkml" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -304,8 +303,7 @@ EXTRAINVARIANTS=
 TARGETLOCAL_OPAMSWITCH=
 TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
-WITH_DKML_EXE=
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wx:" opt; do
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:w" opt; do
     case ${opt} in
         h )
             usage
@@ -350,7 +348,6 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wx:" opt; do
         l ) PREREMOVES="${PREREMOVES} [$OPTARG]" ;;
         m ) EXTRAINVARIANTS="$EXTRAINVARIANTS,$OPTARG" ;;
         w ) DISABLE_UPDATE=ON ;;
-        x ) WITH_DKML_EXE=$OPTARG ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -433,23 +430,15 @@ autodetect_system_binaries
 # switches. Whether the `dkml` switch is being created or being used, we need
 # to know where it is.
 #
-# Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+# Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND of `dkml` switch
 # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
-if [ -n "$WITH_DKML_EXE" ]; then
-    # WITHDKMLEXE_BUILDHOST won't be overridden by set_opamswitchdir_of_system
-    WITHDKMLEXE_BUILDHOST=$WITH_DKML_EXE
-fi
 set_opamswitchdir_of_system "$DKMLABI"
 TOOLS_OPAMROOTDIR_BUILDHOST="$OPAMROOTDIR_BUILDHOST"
 TOOLS_OPAMSWITCHFINALDIR_BUILDHOST="$OPAMSWITCHFINALDIR_BUILDHOST"
-TOOLS_WITHDKMLEXE_DOS83_OR_BUILDHOST="$WITHDKMLEXE_BUILDHOST"
-if [ -x /usr/bin/cygpath ]; then
-    TOOLS_WITHDKMLEXE_DOS83_OR_BUILDHOST=$(/usr/bin/cygpath -ad "$TOOLS_WITHDKMLEXE_DOS83_OR_BUILDHOST")
-fi
 TOOLS_OPAMSWITCHNAME_EXPAND="$OPAMSWITCHNAME_EXPAND"
 #   Since these 'tools' variables may not correspond to the user's selected
 #   switch, we avoid bugs by clearing the variables from the environment.
-unset OPAMSWITCHFINALDIR_BUILDHOST OPAMSWITCHNAME_EXPAND WITHDKMLEXE_BUILDHOST
+unset OPAMSWITCHFINALDIR_BUILDHOST OPAMSWITCHNAME_EXPAND
 unset OPAMROOTDIR_BUILDHOST OPAMROOTDIR_EXPAND
 
 # --------------------------------
@@ -1029,7 +1018,10 @@ fi
 # We don't put with-dkml.exe into the `dkml` tools switch because with-dkml.exe (currently) needs a tools switch to compile itself.
 if [ "$DKML_TOOLS_SWITCH" = OFF ] && \
         [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$WRAP_COMMANDS_CACHE_KEY" ]; then
-    printf "%s" "$TOOLS_WITHDKMLEXE_DOS83_OR_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
+    # Set WITHDKMLEXE_DOS83_OR_BUILDHOST
+    autodetect_withdkmlexe
+
+    printf "%s" "$WITHDKMLEXE_DOS83_OR_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
     DOW_PATH=$(cat "$WORK"/dow.path)
     {
         cat "$WORK"/nonswitchexec.sh

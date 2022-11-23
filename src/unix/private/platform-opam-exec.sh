@@ -262,7 +262,7 @@ if [ "$USE_SWITCH" = ON ]; then
     # The `dkml` switch will have the with-dkml.exe binary which is used by non-`dkml`
     # switches. Whether the `dkml` switch is being created or being used, we need
     # to know where it is or where it will be.
-    #   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+    #   Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND of `dkml` switch
     #   and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
     set_opamswitchdir_of_system "$DKMLABI"
 
@@ -270,9 +270,15 @@ if [ "$USE_SWITCH" = ON ]; then
     if [ "$DKML_TOOLS_SWITCH" = ON ]; then
         # Already set in set_opamswitchdir_of_system
         true
+
+        # Unset WITHDKMLEXE_BUILDHOST (if any)
+        unset WITHDKMLEXE_BUILDHOST
     else
         # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
         set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
+
+        # Set WITHDKMLEXE_BUILDHOST
+        autodetect_withdkmlexe
     fi
 
     # We check if the switch exists before we add --switch. Otherwise `opam` will complain:
@@ -395,7 +401,7 @@ case "$subcommand" in
         if [ "$USE_SWITCH" = OFF ]; then
             # There is no switch in use. So don't need with-dkml.exe nor do we need a C compiler.
             exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" "$@"
-        elif [ -e "$WITHDKMLEXE_BUILDHOST" ] && [ "${WITHDKML_ENABLE:-ON}" = ON ]; then
+        elif [ "${WITHDKML_ENABLE:-ON}" = ON ] && [ -n "${WITHDKMLEXE_BUILDHOST:-}" ] && [ -e "$WITHDKMLEXE_BUILDHOST" ]; then
             if [ "$1" = "--" ]; then
                 shift
                 exec_in_platform "$DKMLABI" "$OPAMEXE" exec "${OPAM_ROOT_OPT[@]}" "${OPAM_OPTS[@]}" -- "$WITHDKMLEXE_BUILDHOST" "$@"

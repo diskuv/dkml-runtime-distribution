@@ -184,7 +184,7 @@ do_cos2
 # --------------------------------
 # BEGIN Opam troubleshooting script
 
-# Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND and WITHDKMLEXE_BUILDHOST of `dkml` switch
+# Set OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND of `dkml` switch
 # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
 set_opamswitchdir_of_system "$DKMLABI"
 
