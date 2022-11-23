@@ -115,8 +115,7 @@ function Invoke-MSYS2Command {
         "MSYSTEM_PREFIX=$INVOKER_MSYSTEM_PREFIX",
         "HOME=/home/$env:USERNAME",
         "PATH=$INVOKER_MSYSTEM_PREFIX/bin:/usr/bin:/bin"
-        $Command,
-        $ArgumentList)
+        $Command) + $ArgumentList
     if ($TailFunction) {
         $RedirectStandardOutput = New-TemporaryFile
         $RedirectStandardError = New-TemporaryFile
