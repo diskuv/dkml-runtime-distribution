@@ -186,13 +186,11 @@ if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
         fi
     fi
     if has_rsync; then
-        log_trace spawn_rsync -ap "$DKMLDIR"/vendor/drd/repos/ "$OPAMREPOS_UNIX"
         if [ "$DISKUVOPAMREPO" = LOCAL ]; then
             log_trace spawn_rsync -ap "$DKMLDIR"/vendor/diskuv-opam-repository/ "$OPAMREPOS_UNIX/diskuv-opam-repository"
         fi
     else
         log_trace install -d "$OPAMREPOS_UNIX"
-        log_trace sh -x -c "cp -r '$DKMLDIR/vendor/drd/repos'/* '$OPAMREPOS_UNIX/'"
         if [ "$DISKUVOPAMREPO" = LOCAL ]; then
             log_trace install -d "$OPAMREPOS_UNIX"/diskuv-opam-repository
             log_trace sh -x -c "cp -r '$DKMLDIR/vendor/diskuv-opam-repository'/* '$OPAMREPOS_UNIX/diskuv-opam-repository/'"
