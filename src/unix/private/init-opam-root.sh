@@ -232,14 +232,10 @@ run_opam() {
 # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
 #             the home directory inside the Docker container is not persistent anyways.
 # --bare: so we can configure its settings before adding the OCaml system compiler.
-REPONAME_PENDINGREMOVAL=to-delete-9be511c3b60a0b49
 if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
-    if is_unixy_windows_build_machine; then
-        # We'll use `pendingremoval` as a signal that we can remove it later if it is the 'default' repository.
-        # --disable-sandboxing: Sandboxing does not work on Windows
-        run_opam init --yes --no-setup --bare --disable-sandboxing --kind local "$OPAMREPOS_MIXED/$REPONAME_PENDINGREMOVAL"
-    elif [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
-        # On WSL2 the bwrap sandboxing does not work.
+    if is_unixy_windows_build_machine || [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
+        # --disable-sandboxing: Sandboxing does not work on native Windows.
+        # And in WSL2 the bwrap sandboxing does not work.
         # See https://giters.com/realworldocaml/book/issues/3331 for one issue; jonahbeckford@ tested as well
         # with Ubuntu 20.04 LTS in WSL2 and got (paths are slightly changed):
         #   [ERROR] Sandboxing is not working on your platform ubuntu:
@@ -332,35 +328,13 @@ if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version" ] && [ ! -e "$
         run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
     fi
 fi
-# check if we can remove 'default' if it was pending removal.
-# sigh, we have to parse non-machine friendly output. we'll do safety checks.
-if [ -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] || [ -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
-    run_opam repository list --all > "$WORK"/list
-    # find the 'default' repository. only want the URL but if it has spaces we can't parse out just the URL
-    awk '$1=="default" {print}' "$WORK"/list > "$WORK"/default
-    _NUMLINES=$(awk 'END{print NR}' "$WORK"/default)
-    if [ "$_NUMLINES" -ne 1 ]; then
-        printf "%s\n" "FATAL: init-opam-root.sh does not understand the Opam repo format used at $OPAMROOTDIR_BUILDHOST/repo/default" >&2
-        printf "%s\n" "FATAL: Details A:" >&2
-        ls "$OPAMROOTDIR_BUILDHOST"/repo >&2
-        printf "%s\n" "FATAL: Details B:" >&2
-        cat "$WORK"/default
-        printf "%s\n" "FATAL: Details C:" >&2
-        cat "$WORK"/list
-        exit 107
-    fi
-    if grep -q "/${REPONAME_PENDINGREMOVAL}"$ "$WORK"/default || grep -q "/${REPONAME_PENDINGREMOVAL}[ \t]" "$WORK/default"; then
-        # ok. is like: default file://C:/source 123/xxx/vendor/drd/repos/to-delete <default>
-        run_opam repository remove default --yes --all --dont-select
-    fi
-fi
 
-# add back the [default] repository we want if a [default] is not there
+# add the [default] repository if a [default] is not there
 if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
     run_opam repository add default https://opam.ocaml.org --yes --dont-select --rank=3
-# otherwise force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
-# [default] is not versioned (which means we have no way to tell it is up-to-date)
 else
+    # force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
+    # [default] is not versioned (which means we have no way to tell it is up-to-date)
     run_opam update default --yes --all
 fi
 
