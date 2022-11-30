@@ -74,7 +74,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     sha,1.15.2
     sexplib,v0.14.0
     cmdliner,1.0.4
-    crunch,3.2.0
+    crunch,3.3.1
     uuidm,0.9.7
     dkml-c-probe,3.0.0
 
