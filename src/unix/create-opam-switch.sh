@@ -73,9 +73,9 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     rresult,0.7.0
     sha,1.15.2
     sexplib,v0.14.0
-    cmdliner,1.0.4
+    cmdliner,1.1.1
     crunch,3.3.1
-    uuidm,0.9.7
+    uuidm,0.9.8
     dkml-c-probe,3.0.0
 
     ocamlformat,0.19.0
