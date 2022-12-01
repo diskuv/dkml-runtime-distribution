@@ -35,13 +35,10 @@ $VsSetupVer = "2.2.14-87a8a69eef"
 # However VS 2017 + VS 2019 Build Tools can install even the 2015 compiler component;
 # confer https://devblogs.microsoft.com/cppblog/announcing-visual-c-build-tools-2015-standalone-c-tools-for-build-environments/.
 #
-# We'll use the latest vs_buildtools.exe (VS 2022 Build Tools as of this writing) because it works even with older Windows
-# machines that do not have TLS 1.2 enabled.
-#
-# Below the install channel and tools version correspond to
+# Below the installer is
 #   >> VS 2019 Build Tools 16.11.2 <<
-$VsBuildToolsInstaller = "https://aka.ms/vs/17/release/vs_buildtools.exe" # VS 2022 ("17") Build Tools; https://learn.microsoft.com/en-us/visualstudio/install/build-tools-container?view=vs-2022
 $VsBuildToolsMajorVer = "16" # Either 16 for Visual Studio 2019 or 15 for Visual Studio 2017 Build Tools
+$VsBuildToolsInstaller = "https://download.visualstudio.microsoft.com/download/pr/bacf7555-1a20-4bf4-ae4d-1003bbc25da8/e6cfafe7eb84fe7f6cfbb10ff239902951f131363231ba0cfcd1b7f0677e6398/vs_BuildTools.exe"
 $VsBuildToolsInstallChannel = "https://aka.ms/vs/16/release/channel" # use 'installChannelUri' from: & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -all -products *
 
 # Components
