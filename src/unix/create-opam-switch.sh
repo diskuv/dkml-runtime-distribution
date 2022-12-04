@@ -583,6 +583,10 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
         # -Os optimizes for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
         OPAM_SWITCH_CFLAGS="${OPAM_SWITCH_CFLAGS:-} -Os"
     fi
+    if [ $BUILD_DEBUG = ON ]; then
+        # https://learn.microsoft.com/en-us/cpp/build/reference/z7-zi-zi-debug-information-format?view=msvc-170
+        OPAM_SWITCH_CFLAGS="${OPAM_SWITCH_CFLAGS:-} -Z7"
+    fi
     if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
         # Frame pointer should be on in Debug mode.
         OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp

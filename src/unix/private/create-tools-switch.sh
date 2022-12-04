@@ -41,6 +41,12 @@ usage() {
     printf "%s\n" "    -f FLAVOR: Optional. The flavor of system packages: 'CI' or 'Full'" >&2
     printf "%s\n" "       'Full' is the same as CI, but has packages for UIs like utop and a language server" >&2
     printf "%s\n" "       If not specified, no system packages are installed unless [-a EXTRAPKG] is used" >&2
+    printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
+    printf "%s\n" "        Debug" >&2
+    printf "%s\n" "        Release - Most optimal code. Should be faster than ReleaseCompat* builds" >&2
+    printf "%s\n" "        ReleaseCompatPerf - Compatibility with 'perf' monitoring tool." >&2
+    printf "%s\n" "        ReleaseCompatFuzz - Compatibility with 'afl' fuzzing tool." >&2
+    printf "%s\n" "       Ignored when -v OCAMLVERSION_OR_HOME is a OCaml home" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -49,6 +55,7 @@ usage() {
     printf "%s\n" "    -a EXTRAPKG: Optional; can be repeated. An extra package to install in the tools switch" >&2
 }
 
+BUILDTYPE=
 STATEDIR=
 OCAMLVERSION_OR_HOME=
 OPAMEXE_OR_HOME=
@@ -56,11 +63,14 @@ FLAVOR=
 DKMLABI=
 EXTRAPKGS=
 DISABLE_UPDATE=OFF
-while getopts ":hd:u:o:p:v:f:a:w" opt; do
+while getopts ":hb:d:u:o:p:v:f:a:w" opt; do
     case ${opt} in
         h )
             usage
             exit 0
+        ;;
+        b )
+            BUILDTYPE=$OPTARG
         ;;
         d )
             STATEDIR=$OPTARG
@@ -144,27 +154,34 @@ autodetect_cpus
 autodetect_posix_shell
 
 # Get OCaml version
-get_ocamlver() {
-    case "$OCAMLVERSION_OR_HOME" in
-        /* | ?:*) # /a/b/c or C:\Windows
+case "$OCAMLVERSION_OR_HOME" in
+    /* | ?:*) # /a/b/c or C:\Windows
+        get_ocamlver() {
             validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"
             # the `awk ...` is dos2unix equivalent
             OCAMLVERSION=$("$DKML_OCAMLHOME_ABSBINDIR_UNIX/ocamlc" -version | awk '{ sub(/\r$/,""); print }')
-            ;;
-        *)
+        }
+        ;;
+    *)
+        if [ -z "$BUILDTYPE" ]; then
+            usage
+            printf "FATAL: Missing -b BUILDTYPE. Required except when -v OCAMLHOME is specified and contains usr/bin/ocaml or bin/ocaml\n" >&2
+            exit 1
+        fi
+        get_ocamlver() {
             OCAMLVERSION="$OCAMLVERSION_OR_HOME"
-            ;;
-    esac
-}
+        }
+        ;;
+esac
 
 # Just the OCaml compiler
 if [ "$DISABLE_UPDATE" = ON ]; then
     do_cos1() {
-        log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI" -w
+        log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b "$BUILDTYPE" -p "$DKMLABI" -w
     }
 else
     do_cos1() {
-        log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b Release -p "$DKMLABI"
+        log_trace "$DKMLDIR"/vendor/drd/src/unix/create-opam-switch.sh -y -s -v "$OCAMLVERSION_OR_HOME" -o "$OPAMEXE_OR_HOME" -b "$BUILDTYPE" -p "$DKMLABI"
     }
 fi
 if [ -n "$STATEDIR" ]; then
