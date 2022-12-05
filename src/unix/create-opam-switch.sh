@@ -454,7 +454,7 @@ if find . -maxdepth 0 -mmin -240 2>/dev/null >/dev/null; then
 else
     FINDARGS="-mtime -1" # use 1 day instead. Solaris
 fi
-find "\$OPAMROOT"/log -mindepth 1 -maxdepth 1 \$FINDARGS -name "*.out" ! -name "log-*.out" ! -name "ocaml-variants-*.out" | while read -r dump_on_error_LOG; do
+find "\$OPAMROOT"/log -mindepth 1 -maxdepth 1 \$FINDARGS -name "*.out" ! -name "log-*.out" ! -name "dkml-base-compiler-*.out" | while read -r dump_on_error_LOG; do
     dump_on_error_BLOG=\$(basename "\$dump_on_error_LOG")
     printf "\n\n========= [TROUBLESHOOTING] %s ===========\n\n" "\$dump_on_error_BLOG" >&2
     awk -v BLOG="\$dump_on_error_BLOG" '{print "[" BLOG "]", \$0}' "\$dump_on_error_LOG" >&2
@@ -502,7 +502,7 @@ PINNED_PACKAGES_OPAM_VERSIONSPECIFIC=$(eval echo '$'"$PINNED_PACKAGES_OPAM_VERSI
 PINNED_PACKAGES_OPAM="$PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC $PINNED_PACKAGES_OPAM_VERSIONSPECIFIC"
 
 # Set OCAML_OPTIONS if we are building the OCaml base. And if so, set
-# TARGET_ variables that can be used to pick an Opam variant (OCAMLVARIANT) later.
+# TARGET_ variables that can be used to pick the DKMLBASECOMPILERVERSION later.
 #
 # Also any "EXTRA" compiler flags. Use standard ./configure compiler flags
 # (AS/ASFLAGS/CC/etc.) not OCaml ./configure compiler flags (AS/ASPP/etc.)
@@ -520,7 +520,6 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     #  https://github.com/ocaml/ocaml/blob/e93f6f8e5f5a98e7dced57a0c81535481297c413/configure#L17455-L17472
     #  https://github.com/ocaml/opam-repository/blob/ed5ed7529d1d3672ed4c0d2b09611a98ec87d690/packages/ocaml-option-fp/ocaml-option-fp.1/opam#L6
     OCAML_OPTIONS=
-    OPAM_SWITCH_CFLAGS=
     true > "$WORK"/invariant_for_base.formula.head.txt
     true > "$WORK"/invariant_for_base.formula.tail.txt
     case "$BUILDTYPE" in
@@ -580,52 +579,39 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     esac
 
     if [ $TARGET_LINUXARM32 = ON ]; then
-        # -Os optimizes for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
-        OPAM_SWITCH_CFLAGS="${OPAM_SWITCH_CFLAGS:-} -Os"
+        # Optimize for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
+        OCAML_OPTIONS="$OCAML_OPTIONS",dkml-option-minsize
     fi
     if [ $BUILD_DEBUG = ON ]; then
-        # https://learn.microsoft.com/en-us/cpp/build/reference/z7-zi-zi-debug-information-format?view=msvc-170
-        OPAM_SWITCH_CFLAGS="${OPAM_SWITCH_CFLAGS:-} -Z7"
+        OCAML_OPTIONS="$OCAML_OPTIONS",dkml-option-debuginfo
     fi
     if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
         # Frame pointer should be on in Debug mode.
         OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-        printf ",'%s'" ocaml-option-fp >> "$WORK"/invariant_for_base.formula.tail.txt
     fi
     if [ "$BUILDTYPE" = ReleaseCompatPerf ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
         # If we need Linux `perf` we need frame pointers enabled
         OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-        printf ",'%s'" ocaml-option-fp >> "$WORK"/invariant_for_base.formula.tail.txt
     fi
     if [ $BUILD_RELEASE = ON ]; then
         # All release builds should get flambda optimization
         OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-flambda
-        printf ",'%s'" ocaml-option-flambda >> "$WORK"/invariant_for_base.formula.tail.txt
     fi
     if cmake_flag_on "${DKML_COMPILE_CM_HAVE_AFL:-OFF}" || [ "$BUILDTYPE" = ReleaseCompatFuzz ]; then
         # If we need fuzzing we must add AFL. If we have a fuzzing compiler, use AFL in OCaml.
         OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-afl
-        printf ",'%s'" ocaml-option-afl >> "$WORK"/invariant_for_base.formula.tail.txt
     fi
 fi
 
-# Set OCAMLVARIANT
+# Set DKMLBASECOMPILERVERSION. Ex: 4.12.1~v1.0.2~prerel27
 if [ "$BUILD_OCAML_BASE" = ON ]; then
-    # use Opam base compiler, which compiles ocaml from scratch
-    if is_unixy_windows_build_machine; then
-        set_ocaml_variant_for_windows_switches "$OCAMLVERSION"
-        if [ $TARGET_32BIT = ON ]; then
-            OCAML_VARIANT_FOR_SWITCHES_IN_WINDOWS="$OCAML_VARIANT_FOR_SWITCHES_IN_32BIT_WINDOWS"
-        else
-            OCAML_VARIANT_FOR_SWITCHES_IN_WINDOWS="$OCAML_VARIANT_FOR_SWITCHES_IN_64BIT_WINDOWS"
-        fi
-        OCAMLVARIANT="$OCAML_VARIANT_FOR_SWITCHES_IN_WINDOWS"
-    else
-        OCAMLVARIANT="$OCAMLVERSION+options"
+    # Use DKML base compiler, which compiles ocaml from scratch
+    if [ $TARGET_32BIT = ON ]; then
+        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-32bit
     fi
-else
-    # use Opam system compiler, which use ocaml from PATH
-    OCAMLVARIANT="ocaml-system.$OCAMLVERSION"
+    # shellcheck disable=SC2154
+    dkml_opam_version=$(printf "%s" "$dkml_root_version" | $DKMLSYS_SED 's/-/~/g')
+    DKMLBASECOMPILERVERSION="$OCAMLVERSION~v$dkml_opam_version"
 fi
 
 # Make launchers for opam switch create <...> and for opam <...>
@@ -690,7 +676,6 @@ fi
 
 if is_unixy_windows_build_machine; then
     # create fdopen-mingw-xxx-yyy as rank=2 if not already exists; rank=0 and rank=1 defined in init-opam-root.sh
-    # shellcheck disable=SC2154
     if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION.tar.gz" ]; then
         # Use the snapshot of fdopen-mingw (https://github.com/fdopen/opam-repository-mingw) that comes with ocaml-opam Docker image.
         # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
@@ -717,9 +702,9 @@ else
 fi
 
 if [ "$BUILD_OCAML_BASE" = ON ]; then
-    # ex. '"ocaml-variants" {= "4.12.0+options"}'
-    invariants=$(printf "ocaml-variants.%s%s\n" \
-        "$OCAMLVARIANT$OCAML_OPTIONS" \
+    # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
+    invariants=$(printf "dkml-base-compiler.%s%s\n" \
+        "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
         "$EXTRAINVARIANTS"
     )
 else
@@ -739,10 +724,14 @@ if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "  --debug-level 2 \\
     # Ignore any switch the developer gave. We are creating our own.
     printf "%s\n" "export OPAMSWITCH="
     printf "%s\n" "export OPAM_SWITCH_PREFIX="
-    if [ -n "${OPAM_SWITCH_CFLAGS:-}" ]; then printf "export CFLAGS=\"\${CFLAGS:-} \""; escape_string_for_shell "$OPAM_SWITCH_CFLAGS"; printf "\n"; fi
     printf "exec env DKMLDIR='%s' DKML_TARGET_ABI='%s' '%s' \"\$@\"\n" "$DKMLDIR" "$DKMLABI" "$DKMLDIR/vendor/drd/src/unix/private/standard-compiler-env-to-ocaml-configure-launcher.sh"
 } > "$WORK"/switch-create-prehook.sh
 chmod +x "$WORK"/switch-create-prehook.sh
+if [ "${DKML_BUILD_TRACE:-OFF}" = ON ] && [ "${DKML_BUILD_TRACE_LEVEL:-0}" -ge 2 ]; then
+    printf  "@+ switch-create-prehook.sh\n" >&2
+    # print file with prefix ... @+| . Also make sure each line is newline terminated using awk.
+    "$DKMLSYS_SED" 's/^/@+| /' "$WORK"/switch-create-prehook.sh | "$DKMLSYS_AWK" '{print}' >&2
+fi
 
 if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "+ ! is_minimal_opam_switch_present \"$OPAMSWITCHFINALDIR_BUILDHOST\"" >&2; fi
 if ! is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
@@ -1145,19 +1134,6 @@ if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_C
 
     # Done for this DKML version
     touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version"
-fi
-
-# For Windows when we need to build an OCaml base, mimic the ocaml-opam Dockerfile by pinning `ocaml-variants` to our custom version
-if [ "$BUILD_OCAML_BASE" = ON ] && is_unixy_windows_build_machine; then
-    if ! get_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned | grep -q "ocaml-variants.$OCAML_VARIANT_FOR_SWITCHES_IN_WINDOWS"; then
-        OPAM_PIN_ADD_ARGS="pin add"
-        if [ "$YES" = ON ]; then OPAM_PIN_ADD_ARGS="$OPAM_PIN_ADD_ARGS --yes"; fi
-        {
-            cat "$WORK"/nonswitchexec.sh
-            printf "%s" "  ${OPAM_PIN_ADD_ARGS} -k version ocaml-variants '$OCAML_VARIANT_FOR_SWITCHES_IN_WINDOWS'"
-        } > "$WORK"/pinadd.sh
-        log_shell "$WORK"/pinadd.sh
-    fi
 fi
 
 # END opam pin add
