@@ -241,6 +241,7 @@ chmod +x "$WORK"/troubleshoot-opam.sh
             ;;
         CI)
             awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             ;;
         Full)
             get_ocamlver

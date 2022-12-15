@@ -1,0 +1,18 @@
+# All packages listed in this file are installed as part of
+# the "dkml" system switch.
+
+# See README.md for a description of this file format.
+
+# Cmdliner and crunch are needed to compile opam-dkml.exe
+cmdliner.1.1.1
+crunch.3.3.1
+ptime.1.1.0
+uuidm.0.9.8
+
+# Bos, sha and sexplib are needed to compile with-dkml.exe
+# Bos needs rresult and fmt
+bos.0.2.1
+fmt.0.9.0
+rresult.0.7.0
+sha.1.15.2
+sexplib.v0.15.1
