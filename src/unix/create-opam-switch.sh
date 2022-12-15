@@ -606,7 +606,7 @@ fi
 # Set DKMLBASECOMPILERVERSION. Ex: 4.12.1~v1.0.2~prerel27
 if [ "$BUILD_OCAML_BASE" = ON ]; then
     # Use DKML base compiler, which compiles ocaml from scratch
-    if [ $TARGET_32BIT = ON ]; then
+    if [ "$TARGET_32BIT" = ON ]; then
         OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-32bit
     fi
     # shellcheck disable=SC2154
