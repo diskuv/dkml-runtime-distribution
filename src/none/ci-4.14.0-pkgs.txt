@@ -18,3 +18,14 @@ fmt.0.9.0
 rresult.0.7.0
 sha.1.15.2
 sexplib.v0.15.1
+
+# DKML apps (dkml-apps, opam-dkml and with-dkml version maintained by diskuv-ocaml's release.sh)
+dkml-c-probe.3.0.0
+##      global-install
+#       bin/dkml-fswatch.exe
+#       bin/dkml-confdir.exe
+dkml-apps.1.0.2~prerel33
+opam-dkml.1.0.2~prerel33
+##      global-install
+#       bin/with-dkml.exe
+with-dkml.1.0.2~prerel33
