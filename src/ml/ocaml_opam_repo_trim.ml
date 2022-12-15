@@ -15,38 +15,47 @@
 
 (* = CONSTANTS *)
 
-type ocaml_version = OCAMLV4_12_0 | OCAMLV4_12_1 | OCAMLV4_13_1
+type ocaml_version = OCAMLV4_12_0 | OCAMLV4_12_1 | OCAMLV4_13_1 | OCAMLV4_14_0 | OCAMLV4_14_1
 
-(* Compiler specific package versions.
-   These are required for the compiler version DKML supports.
+(** Compiler specific package versions.
+    These are required for the compiler version DKML supports.
 
-   These package versions are _only_ for fdopen repository.
+    These package versions are _only_ for fdopen repository.
+
+    Even though the packages below will be trimmed in the fdopen repository to
+    just a single version, any same-named, same-version or higher-version
+    package in the diskuv-opam-repository will take precedence.
 *)
-
 let get_pkgvers_fdopen_compiler_specific = function
   | OCAMLV4_12_0 ->
       [
         ("camlp4", "4.12+system");
         ("merlin", "4.3.1-412");
-        ("ocaml", "4.12.0");
         ("ocamlbrowser", "4.12.0");
-        ("ocaml-src", "4.12.0");
       ]
   | OCAMLV4_12_1 ->
       [
         ("camlp4", "4.12+system");
         ("merlin", "4.3.1-412");
-        ("ocaml", "4.12.1");
-        ("ocamlbrowser", "4.12.0");
-        ("ocaml-src", "4.12.1");
+        ("ocamlbrowser", "4.12.0") (* not a typo! 4.12.0 is latest *);
       ]
   | OCAMLV4_13_1 ->
       [
         ("camlp4", "4.13+system");
         ("merlin", "4.3.2~4.13preview");
-        ("ocaml", "4.13.1");
         ("ocamlbrowser", "4.13.0") (* not a typo! 4.13.0 is latest *);
-        ("ocaml-src", "4.13.1");
+      ]
+  | OCAMLV4_14_0 ->
+      [
+        ("camlp4", "4.14+1");
+        ("merlin", "4.6-414");
+        ("ocamlbrowser", "4.14.0");
+      ]
+  | OCAMLV4_14_1 ->
+      [
+        ("camlp4", "4.14+1");
+        ("merlin", "4.6-414");
+        ("ocamlbrowser", "4.14.0") (* not a typo! 4.14.0 is latest *);
       ]
 
 (* Compiler agnostic package versions.
@@ -73,11 +82,15 @@ let packages_fdopen_to_remove =
        * ocaml-compiler-libs,v0.12.4 and dune-build-info,2.9.3 are part of the good set, but not part of the fdopen repository snapshot. So we remove it in
          r-f-oorepo-9-trim.sh so the default Opam repository is used.
        * jbuilder should always be the 'transition' version
+       * ocaml-src is same in fdopen and default Opam repository
+       * ocaml has dkml-base-compiler additions in diskuv and default Opam repository, but not in fdopen
     *)
     "depext";
     "dune-build-info";
     "jbuilder";
+    "ocaml";
     "ocaml-compiler-libs";
+    "ocaml-src";
     (* The second section is where we need all the DKML patched package versions for:
        * ocaml-variants since which package to choose is an install-time calculation (32/64 bit, dkml/dksdk, 4.12.1/4.13.1)
     *)
@@ -217,6 +230,8 @@ let ocamlversion =
   | "4.12.0" -> OCAMLV4_12_0
   | "4.12.1" -> OCAMLV4_12_1
   | "4.13.1" -> OCAMLV4_13_1
+  | "4.14.0" -> OCAMLV4_14_0
+  | "4.14.1" -> OCAMLV4_14_1
   | _ ->
       raise
       @@ Invalid_argument

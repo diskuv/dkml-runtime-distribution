@@ -36,21 +36,14 @@ dune-private-libs.2.9.3
 # (not available in 2.9.3) dune-rpc-lwt.2.9.3
 # (not available in 2.9.3) dune-rpc.2.9.3
 dune-site.2.9.3
-# Bos, sha and sexplib are needed to compile with-dkml.exe
-# Bos needs rresult and fmt
-bos.0.2.1
-fmt.0.9.0
-rresult.0.7.0
-sha.1.15.2
-sexplib.v0.14.0
 
 # DKML apps (dkml-apps, opam-dkml and with-dkml version maintained by diskuv-ocaml's release.sh)
 dkml-c-probe.3.0.0
 ##      global-install
 #       bin/dkml-fswatch.exe
 #       bin/dkml-confdir.exe
-dkml-apps.1.0.2~prerel32
-opam-dkml.1.0.2~prerel32
+dkml-apps.1.0.2~prerel30
+opam-dkml.1.0.2~prerel30
 ##      global-install
 #       bin/with-dkml.exe
-with-dkml.1.0.2~prerel32
+with-dkml.1.0.2~prerel30

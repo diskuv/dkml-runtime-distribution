@@ -3,6 +3,8 @@
 
 # See README.md for a description of this file format.
 
+ocaml.4.13.1
+
 # Cmdliner and crunch are needed to compile opam-dkml.exe
 # crunch needs ptime
 # ptime >= 0.8.6 so can work with MSVC compiler
