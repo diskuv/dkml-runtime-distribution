@@ -4,6 +4,22 @@
 
 # See README.md for a description of this file format.
 
+##      global-install
+#       bin/ocamlformat
+#       man/man1/ocamlformat.1
+#       share/emacs/site-lisp/ocamlformat.el
+ocamlformat.0.24.1
+##      global-install
+#       bin/ocamlformat-rpc
+#       man/man1/ocamlformat-rpc.1
+ocamlformat-rpc.0.24.1
+ocamlformat-rpc-lib.0.24.1
+
+odoc-parser.2.0.0
+stdio.v0.15.0
+base.v0.15.1
+mdx.2.1.0
+
 # lsp, ocaml-lsp-server and jsonrpc are all vended from the ocaml-lsp project
 lsp.1.14.2
 ##      global-install
