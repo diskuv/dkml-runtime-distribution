@@ -9,10 +9,6 @@
 #       man/man1/ocamlformat.1
 #       share/emacs/site-lisp/ocamlformat.el
 ocamlformat.0.24.1
-##      global-install
-#       bin/ocamlformat-rpc
-#       man/man1/ocamlformat-rpc.1
-ocamlformat-rpc.0.24.1
 ocamlformat-rpc-lib.0.24.1
 
 odoc-parser.2.0.0
