@@ -374,6 +374,12 @@ if [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
     run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}"
     run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}"
     run_opam var --global "msys2-nativedir=$DKMLMSYS2DIR_BUILDHOST"
+    if [ -x /usr/bin/cygpath ]; then
+        syspkgmgrpath=$(/usr/bin/cygpath -aw "$DKMLMSYS2DIR_BUILDHOST/usr/bin/pacman.exe")
+    else
+        syspkgmgrpath="$DKMLMSYS2DIR_BUILDHOST/usr/bin/pacman"
+    fi
+    run_opam var --global "sys-pkg-manager-path=$syspkgmgrpath"
 fi
 
 # Diagnostics
