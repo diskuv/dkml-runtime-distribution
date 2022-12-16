@@ -17,8 +17,8 @@ base.v0.15.1
 mdx.2.1.0
 
 # lsp, ocaml-lsp-server and jsonrpc are all vended from the ocaml-lsp project
-lsp.1.10.3
+lsp.1.12.2
 ##      global-install
 #       bin/ocamllsp
-ocaml-lsp-server.1.10.3
-jsonrpc.1.10.3
+ocaml-lsp-server.1.12.2
+jsonrpc.1.12.2
