@@ -24,8 +24,8 @@ dkml-c-probe.3.0.0
 ##      global-install
 #       bin/dkml-fswatch.exe
 #       bin/dkml-confdir.exe
-dkml-apps.1.1.0~prerel2
-opam-dkml.1.1.0~prerel2
+dkml-apps.1.1.0~prerel3
+opam-dkml.1.1.0~prerel3
 ##      global-install
 #       bin/with-dkml.exe
-with-dkml.1.1.0~prerel2
+with-dkml.1.1.0~prerel3
