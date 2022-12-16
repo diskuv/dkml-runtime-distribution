@@ -8,10 +8,11 @@
 #       bin/ocamlformat
 #       man/man1/ocamlformat.1
 #       share/emacs/site-lisp/ocamlformat.el
-ocamlformat.0.24.1
-ocamlformat-rpc-lib.0.24.1
+ocamlformat.0.23.0
+ocamlformat-rpc-lib.0.23.0
 
-odoc-parser.2.0.0
+# odoc.2.1.0 requires odoc-parser < 2.0.0
+odoc-parser.1.0.1
 stdio.v0.15.0
 base.v0.15.1
 mdx.2.1.0
