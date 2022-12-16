@@ -25,7 +25,6 @@ PINNED_PACKAGES_DKML_PATCHES="
     ctypes-foreign,0.19.2-windowssupport-r5
     ctypes,0.19.2-windowssupport-r5
     digestif,1.1.2+msvc
-    dune-configurator,2.9.3+msvc
     feather,0.3.0
     mccs,1.1+13
     ocamlbuild,0.14.0

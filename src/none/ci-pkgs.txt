@@ -28,11 +28,10 @@ ocamlfind.1.9.1
 #       man/man1/...
 #       man/man1/dune.1
 #       man/man5/dune-config.5
-dune.2.9.3+shim.1.0.2~r13
-dune-configurator.2.9.3+msvc
-dune-action-plugin.2.9.3
-dune-glob.2.9.3
-dune-private-libs.2.9.3
-# (not available in 2.9.3) dune-rpc-lwt.2.9.3
-# (not available in 2.9.3) dune-rpc.2.9.3
-dune-site.2.9.3
+dune.3.6.2~a237caa+shim
+dune-action-plugin.3.6.1
+dune-glob.3.6.1
+dune-private-libs.3.6.1
+dune-rpc-lwt.3.6.1
+dune-rpc.3.6.1
+dune-site.3.6.1
