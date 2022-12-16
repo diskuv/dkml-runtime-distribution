@@ -24,7 +24,7 @@
     ; src/none/full-<VER>-no-ci-pkgs.txt has a list of DKML packages for that version of OCaml
     (or
       (and (>= 4.12.1~) (< 4.12.2~))
-      (and (>= 4.13.1~) (< 4.13.2~))
+      (and (>= 4.14.0~) (< 4.14.1~))
     )
   )
   (diskuvbox (and (>= 0.1.0) :build))))
