@@ -5,6 +5,16 @@
 # See README.md for a description of this file format.
 
 ##      global-install
+#       bin/odoc
+#       doc/odoc/odoc-pages/features.mld
+#       doc/odoc/odoc-pages/index.mld
+#       doc/odoc/odoc-pages/interface.mld
+#       share/odoc
+#       share/odoc/odoc-theme/default/highlight.pack.js
+#       share/odoc/odoc-theme/default/odoc.css
+odoc.2.2.0
+
+##      global-install
 #       bin/ocamlformat
 #       man/man1/ocamlformat.1
 #       share/emacs/site-lisp/ocamlformat.el

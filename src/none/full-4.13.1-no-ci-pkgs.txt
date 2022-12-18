@@ -4,6 +4,16 @@
 
 # See README.md for a description of this file format.
 
+##      global-install
+#       bin/odoc
+#       doc/odoc/odoc-pages/features.mld
+#       doc/odoc/odoc-pages/index.mld
+#       doc/odoc/odoc-pages/interface.mld
+#       share/odoc
+#       share/odoc/odoc-theme/default/highlight.pack.js
+#       share/odoc/odoc-theme/default/odoc.css
+odoc.2.1.0
+
 # ocamlformat needs to be 0.18.* or 0.19.* because of https://github.com/ocaml/ocaml-lsp/blob/650fc5c667561f487e6fc1338a531f059e41b713/ocaml-lsp-server.opam#L31
 ##      global-install
 #       bin/ocamlformat

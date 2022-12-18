@@ -4,16 +4,6 @@
 # See README.md for a description of this file format.
 
 ##      global-install
-#       bin/odoc
-#       doc/odoc/odoc-pages/features.mld
-#       doc/odoc/odoc-pages/index.mld
-#       doc/odoc/odoc-pages/interface.mld
-#       share/odoc
-#       share/odoc/odoc-theme/default/highlight.pack.js
-#       share/odoc/odoc-theme/default/odoc.css
-odoc.2.1.0
-
-##      global-install
 #       bin/ocp-indent
 #       man/man1/ocp-indent.1
 #       share/emacs/site-lisp/ocp-indent.el
