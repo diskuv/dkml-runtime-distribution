@@ -379,7 +379,7 @@ if [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
     else
         syspkgmgrpath="$DKMLMSYS2DIR_BUILDHOST/usr/bin/pacman"
     fi
-    run_opam var --global "sys-pkg-manager-path=$syspkgmgrpath"
+    run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath"
 fi
 
 # Diagnostics
