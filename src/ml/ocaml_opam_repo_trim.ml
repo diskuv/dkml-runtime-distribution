@@ -134,6 +134,7 @@ let packages_fdopen_to_remove =
     "ocamlformat";
     "ocamlformat-rpc";
     "ocamlformat-rpc-lib";
+    "odoc";
     "odoc-parser";
     "stdio";
     "base";

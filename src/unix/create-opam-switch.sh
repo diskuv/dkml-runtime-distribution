@@ -72,26 +72,43 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     rresult,0.7.0
     sha,1.15.2
     sexplib,v0.14.0
-    cmdliner,1.1.1
-    crunch,3.3.1
-    uuidm,0.9.8
     dkml-c-probe,3.0.0
 
-    ocamlformat,0.19.0
-    ocamlformat-rpc,0.19.0
-    ocamlformat-rpc-lib,0.19.0
-    odoc-parser,0.9.0
-    stdio,v0.14.0
-    base,v0.14.2
-    mdx,2.0.0
+    utop,2.9.0
+
+    alcotest,1.4.0
+    alcotest-async,1.4.0
+    alcotest-js,1.4.0
+    alcotest-lwt,1.4.0
+    alcotest-mirage,1.4.0
+    "
+export PINNED_PACKAGES_OPAM_4_12_1="
+    cmdliner,1.0.4
+    crunch,3.2.0
+    uuidm,0.9.7
+
     dune,2.9.3+shim.1.0.2~r13
     dune-action-plugin,2.9.3
     dune-glob,2.9.3
     dune-private-libs,2.9.3
     dune-site,2.9.3
-    utop,2.9.0
+
+    ocamlformat,0.19.0
+    ocamlformat-rpc,0.19.0
+    ocamlformat-rpc-lib,0.19.0
+
+    odoc,2.1.0
+    odoc-parser,0.9.0
+    stdio,v0.14.0
+    base,v0.14.2
+    mdx,2.0.0
+
+    lsp,1.9.0
+    ocaml-lsp-server,1.9.0
+    jsonrpc,1.9.0
 
     ppxlib,0.25.1
+
     base_quickcheck,v0.14.1
     bin_prot,v0.14.1
     fieldslib,v0.14.0
@@ -128,25 +145,35 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     time_now,v0.14.0
     typerep,v0.14.0
     variantslib,v0.14.0
-
-    alcotest,1.4.0
-    alcotest-async,1.4.0
-    alcotest-js,1.4.0
-    alcotest-lwt,1.4.0
-    alcotest-mirage,1.4.0
-    "
-export PINNED_PACKAGES_OPAM_4_12_1="
-    lsp,1.9.0
-    ocaml-lsp-server,1.9.0
-    jsonrpc,1.9.0
 "
-export PINNED_PACKAGES_OPAM_4_13_1="
-    lsp,1.10.3
-    ocaml-lsp-server,1.10.3
-    jsonrpc,1.10.3
+export PINNED_PACKAGES_OPAM_4_14_0="
+    cmdliner,1.1.1
+    crunch,3.3.1
+    uuidm,0.9.8
+
+    dune,3.6.2~d97293a+shim
+    dune-action-plugin,3.6.1
+    dune-glob,3.6.1
+    dune-private-libs,3.6.1
+    dune-rpc-lwt,3.6.1
+    dune-rpc,3.6.1
+    dune-site,3.6.1
+
+    ocamlformat,0.24.1
+    ocamlformat-rpc-lib,0.24.1
+
+    odoc,2.2.0
+    odoc-parser,2.0.0
+    stdio,v0.15.0
+    base,v0.15.1
+    mdx,2.1.0
+
+    lsp,1.12.2
+    ocaml-lsp-server,1.12.2
+    jsonrpc,1.12.2
 "
 
-OCAML_DEFAULT_VERSION=4.12.1
+OCAML_DEFAULT_VERSION=4.14.0
 
 # ------------------
 # BEGIN Command line processing
