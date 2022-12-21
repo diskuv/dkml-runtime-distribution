@@ -71,7 +71,6 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     fmt,0.9.0
     rresult,0.7.0
     sha,1.15.2
-    sexplib,v0.14.0
     dkml-c-probe,3.0.0
 
     utop,2.9.0
@@ -83,6 +82,8 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     alcotest-mirage,1.4.0
     "
 export PINNED_PACKAGES_OPAM_4_12_1="
+    sexplib,v0.14.0
+
     cmdliner,1.0.4
     crunch,3.2.0
     uuidm,0.9.7
@@ -147,6 +148,8 @@ export PINNED_PACKAGES_OPAM_4_12_1="
     variantslib,v0.14.0
 "
 export PINNED_PACKAGES_OPAM_4_14_0="
+    sexplib.v0.15.1
+
     cmdliner,1.1.1
     crunch,3.3.1
     uuidm,0.9.8

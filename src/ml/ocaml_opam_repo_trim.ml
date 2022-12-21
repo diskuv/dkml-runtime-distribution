@@ -15,7 +15,12 @@
 
 (* = CONSTANTS *)
 
-type ocaml_version = OCAMLV4_12_0 | OCAMLV4_12_1 | OCAMLV4_13_1 | OCAMLV4_14_0 | OCAMLV4_14_1
+type ocaml_version =
+  | OCAMLV4_12_0
+  | OCAMLV4_12_1
+  | OCAMLV4_13_1
+  | OCAMLV4_14_0
+  | OCAMLV4_14_1
 
 (** Compiler specific package versions.
     These are required for the compiler version DKML supports.
@@ -47,9 +52,7 @@ let get_pkgvers_fdopen_compiler_specific = function
       ]
   | OCAMLV4_14_0 ->
       [
-        ("camlp4", "4.14+1");
-        ("merlin", "4.6-414");
-        ("ocamlbrowser", "4.14.0");
+        ("camlp4", "4.14+1"); ("merlin", "4.6-414"); ("ocamlbrowser", "4.14.0");
       ]
   | OCAMLV4_14_1 ->
       [
@@ -77,12 +80,147 @@ let pkgvers_fdopen_compiler_agnostic =
 
 let packages_fdopen_to_remove =
   [
+    (* This zeroth section is where the same versions are in fdopen and default Opam version. Stop using fdopen! *)
+    "ocaml-src";
+    "accessor_async";
+    "accessor_base";
+    "accessor_core";
+    "accessor";
+    "async_durable";
+    "async_extra";
+    "async_find";
+    "async_inotify";
+    "async_interactive";
+    "async_js";
+    "async_kernel";
+    "async_rpc_kernel";
+    "async_sendfile";
+    "async_shell";
+    "async_smtp";
+    "async_ssl";
+    "async_udp";
+    "async_unix";
+    "async_websocket";
+    "async";
+    "base_bigstring";
+    "base_quickcheck";
+    "bignum";
+    "bin_prot";
+    "bonsai";
+    "command_rpc";
+    "core_bench";
+    "core_extended";
+    "core_profiler";
+    "core_unix";
+    "core";
+    "csvfields";
+    "delimited_parsing";
+    "ecaml";
+    "email_message";
+    "expect_test_helpers_async";
+    "expect_test_helpers_core";
+    "fieldslib";
+    "hardcaml_waveterm";
+    "higher_kinded";
+    "incr_dom_interactive";
+    "incr_dom_keyboard";
+    "incr_dom_partial_render";
+    "incr_dom_sexp_form";
+    "incr_dom";
+    "incr_map";
+    "incr_select";
+    "incremental";
+    "jane-street-headers";
+    "jst-config";
+    "line-up-words";
+    "memtrace_viewer";
+    "mlt_parser";
+    "netsnmp";
+    "notty_async";
+    "ocaml_plugin";
+    "pam";
+    "parsexp_io";
+    "parsexp";
+    "patdiff";
+    "patience_diff";
+    "posixat";
+    "postgres_async";
+    "ppxlib";
+    "ppx_accessor";
+    "ppx_assert";
+    "ppx_bap";
+    "ppx_base";
+    "ppx_bench";
+    "ppx_bin_prot";
+    "ppx_cold";
+    "ppx_compare";
+    "ppx_conv_func";
+    "ppx_csv_conv";
+    "ppx_custom_printf";
+    "ppx_enumerate";
+    "ppx_fail";
+    "ppx_fields_conv";
+    "ppx_fixed_literal";
+    "ppx_hash";
+    "ppx_here";
+    "ppx_inline_test";
+    "ppx_jane";
+    "ppx_js_style";
+    "ppx_let";
+    "ppx_log";
+    "ppx_module_timer";
+    "ppx_optcomp";
+    "ppx_optional";
+    "ppx_pattern_bind";
+    "ppx_pipebang";
+    "ppx_python";
+    "ppx_sexp_conv";
+    "ppx_sexp_message";
+    "ppx_sexp_value";
+    "ppx_stable";
+    "ppx_string";
+    "ppx_typerep_conv";
+    "ppx_variants_conv";
+    "ppx_xml_conv";
+    "ppx_yojson_conv_lib";
+    "ppx_yojson_conv";
+    "protocol_version_header";
+    "pythonlib";
+    "re2_stable";
+    "re2";
+    "record_builder";
+    "resource_cache";
+    "rpc_parallel";
+    "sequencer_table";
+    "sexp_diff_kernel";
+    "sexp_macro";
+    "sexp_pretty";
+    "sexp_select";
+    "sexp";
+    "sexplib0";
+    "shell";
+    "shexp";
+    "splay_tree";
+    "splittable_random";
+    "string_dict";
+    "textutils_kernel";
+    "textutils";
+    "time_now";
+    "timezone";
+    "toplevel_backend";
+    "toplevel_expect_test";
+    "topological_sort";
+    "typerep";
+    "variantslib";
+    "vcaml";
+    "virtual_dom";
+    "zarith_stubs_js";
+    "zstandard";
     (* The first section is where we don't care what pkg version is used, but we know we don't want fdopen's version:
        * depext is unnecessary as of Opam 2.1
        * ocaml-compiler-libs,v0.12.4 and dune-build-info,2.9.3 are part of the good set, but not part of the fdopen repository snapshot. So we remove it in
          r-f-oorepo-9-trim.sh so the default Opam repository is used.
        * jbuilder should always be the 'transition' version
-       * ocaml-src is same in fdopen and default Opam repository
        * ocaml has dkml-base-compiler additions in diskuv and default Opam repository, but not in fdopen
     *)
     "depext";
@@ -90,7 +228,6 @@ let packages_fdopen_to_remove =
     "jbuilder";
     "ocaml";
     "ocaml-compiler-libs";
-    "ocaml-src";
     (* The second section is where we need all the DKML patched package versions for:
        * ocaml-variants since which package to choose is an install-time calculation (32/64 bit, dkml/dksdk, 4.12.1/4.13.1)
     *)
@@ -145,45 +282,6 @@ let packages_fdopen_to_remove =
     "dune-private-libs";
     "dune-site";
     "utop";
-
-    "ppxlib";
-    "base_quickcheck";
-    "bin_prot";
-    "fieldslib";
-    "jane-street-headers";
-    "jst-config";
-    "ppx_assert";
-    "ppx_bench";
-    "ppx_bin_prot";
-    "ppx_cold";
-    "ppx_compare";
-    "ppx_custom_printf";
-    "ppx_enumerate";
-    "ppx_fields_conv";
-    "ppx_fixed_literal";
-    "ppx_hash";
-    "ppx_here";
-    "ppx_inline_test";
-    "ppx_jane";
-    "ppx_js_style";
-    "ppx_let";
-    "ppx_module_timer";
-    "ppx_optcomp";
-    "ppx_optional";
-    "ppx_pipebang";
-    "ppx_sexp_conv";
-    "ppx_sexp_message";
-    "ppx_sexp_value";
-    "ppx_stable";
-    "ppx_string";
-    "ppx_typerep_conv";
-    "ppx_variants_conv";
-    "sexplib0";
-    "splittable_random";
-    "time_now";
-    "typerep";
-    "variantslib";
-
     "alcotest";
     "alcotest-async";
     "alcotest-js";
@@ -352,22 +450,26 @@ let find_latest_package_version pkg pkg_loc =
   *)
   let is_jane_street_pkg opam_loc =
     let opam_contents = read_whole_file opam_loc in
-    let in_homepage = try
-      Str.(
-        search_forward
-          (regexp_string "homepage: \"https://github.com/janestreet/")
-          opam_contents 0)
-      >= 0
-    with Not_found -> false in
-    (*    Ex: https://github.com/fdopen/opam-repository-mingw/blob/opam2/packages/fieldslib/fieldslib.108.00.02/opam
-            maintainer: "Jane Street developers" *)
-    let in_maintainer = try
-      Str.(
-        search_forward
-          (regexp_string "maintainer: \"Jane Street")
-          opam_contents 0)
-      >= 0
-    with Not_found -> false in
+    let in_homepage =
+      try
+        Str.(
+          search_forward
+            (regexp_string "homepage: \"https://github.com/janestreet/")
+            opam_contents 0)
+        >= 0
+      with Not_found -> false
+    in
+    (* Ex: https://github.com/fdopen/opam-repository-mingw/blob/opam2/packages/fieldslib/fieldslib.108.00.02/opam
+         maintainer: "Jane Street developers" *)
+    let in_maintainer =
+      try
+        Str.(
+          search_forward
+            (regexp_string "maintainer: \"Jane Street")
+            opam_contents 0)
+        >= 0
+      with Not_found -> false
+    in
     in_homepage || in_maintainer
   in
   let plausible_ver_plus_semver_pairs =
