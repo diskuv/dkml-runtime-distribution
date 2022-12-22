@@ -133,6 +133,9 @@ let packages_fdopen_to_remove =
     "jane-street-headers";
     "jst-config";
     "line-up-words";
+    "lwt";
+    "lwt_log";
+    "lwt_react";
     "memtrace_viewer";
     "mlt_parser";
     "netsnmp";
