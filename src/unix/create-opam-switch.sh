@@ -28,7 +28,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     feather,0.3.0
     mccs,1.1+13
     ocamlbuild,0.14.0
-    ppx_expect,v0.14.1
+    ppx_expect,v0.15.1
     yaml,3.0.1+windows+r1
 
     dkml-apps,1.1.0~prerel19

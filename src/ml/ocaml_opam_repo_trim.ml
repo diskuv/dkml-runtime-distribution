@@ -157,9 +157,11 @@ let packages_fdopen_to_remove =
     "ppx_bin_prot";
     "ppx_cold";
     "ppx_compare";
+    "ppx_core";
     "ppx_conv_func";
     "ppx_csv_conv";
     "ppx_custom_printf";
+    "ppx_driver";
     "ppx_enumerate";
     "ppx_fail";
     "ppx_fields_conv";
@@ -182,6 +184,7 @@ let packages_fdopen_to_remove =
     "ppx_sexp_value";
     "ppx_stable";
     "ppx_string";
+    "ppx_type_conv";
     "ppx_typerep_conv";
     "ppx_variants_conv";
     "ppx_xml_conv";
