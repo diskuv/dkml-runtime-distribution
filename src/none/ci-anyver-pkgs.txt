@@ -28,13 +28,10 @@ ocamlfind.1.9.1
 #       man/man1/...
 #       man/man1/dune.1
 #       man/man5/dune-config.5
-dune.3.6.2~d97293a+shim
-dune-action-plugin.3.6.1
-dune-glob.3.6.1
-dune-private-libs.3.6.1
-dune-rpc-lwt.3.6.1
-dune-rpc.3.6.1
-dune-site.3.6.1
-# avoid 'cp -PRp' bug caused by dune and dune.exe in same directory in 3.6.1.
-# confer: https://github.com/ocaml/dune/blob/ef58825d6294b539d6081acb0b2ee4ab41b6d748/ci/build-test.sh#L86
-xdg.3.6.2~d97293a+shim
+dune.3.6.2+shim
+dune-action-plugin.3.6.2
+dune-glob.3.6.2
+dune-private-libs.3.6.2
+dune-rpc-lwt.3.6.2
+dune-rpc.3.6.2
+dune-site.3.6.2

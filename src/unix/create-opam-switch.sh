@@ -154,13 +154,13 @@ export PINNED_PACKAGES_OPAM_4_14_0="
     crunch,3.3.1
     uuidm,0.9.8
 
-    dune,3.6.2~d97293a+shim
-    dune-action-plugin,3.6.1
-    dune-glob,3.6.1
-    dune-private-libs,3.6.1
-    dune-rpc-lwt,3.6.1
-    dune-rpc,3.6.1
-    dune-site,3.6.1
+    dune,3.6.2+shim
+    dune-action-plugin,3.6.2
+    dune-glob,3.6.2
+    dune-private-libs,3.6.2
+    dune-rpc-lwt,3.6.2
+    dune-rpc,3.6.2
+    dune-site,3.6.2
 
     ocamlformat,0.24.1
     ocamlformat-rpc-lib,0.24.1
