@@ -31,9 +31,9 @@ PINNED_PACKAGES_DKML_PATCHES="
     ppx_expect,v0.15.1
     yaml,3.0.1+windows+r1
 
-    dkml-apps,1.1.0~prerel21
-    opam-dkml,1.1.0~prerel21
-    with-dkml,1.1.0~prerel21
+    dkml-apps,1.1.0~prerel22
+    opam-dkml,1.1.0~prerel22
+    with-dkml,1.1.0~prerel22
     "
 
 # These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
