@@ -32,7 +32,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     yaml,3.0.1+windows+r1
 
     dkml-apps,1.1.0~prerel22
-    opam-dkml,1.1.0~prerel22
+    dkml-exe,1.1.0~prerel22
     with-dkml,1.1.0~prerel22
     "
 
@@ -54,7 +54,7 @@ PINNED_PACKAGES_DKML_PATCHES="
 #   2022-09-03: ppxlib.0.22.0 is no longer needed. Just use ppxlib.0.25.1
 # * (b) jsonrpc, lsp and ocaml-lsp-server as of 2021-11-22 was not present in the fdopen repository, but was needed by lsp.1.9.0
 # * (c) bos, sha and sexplib are needed to compile with-dkml.exe; bos needs rresult and fmt, and fdopen `opam` files are same as https://opam.ocaml.org/
-# * (c) cmdliner and opam-client (+ opam-*) are needed to compile opam-dkml.exe; same `opam` as https://opam.ocaml.org/
+# * (c) cmdliner and opam-client (+ opam-*) are needed to compile dkml.exe; same `opam` as https://opam.ocaml.org/
 # * (a) alcotest.1.4.0 works with Win32 MSVC; 1.5.0 does not
 #
 # Exceptions:

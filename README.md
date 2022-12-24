@@ -1,7 +1,7 @@
 # dkml-runtime-distribution 1.1.0-prerel22
 
 Scripts used by the Diskuv OCaml distribution during the installation of:
-* a local project (ie. a Opam switch created with `opam dkml init`)
+* a local project (ie. a Opam switch created with `dkml init`)
 * a user profile (ex. OCaml binaries installed within the user's home directory)
 * a machine (ex. system or Administrator assembly/C compilers)
 

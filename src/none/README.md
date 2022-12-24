@@ -27,7 +27,7 @@ Semantic rules:
    `Package.Ver`.
 
 The goal of the above rules is to:
-1. Have each `Package.Ver` pinned in end-user DKML switches during `opam dkml init`.
+1. Have each `Package.Ver` pinned in end-user DKML switches during `dkml init`.
 2. In addition, mark some `Package.Ver` for special treatment using directives.
 
 ### Directives

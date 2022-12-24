@@ -256,7 +256,7 @@ let packages_fdopen_to_remove =
     "ppx_expect";
     "yaml";
     "dkml-apps";
-    "opam-dkml";
+    "dkml-exe";
     (* 4th section corresponds to:
        * PINNED_PACKAGES_OPAM_* in installtime\unix\create-opam-switch.sh
        and MUST BE IN SYNC.
