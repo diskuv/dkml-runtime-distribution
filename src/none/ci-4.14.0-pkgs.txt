@@ -35,4 +35,4 @@ with-dkml.1.1.0~prerel25
 # conf-withdkml is needed so dune+shim is built+installed correctly
 ##      global-install
 #       config/conf-withdkml.config
-conf-withdkml.2
+conf-withdkml.3
