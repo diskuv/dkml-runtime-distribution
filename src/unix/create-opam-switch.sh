@@ -73,7 +73,7 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     sha,1.15.2
     dkml-c-probe,3.0.0
 
-    utop,2.9.0
+    utop,2.10.0
 
     alcotest,1.4.0
     alcotest-async,1.4.0

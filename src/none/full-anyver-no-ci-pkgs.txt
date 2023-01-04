@@ -24,4 +24,4 @@ ocp-indent.1.8.2-windowssupport
 #       share/utop
 #       share/utop/utoprc-dark
 #       share/utop/utoprc-light
-utop.2.9.0
+utop.2.10.0
