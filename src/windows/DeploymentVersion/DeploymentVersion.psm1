@@ -11,8 +11,8 @@ Param()
 #    2. It is a single kernel image so it is smaller than multikernel `windows-msvc`
 # Note: You must update this once every couple months because Docker Hub removes old versions.
 # Note: It would be nice if we could query https://github.com/avsm/ocaml-dockerfile/blob/ac54d3550159b0450032f0f6a996c2e96d3cafd7/src-opam/dockerfile_distro.ml#L36-L47
-# Image Date: Feb 28, 2022
-$DV_WindowsMsvcDockerImage = "ocaml/opam:windows-msvc-ltsc2022-ocaml-4.12@sha256:a96f023f0878154170af6471a0f57d1122f7e90ea3f43c33fef2a16e168e1776"
+# Image Date: 2022-11-22
+$DV_WindowsMsvcDockerImage = "ocaml/opam:windows-msvc-ltsc2022-ocaml-4.14@sha256:613698c75e802958c0ac69042789d5bd4360f3cf44c6186dc8be487cbbdc3120"
 Export-ModuleMember -Variable DV_WindowsMsvcDockerImage
 
 $DV_MSYS2Packages = @(
