@@ -25,3 +25,11 @@ ocp-indent.1.8.2-windowssupport
 #       share/utop/utoprc-dark
 #       share/utop/utoprc-light
 utop.2.10.0
+
+##      global-compile
+#       note: The global-compile is so that the (bytecode, non-relocatable) utop can
+#              load in base with: #require "base";;
+#       lib/base/base.cma
+#       lib/stublibs/dllbase_internalhash_types_stubs.dll
+#       lib/stublibs/dllbase_stubs.dll
+base.v0.15.1
