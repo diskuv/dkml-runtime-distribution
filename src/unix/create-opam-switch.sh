@@ -16,7 +16,6 @@ set -euf
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
 PINNED_PACKAGES_DKML_PATCHES="
     ocamlfind,1.9.1
-    ptime,0.8.6
 
     ocp-indent,1.8.2-windowssupport
 

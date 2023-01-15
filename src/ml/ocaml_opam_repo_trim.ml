@@ -191,6 +191,7 @@ let packages_fdopen_to_remove =
     "ppx_yojson_conv_lib";
     "ppx_yojson_conv";
     "protocol_version_header";
+    "ptime";
     "pythonlib";
     "re2_stable";
     "re2";
@@ -243,7 +244,6 @@ let packages_fdopen_to_remove =
        and MUST BE IN SYNC.
     *)
     "ocamlfind";
-    "ptime";
     "ocp-indent";
     "bigstringaf";
     "core_kernel";
