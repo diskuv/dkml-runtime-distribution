@@ -220,6 +220,7 @@ let packages_fdopen_to_remove =
     "variantslib";
     "vcaml";
     "virtual_dom";
+    "yaml";
     "zarith_stubs_js";
     "zstandard";
     (* The first section is where we don't care what pkg version is used, but we know we don't want fdopen's version:
@@ -260,7 +261,6 @@ let packages_fdopen_to_remove =
     "feather";
     "ocamlbuild";
     "ppx_expect";
-    "yaml";
     "dkml-apps";
     "dkml-exe";
     (* 4th section corresponds to:

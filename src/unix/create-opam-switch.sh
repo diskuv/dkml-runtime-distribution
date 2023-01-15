@@ -38,7 +38,6 @@ PINNED_PACKAGES_DKML_PATCHES="
     mccs,1.1+13
     ocamlbuild,0.14.0
     ppx_expect,v0.15.1
-    yaml,3.0.1+windows+r1
 
     dkml-apps,1.2.0~prerel3
     dkml-exe,1.2.0~prerel3
