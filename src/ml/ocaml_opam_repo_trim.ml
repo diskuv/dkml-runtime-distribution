@@ -111,7 +111,6 @@ let packages_fdopen_to_remove =
     "core_extended";
     "core_profiler";
     "core_unix";
-    "core";
     "csvfields";
     "delimited_parsing";
     "ecaml";
@@ -247,6 +246,7 @@ let packages_fdopen_to_remove =
     "base_bigstring";
     "bigstringaf";
     "core_kernel";
+    "core";
     "ctypes-foreign";
     "ctypes";
     "digestif";
