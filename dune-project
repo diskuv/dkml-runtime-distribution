@@ -1,7 +1,7 @@
 (lang dune 2.9)
 
 (name dkml-runtime-distribution)
-(version 1.2.0~prerel2)
+(version 1.2.0~prerel3)
 
 (generate_opam_files true)
 
