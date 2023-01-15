@@ -32,6 +32,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     core,v0.15.1
     ctypes-foreign,0.19.2-windowssupport-r5
     ctypes,0.19.2-windowssupport-r5
+    curly,0.2.1-windows-env_r2
     feather,0.3.0
     mccs,1.1+13
     ocamlbuild,0.14.0

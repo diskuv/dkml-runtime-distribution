@@ -255,6 +255,7 @@ let packages_fdopen_to_remove =
     "core";
     "ctypes-foreign";
     "ctypes";
+    "curly";
     "dune-configurator";
     "feather";
     "ocamlbuild";
