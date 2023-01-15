@@ -243,6 +243,11 @@ let packages_fdopen_to_remove =
     *)
     "ocamlfind";
     "ocp-indent";
+    "alcotest";
+    "alcotest-async";
+    "alcotest-js";
+    "alcotest-lwt";
+    "alcotest-mirage";
     "base_bigstring";
     "bigstringaf";
     "core_kernel";
@@ -288,11 +293,6 @@ let packages_fdopen_to_remove =
     "dune-private-libs";
     "dune-site";
     "utop";
-    "alcotest";
-    "alcotest-async";
-    "alcotest-js";
-    "alcotest-lwt";
-    "alcotest-mirage";
   ]
 
 (* = ARGUMENT PROCESSING = *)

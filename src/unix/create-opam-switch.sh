@@ -19,6 +19,11 @@ PINNED_PACKAGES_DKML_PATCHES="
 
     ocp-indent,1.8.2-windowssupport
 
+    alcotest,1.6.0
+    alcotest-async,1.6.0
+    alcotest-js,1.6.0
+    alcotest-lwt,1.6.0
+    alcotest-mirage,1.6.0
     base_bigstring,v0.15.0
     bigstringaf,0.9.0+msvc
     core_kernel,v0.15.0
@@ -75,12 +80,6 @@ PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
     dkml-c-probe,3.0.0
 
     utop,2.10.0
-
-    alcotest,1.4.0
-    alcotest-async,1.4.0
-    alcotest-js,1.4.0
-    alcotest-lwt,1.4.0
-    alcotest-mirage,1.4.0
     "
 export PINNED_PACKAGES_OPAM_4_12_1="
     sexplib,v0.14.0
