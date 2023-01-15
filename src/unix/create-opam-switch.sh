@@ -9,6 +9,7 @@ set -euf
 
 # These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove]
 # and https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/logic/model.ml's [global_env_vars]
+# and https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/scripts/setup-dkml.sh's [do_pins]
 #
 # Summary: DKML provides patches for these
 #
