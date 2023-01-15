@@ -102,7 +102,6 @@ let packages_fdopen_to_remove =
     "async_unix";
     "async_websocket";
     "async";
-    "base_bigstring";
     "base_quickcheck";
     "bignum";
     "bin_prot";
@@ -245,6 +244,7 @@ let packages_fdopen_to_remove =
     *)
     "ocamlfind";
     "ocp-indent";
+    "base_bigstring";
     "bigstringaf";
     "core_kernel";
     "ctypes-foreign";
