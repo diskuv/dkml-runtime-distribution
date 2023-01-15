@@ -27,6 +27,7 @@ PINNED_PACKAGES_DKML_PATCHES="
     alcotest-js,1.6.0
     alcotest-lwt,1.6.0
     alcotest-mirage,1.6.0
+    base,v0.15.1
     base_bigstring,v0.15.0
     bigstringaf,0.9.0+msvc
     core_kernel,v0.15.0
@@ -170,7 +171,6 @@ export PINNED_PACKAGES_OPAM_4_14_0="
     odoc,2.2.0
     odoc-parser,2.0.0
     stdio,v0.15.0
-    base,v0.15.1
     mdx,2.1.0
 
     lsp,1.12.2

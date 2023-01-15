@@ -250,6 +250,7 @@ let packages_fdopen_to_remove =
     "alcotest-js";
     "alcotest-lwt";
     "alcotest-mirage";
+    "base";
     "base_bigstring";
     "bigstringaf";
     "core_kernel";
