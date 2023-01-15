@@ -7,7 +7,9 @@ set -euf
 #
 # The format is `PACKAGE_NAME,PACKAGE_VERSION`. Notice the **comma** inside the quotes!
 
-# These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
+# These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove]
+# and https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/logic/model.ml's [global_env_vars]
+#
 # Summary: DKML provides patches for these
 #
 # Sections:
@@ -30,7 +32,6 @@ PINNED_PACKAGES_DKML_PATCHES="
     core,v0.15.1
     ctypes-foreign,0.19.2-windowssupport-r5
     ctypes,0.19.2-windowssupport-r5
-    digestif,1.1.2+msvc
     feather,0.3.0
     mccs,1.1+13
     ocamlbuild,0.14.0

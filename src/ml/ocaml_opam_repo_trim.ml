@@ -113,6 +113,7 @@ let packages_fdopen_to_remove =
     "core_unix";
     "csvfields";
     "delimited_parsing";
+    "digestif";
     "ecaml";
     "email_message";
     "expect_test_helpers_async";
@@ -254,7 +255,6 @@ let packages_fdopen_to_remove =
     "core";
     "ctypes-foreign";
     "ctypes";
-    "digestif";
     "dune-configurator";
     "feather";
     "ocamlbuild";
