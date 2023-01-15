@@ -40,9 +40,9 @@ PINNED_PACKAGES_DKML_PATCHES="
     ocamlbuild,0.14.0
     ppx_expect,v0.15.1
 
-    dkml-apps,1.2.0~prerel4
-    dkml-exe,1.2.0~prerel4
-    with-dkml,1.2.0~prerel4
+    dkml-apps,1.2.0~prerel5
+    dkml-exe,1.2.0~prerel5
+    with-dkml,1.2.0~prerel5
     "
 
 # These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
