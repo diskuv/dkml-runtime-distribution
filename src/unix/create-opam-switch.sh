@@ -1023,18 +1023,6 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "}\n"
 
         printf "%s" "$DO_SETENV_OPTIONS" ; printf "\n"
-
-        # Since Opam 2.1.0 (and perhaps later) do not rewrite the <switch>/environment
-        # file with a `setenv+=`, we force a rebuild by removing the environment and
-        # then running opam env. Confer https://github.com/ocaml/opam/pull/3691
-        printf "if [ \"\$modifications\" = ON ]; then\n"
-        printf "  '%s' -f '%s'\n" "$DKMLSYS_RM" "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/environment"
-        printf "  ";  cat "$WORK"/nonswitchcall.sh
-        printf "    env > /dev/null\n"
-        printf "  if [ ! -e '%s' ]; then echo 'FATAL: Failed to regenerate: %s'; exit 107; fi\n" \
-            "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/environment" \
-            "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/environment"
-        printf "fi\n"
     } > "$WORK"/setenv.sh
     log_shell "$WORK"/setenv.sh
 fi
