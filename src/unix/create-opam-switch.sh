@@ -176,6 +176,8 @@ export PINNED_PACKAGES_OPAM_4_14_0="
     lsp,1.12.2
     ocaml-lsp-server,1.12.2
     jsonrpc,1.12.2
+
+    omd,1.3.1
 "
 
 OCAML_DEFAULT_VERSION=4.14.0
