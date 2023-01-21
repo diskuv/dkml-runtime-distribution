@@ -285,6 +285,23 @@ usage() {
     printf "%s\n" "      invariant" >&2
 }
 
+# Two operators: option setenv(OP1)"NAME OP2 VALUE"
+#
+# OP1
+# ---
+#   (from opam option --help)
+#   `=` will reset
+#   `+=` will append
+#   `-=` will remove an element
+#
+# OP2
+# ---
+#   http://opam.ocaml.org/doc/Manual.html#Environment-updates
+#   `=` overrides the environment variable
+#   `+=` prepends to the environment variable without adding a path separator (`;` or `:`) at the end if empty
+#
+# [add_do_setenv_option "NAME OP2 VALUE"] is OP1=`+=` and OP2="NAME OP2 VALUE"
+# [add_remove_setenv NAME OP2] is OP1=`-=` for all existing "NAME OP2 *"
 DO_SETENV_OPTIONS=
 add_do_setenv_option() {
     add_do_setenv_option_CMD=$1
@@ -297,6 +314,18 @@ add_do_setenv_option() {
         DO_SETENV_OPTIONS=$(printf "%s ; do_setenv_option %s" "$DO_SETENV_OPTIONS" "$add_do_setenv_option_ESCAPED")
     fi
 }
+add_remove_setenv() {
+    add_remove_setenv_NAME=$1
+    shift
+    add_remove_setenv_OP2=$1
+    shift
+    if [ -z "$DO_SETENV_OPTIONS" ]; then
+        DO_SETENV_OPTIONS=$(printf "remove_setenv %s %s" "$add_remove_setenv_NAME" "$add_remove_setenv_OP2")
+    else
+        DO_SETENV_OPTIONS=$(printf "%s ; remove_setenv %s %s" "$DO_SETENV_OPTIONS" "$add_remove_setenv_NAME" "$add_remove_setenv_OP2")
+    fi
+}
+
 DO_VARS=
 add_do_var() {
     add_do_var_CMD=$1
@@ -712,140 +741,140 @@ if [ -n "$EXTRAREPOCMDS" ]; then
 fi
 
 do_switch_create() {
-if is_unixy_windows_build_machine; then
-    # create fdopen-mingw-xxx-yyy as rank=2 if not already exists; rank=0 and rank=1 defined in init-opam-root.sh
-    if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION.tar.gz" ]; then
-        # Use the snapshot of fdopen-mingw (https://github.com/fdopen/opam-repository-mingw) that comes with ocaml-opam Docker image.
-        # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
-        if [ -x /usr/bin/cygpath ]; then
-            # shellcheck disable=SC2154
-            OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
-        else
-            OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
-        fi
-        OPAMREPO_WINDOWS_OCAMLOPAM="$OPAMREPOS_MIXED/fdopen-mingw/$OCAMLVERSION"
-        {
-            cat "$WORK"/nonswitchexec.sh
-            printf "  repository add fdopen-mingw-%s-%s '%s' --yes --dont-select --kind local --rank=2" "$dkml_root_version" "$OCAMLVERSION" "$OPAMREPO_WINDOWS_OCAMLOPAM"
-            if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-        } > "$WORK"/repoadd.sh
-        log_shell "$WORK"/repoadd.sh
-    fi
-
-    printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version fdopen-mingw-$dkml_root_version-$OCAMLVERSION default \\" > "$WORK"/repos-choice.lst
-    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,fdopen-mingw-$dkml_root_version-$OCAMLVERSION,default" "\\" >> "$WORK"/switchcreateargs.sh
-else
-    printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
-    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
-fi
-
-if [ "$BUILD_OCAML_BASE" = ON ]; then
-    # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
-    invariants=$(printf "dkml-base-compiler.%s%s\n" \
-        "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
-        "$EXTRAINVARIANTS"
-    )
-else
-    # ex. '"ocaml-system" {= "4.12.1"}'
-    invariants=$(printf "ocaml-system.%s%s\n" \
-        "$OCAMLVERSION" \
-        "$EXTRAINVARIANTS"
-    )
-fi
-printf "  --packages='%s' %s\n" "$invariants" "\\" >> "$WORK"/switchcreateargs.sh
-printf "'%s'" "$invariants" >> "$WORK"/invariant_for_base.formula.head.txt
-
-if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "  --debug-level 2 \\" >> "$WORK"/switchcreateargs.sh; fi
-
-{
-    printf "%s\n" "#!$DKML_POSIX_SHELL"
-    # Ignore any switch the developer gave. We are creating our own.
-    printf "%s\n" "export OPAMSWITCH="
-    printf "%s\n" "export OPAM_SWITCH_PREFIX="
-    printf "exec env DKMLDIR='%s' DKML_TARGET_ABI='%s' '%s' \"\$@\"\n" "$DKMLDIR" "$DKMLABI" "$DKMLDIR/vendor/drd/src/unix/private/standard-compiler-env-to-ocaml-configure-launcher.sh"
-} > "$WORK"/switch-create-prehook.sh
-chmod +x "$WORK"/switch-create-prehook.sh
-if [ "${DKML_BUILD_TRACE:-OFF}" = ON ] && [ "${DKML_BUILD_TRACE_LEVEL:-0}" -ge 2 ]; then
-    printf  "@+ switch-create-prehook.sh\n" >&2
-    # print file with prefix ... @+| . Also make sure each line is newline terminated using awk.
-    "$DKMLSYS_SED" 's/^/@+| /' "$WORK"/switch-create-prehook.sh | "$DKMLSYS_AWK" '{print}' >&2
-fi
-
-if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "+ ! is_minimal_opam_switch_present \"$OPAMSWITCHFINALDIR_BUILDHOST\"" >&2; fi
-if ! is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
-    # clean up any partial install
-    printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS switch remove \\" > "$WORK"/switchremoveargs.sh
-    if [ "$YES" = ON ]; then printf "%s\n" "  --yes \\" >> "$WORK"/switchremoveargs.sh; fi
-    printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchremoveargs.sh
-    log_shell "$WORK"/switchremoveargs.sh || rm -rf "$OPAMSWITCHFINALDIR_BUILDHOST"
-
-    # do real install
-    printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
-    cat "$WORK"/switchcreateargs.sh >> "$WORK"/switchcreateexec.sh
-    printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchcreateexec.sh
-    #   Do troubleshooting if the initial switch creation fails (it shouldn't fail!)
-    if ! log_shell "$WORK"/switchcreateexec.sh; then
-        "$WORK"/troubleshoot-opam.sh
-        exit 107
-    fi
-
-    # the switch create already set the invariant
-    NEEDS_INVARIANT=OFF
-else
-    # We need to upgrade each Opam switch's selected/ranked Opam repository choices whenever Diskuv OCaml
-    # has an upgrade. If we don't the PINNED_PACKAGES_* may fail.
-    # We know from `diskuv-$dkml_root_version` what Diskuv OCaml version the Opam switch is using, so
-    # we have the logic to detect here when it is time to upgrade!
-    {
-        cat "$WORK"/nonswitchexec.sh
-        printf "%s\n" "  repository list --short"
-    } > "$WORK"/list.sh
-    log_shell "$WORK"/list.sh > "$WORK"/list
-    UPGRADE_REPO=OFF
-    if awk -v N="diskuv-$dkml_root_version" '$1==N {exit 1}' "$WORK"/list; then
-        UPGRADE_REPO=ON
-    elif is_unixy_windows_build_machine && awk -v N="fdopen-mingw-$dkml_root_version-$OCAMLVERSION" '$1==N {exit 1}' "$WORK"/list; then
-        UPGRADE_REPO=ON
-    elif [ -n "$EXTRAREPONAMES" ]; then
-        printf "%s" "$EXTRAREPONAMES" | $DKMLSYS_TR ' ' '\n' > "$WORK"/extrarepos
-        while IFS= read -r _reponame; do
-            if awk -v N="$_reponame" '$1==N {exit 1}' "$WORK"/list; then
-                UPGRADE_REPO=ON
+    if is_unixy_windows_build_machine; then
+        # create fdopen-mingw-xxx-yyy as rank=2 if not already exists; rank=0 and rank=1 defined in init-opam-root.sh
+        if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION.tar.gz" ]; then
+            # Use the snapshot of fdopen-mingw (https://github.com/fdopen/opam-repository-mingw) that comes with ocaml-opam Docker image.
+            # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
+            if [ -x /usr/bin/cygpath ]; then
+                # shellcheck disable=SC2154
+                OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
+            else
+                OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
             fi
-        done < "$WORK"/extrarepos
+            OPAMREPO_WINDOWS_OCAMLOPAM="$OPAMREPOS_MIXED/fdopen-mingw/$OCAMLVERSION"
+            {
+                cat "$WORK"/nonswitchexec.sh
+                printf "  repository add fdopen-mingw-%s-%s '%s' --yes --dont-select --kind local --rank=2" "$dkml_root_version" "$OCAMLVERSION" "$OPAMREPO_WINDOWS_OCAMLOPAM"
+                if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+            } > "$WORK"/repoadd.sh
+            log_shell "$WORK"/repoadd.sh
+        fi
+
+        printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version fdopen-mingw-$dkml_root_version-$OCAMLVERSION default \\" > "$WORK"/repos-choice.lst
+        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,fdopen-mingw-$dkml_root_version-$OCAMLVERSION,default" "\\" >> "$WORK"/switchcreateargs.sh
+    else
+        printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
+        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
     fi
-    if [ "$UPGRADE_REPO" = ON ]; then
-        # Time to upgrade. We need to set the repository (almost instantaneous) and then
-        # do a `opam update` so the switch has the latest repository definitions.
+
+    if [ "$BUILD_OCAML_BASE" = ON ]; then
+        # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
+        invariants=$(printf "dkml-base-compiler.%s%s\n" \
+            "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
+            "$EXTRAINVARIANTS"
+        )
+    else
+        # ex. '"ocaml-system" {= "4.12.1"}'
+        invariants=$(printf "ocaml-system.%s%s\n" \
+            "$OCAMLVERSION" \
+            "$EXTRAINVARIANTS"
+        )
+    fi
+    printf "  --packages='%s' %s\n" "$invariants" "\\" >> "$WORK"/switchcreateargs.sh
+    printf "'%s'" "$invariants" >> "$WORK"/invariant_for_base.formula.head.txt
+
+    if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "  --debug-level 2 \\" >> "$WORK"/switchcreateargs.sh; fi
+
+    {
+        printf "%s\n" "#!$DKML_POSIX_SHELL"
+        # Ignore any switch the developer gave. We are creating our own.
+        printf "%s\n" "export OPAMSWITCH="
+        printf "%s\n" "export OPAM_SWITCH_PREFIX="
+        printf "exec env DKMLDIR='%s' DKML_TARGET_ABI='%s' '%s' \"\$@\"\n" "$DKMLDIR" "$DKMLABI" "$DKMLDIR/vendor/drd/src/unix/private/standard-compiler-env-to-ocaml-configure-launcher.sh"
+    } > "$WORK"/switch-create-prehook.sh
+    chmod +x "$WORK"/switch-create-prehook.sh
+    if [ "${DKML_BUILD_TRACE:-OFF}" = ON ] && [ "${DKML_BUILD_TRACE_LEVEL:-0}" -ge 2 ]; then
+        printf  "@+ switch-create-prehook.sh\n" >&2
+        # print file with prefix ... @+| . Also make sure each line is newline terminated using awk.
+        "$DKMLSYS_SED" 's/^/@+| /' "$WORK"/switch-create-prehook.sh | "$DKMLSYS_AWK" '{print}' >&2
+    fi
+
+    if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "+ ! is_minimal_opam_switch_present \"$OPAMSWITCHFINALDIR_BUILDHOST\"" >&2; fi
+    if ! is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
+        # clean up any partial install
+        printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS switch remove \\" > "$WORK"/switchremoveargs.sh
+        if [ "$YES" = ON ]; then printf "%s\n" "  --yes \\" >> "$WORK"/switchremoveargs.sh; fi
+        printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchremoveargs.sh
+        log_shell "$WORK"/switchremoveargs.sh || rm -rf "$OPAMSWITCHFINALDIR_BUILDHOST"
+
+        # do real install
+        printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
+        cat "$WORK"/switchcreateargs.sh >> "$WORK"/switchcreateexec.sh
+        printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchcreateexec.sh
+        #   Do troubleshooting if the initial switch creation fails (it shouldn't fail!)
+        if ! log_shell "$WORK"/switchcreateexec.sh; then
+            "$WORK"/troubleshoot-opam.sh
+            exit 107
+        fi
+
+        # the switch create already set the invariant
+        NEEDS_INVARIANT=OFF
+    else
+        # We need to upgrade each Opam switch's selected/ranked Opam repository choices whenever Diskuv OCaml
+        # has an upgrade. If we don't the PINNED_PACKAGES_* may fail.
+        # We know from `diskuv-$dkml_root_version` what Diskuv OCaml version the Opam switch is using, so
+        # we have the logic to detect here when it is time to upgrade!
         {
             cat "$WORK"/nonswitchexec.sh
-            printf "%s" "  repository set-repos"
-            if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-            cat "$WORK"/repos-choice.lst
-        } > "$WORK"/setrepos.sh
-        log_shell "$WORK"/setrepos.sh
-
-        #   This part can be time-consuming
-        if [ "$DISABLE_UPDATE" = OFF ]; then
-            {
-                printf "ec=0\n"
-                cat "$WORK"/nonswitchcall.sh
-                printf "%s" "  update"
-                if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-                # Bizarrely opam 2.1.0 on macOS can return exit code 40 (Sync error) when there
-                # are no sync changes. So both 0 and 40 are successes.
-                printf " || ec=\$?\n"
-                printf "%s\n" "if [ \$ec -eq 40 ] || [ \$ec -eq 0 ]; then exit 0; fi; exit \$ec"
-            } > "$WORK"/update.sh
-            log_shell "$WORK"/update.sh
+            printf "%s\n" "  repository list --short"
+        } > "$WORK"/list.sh
+        log_shell "$WORK"/list.sh > "$WORK"/list
+        UPGRADE_REPO=OFF
+        if awk -v N="diskuv-$dkml_root_version" '$1==N {exit 1}' "$WORK"/list; then
+            UPGRADE_REPO=ON
+        elif is_unixy_windows_build_machine && awk -v N="fdopen-mingw-$dkml_root_version-$OCAMLVERSION" '$1==N {exit 1}' "$WORK"/list; then
+            UPGRADE_REPO=ON
+        elif [ -n "$EXTRAREPONAMES" ]; then
+            printf "%s" "$EXTRAREPONAMES" | $DKMLSYS_TR ' ' '\n' > "$WORK"/extrarepos
+            while IFS= read -r _reponame; do
+                if awk -v N="$_reponame" '$1==N {exit 1}' "$WORK"/list; then
+                    UPGRADE_REPO=ON
+                fi
+            done < "$WORK"/extrarepos
         fi
-    fi
+        if [ "$UPGRADE_REPO" = ON ]; then
+            # Time to upgrade. We need to set the repository (almost instantaneous) and then
+            # do a `opam update` so the switch has the latest repository definitions.
+            {
+                cat "$WORK"/nonswitchexec.sh
+                printf "%s" "  repository set-repos"
+                if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+                cat "$WORK"/repos-choice.lst
+            } > "$WORK"/setrepos.sh
+            log_shell "$WORK"/setrepos.sh
 
-    # A DKML upgrade could have changed the invariant; we do not change it here; instead we wait until after
-    # the pins and options (especially the wrappers) have changed because changing the invariant can recompile
-    # _all_ packages (many of them need wrappers, and many of them need a pin upgrade to support a new OCaml version)
-    NEEDS_INVARIANT=ON
-fi
+            #   This part can be time-consuming
+            if [ "$DISABLE_UPDATE" = OFF ]; then
+                {
+                    printf "ec=0\n"
+                    cat "$WORK"/nonswitchcall.sh
+                    printf "%s" "  update"
+                    if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+                    # Bizarrely opam 2.1.0 on macOS can return exit code 40 (Sync error) when there
+                    # are no sync changes. So both 0 and 40 are successes.
+                    printf " || ec=\$?\n"
+                    printf "%s\n" "if [ \$ec -eq 40 ] || [ \$ec -eq 0 ]; then exit 0; fi; exit \$ec"
+                } > "$WORK"/update.sh
+                log_shell "$WORK"/update.sh
+            fi
+        fi
+
+        # A DKML upgrade could have changed the invariant; we do not change it here; instead we wait until after
+        # the pins and options (especially the wrappers) have changed because changing the invariant can recompile
+        # _all_ packages (many of them need wrappers, and many of them need a pin upgrade to support a new OCaml version)
+        NEEDS_INVARIANT=ON
+    fi
 }
 if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
     do_switch_create
@@ -866,19 +895,18 @@ install -d "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
 # as a cache key. If an option does not depend on the version we use ".once" as the cache
 # key.
 
-# Two operators: option setenv(OP1)"NAME OP2 VALUE"
-#
-# OP1
-# ---
-#   `=` will reset and `+=` will append (from opam option --help)
-#
-# OP2
-# ---
-#   http://opam.ocaml.org/doc/Manual.html#Environment-updates
-#   `=` overrides the environment variable
-#   `+=` prepends to the environment variable without adding a path separator (`;` or `:`) at the end if empty
-
 SETPATH=
+
+# Add FLEXLINKFLAGS
+case "$BUILDTYPE,$DKMLABI" in
+    Debug*,windows_*)
+        # MSVC needs the linker to create a PDB file.
+        # See https://learn.microsoft.com/en-us/cpp/build/reference/debug-generate-debug-info?view=msvc-170
+        add_do_setenv_option "FLEXLINKFLAGS+= -link /DEBUG:FULL"
+        ;;
+    *)
+        add_remove_setenv FLEXLINKFLAGS "+="
+esac
 
 # Add PATH=<system ocaml>:$EXTRAPATH:$PATH
 #   Add PATH=<system ocaml> if system ocaml. (Especially on Windows and for DKSDK, the system ocaml may not necessarily be on the system PATH)
@@ -908,9 +936,6 @@ if [ -n "$DO_VARS" ]; then
         printf "#!%s\n" "$DKML_POSIX_SHELL"
         printf ". '%s'\n" "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
 
-        # [do_setenv_option 'NAME=VALUE'] and [do_setenv_option 'NAME+=VALUE'] remove all
-        # matching entries from the Opam setenv options, and then add it to the
-        # Opam setenv options.
         printf "do_var() {\n"
         printf "  do_var_ARG=\$1\n"
         printf "  shift\n"
@@ -969,6 +994,8 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
             "$WORK"
         printf "}\n"
 
+        # No clean way to remove a setenv entry. We print any existing entries
+        # and then remove each separately.
         printf "remove_setenv() {\n"
         printf "  remove_setenv_NAME=\$1\n"
         printf "  shift\n"
@@ -1020,8 +1047,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         # VALUE, since it is an OCaml value, will have escaped backslashes and quotes
         printf "  do_setenv_option_VALUE=\$(escape_arg_as_ocaml_string \"\$do_setenv_option_VALUE\")\n"
 
-        # No clean way to remove a setenv entry. We print any existing entries
-        # and then remove each separately.
+        # Remove setenv entry
         printf "  remove_setenv \$do_setenv_option_NAME \$do_setenv_option_OP\n"
 
         #   Example: option setenv+="${do_setenv_option_NAME} = \"${do_setenv_option_VALUE}\""
@@ -1117,57 +1143,57 @@ autodetect_posix_shell
 set_dkmlparenthomedir
 
 do_pin_adds() {
-# We insert our pins if no pinned: [ ] section
-# OR it is empty like:
-#   pinned: [
-#   ]
-# OR the dkml_root_version changed
-get_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned > "$WORK"/pinned
-PINNED_NUMLINES=$(awk 'END{print NR}' "$WORK"/pinned)
-if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version" ]; then
-    # The pins have to be sorted
-    {
-        # Input: dune-configurator,2.9.0
-        # Output:  "dune-configurator.2.9.0"
-        printf "%s" "$PINNED_PACKAGES_DKML_PATCHES $PINNED_PACKAGES_OPAM" | xargs -n1 printf '  "%s"\n' | sed 's/,/./'
+    # We insert our pins if no pinned: [ ] section
+    # OR it is empty like:
+    #   pinned: [
+    #   ]
+    # OR the dkml_root_version changed
+    get_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned > "$WORK"/pinned
+    PINNED_NUMLINES=$(awk 'END{print NR}' "$WORK"/pinned)
+    if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version" ]; then
+        # The pins have to be sorted
+        {
+            # Input: dune-configurator,2.9.0
+            # Output:  "dune-configurator.2.9.0"
+            printf "%s" "$PINNED_PACKAGES_DKML_PATCHES $PINNED_PACKAGES_OPAM" | xargs -n1 printf '  "%s"\n' | sed 's/,/./'
 
-        # fdopen-mingw has pins that must be used since we've trimmed the fdopen repository
-        if is_unixy_windows_build_machine; then
-            # Input: opam pin add --yes --no-action -k version "0install" "2.17"
-            # Input (older versions): opam pin add --yes --no-action -k version 0install 2.17
-            # Output:   "0install.2.17"
-            # Caution: `tr` on MSYS2 only operates on standard input and output; no named file argument.
-            tr -d '"' < "$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt" | \
-            awk -v dquot='"' 'NF>=2 { l2=NF-1; l1=NF; print "  " dquot $l2 "." $l1 dquot}'
+            # fdopen-mingw has pins that must be used since we've trimmed the fdopen repository
+            if is_unixy_windows_build_machine; then
+                # Input: opam pin add --yes --no-action -k version "0install" "2.17"
+                # Input (older versions): opam pin add --yes --no-action -k version 0install 2.17
+                # Output:   "0install.2.17"
+                # Caution: `tr` on MSYS2 only operates on standard input and output; no named file argument.
+                tr -d '"' < "$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt" | \
+                awk -v dquot='"' 'NF>=2 { l2=NF-1; l1=NF; print "  " dquot $l2 "." $l1 dquot}'
+            fi
+        } | sort > "$WORK"/new-pinned
+
+        # The pins should also be unique
+        sort -u "$WORK"/new-pinned > "$WORK"/new-pinned.uniq
+        if ! cmp -s "$WORK"/new-pinned "$WORK"/new-pinned.uniq; then
+            printf "%s\n" "FATAL: The pins should be unique! Instead we have some duplicated entries that may lead to problems:" >&2
+            diff "$WORK"/new-pinned "$WORK"/new-pinned.uniq >&2 || true
+            printf "%s\n" "(Debugging) PINNED_PACKAGES_DKML_PATCHES=$PINNED_PACKAGES_DKML_PATCHES" >&2
+            printf "%s\n" "(Debugging) PINNED_PACKAGES_OPAM=$PINNED_PACKAGES_OPAM" >&2
+            printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
+            exit 1
         fi
-    } | sort > "$WORK"/new-pinned
 
-    # The pins should also be unique
-    sort -u "$WORK"/new-pinned > "$WORK"/new-pinned.uniq
-    if ! cmp -s "$WORK"/new-pinned "$WORK"/new-pinned.uniq; then
-        printf "%s\n" "FATAL: The pins should be unique! Instead we have some duplicated entries that may lead to problems:" >&2
-        diff "$WORK"/new-pinned "$WORK"/new-pinned.uniq >&2 || true
-        printf "%s\n" "(Debugging) PINNED_PACKAGES_DKML_PATCHES=$PINNED_PACKAGES_DKML_PATCHES" >&2
-        printf "%s\n" "(Debugging) PINNED_PACKAGES_OPAM=$PINNED_PACKAGES_OPAM" >&2
-        printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
-        exit 1
-    fi
+        # Make the new switch state
+        {
+            # everything except any old pinned section
+            delete_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned
 
-    # Make the new switch state
-    {
-        # everything except any old pinned section
-        delete_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned
+            printf "%s\n" 'pinned: ['
+            cat "$WORK"/new-pinned
+            printf "%s\n" ']'
+        } > "$WORK"/new-switch-state
 
-        printf "%s\n" 'pinned: ['
-        cat "$WORK"/new-pinned
-        printf "%s\n" ']'
-    } > "$WORK"/new-switch-state
+        # Reset the switch state
+        mv "$WORK"/new-switch-state "$OPAMSWITCHFINALDIR_BUILDHOST"/.opam-switch/switch-state
 
-    # Reset the switch state
-    mv "$WORK"/new-switch-state "$OPAMSWITCHFINALDIR_BUILDHOST"/.opam-switch/switch-state
-
-    # Done for this DKML version
-    touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version"
+        # Done for this DKML version
+        touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version"
     fi
 }
 if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
