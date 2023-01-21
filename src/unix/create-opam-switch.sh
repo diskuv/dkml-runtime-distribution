@@ -243,6 +243,8 @@ usage() {
     printf "%s\n" "       Ignored when -v OCAMLHOME is a OCaml home" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
+    printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
+    printf "%s\n" "        Useful during local development" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -336,7 +338,8 @@ EXTRAINVARIANTS=
 TARGETLOCAL_OPAMSWITCH=
 TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:w" opt; do
+DISABLE_SWITCH_CREATE=OFF
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wx" opt; do
     case ${opt} in
         h )
             usage
@@ -381,6 +384,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:w" opt; do
         l ) PREREMOVES="${PREREMOVES} [$OPTARG]" ;;
         m ) EXTRAINVARIANTS="$EXTRAINVARIANTS,$OPTARG" ;;
         w ) DISABLE_UPDATE=ON ;;
+        x ) DISABLE_SWITCH_CREATE=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -707,6 +711,7 @@ if [ -n "$EXTRAREPOCMDS" ]; then
     eval "$EXTRAREPOCMDS"
 fi
 
+do_switch_create() {
 if is_unixy_windows_build_machine; then
     # create fdopen-mingw-xxx-yyy as rank=2 if not already exists; rank=0 and rank=1 defined in init-opam-root.sh
     if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION.tar.gz" ]; then
@@ -840,6 +845,13 @@ else
     # the pins and options (especially the wrappers) have changed because changing the invariant can recompile
     # _all_ packages (many of them need wrappers, and many of them need a pin upgrade to support a new OCaml version)
     NEEDS_INVARIANT=ON
+fi
+}
+if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
+    do_switch_create
+else
+    # No DKML upgrade happened
+    NEEDS_INVARIANT=OFF
 fi
 
 # END opam switch create
@@ -1104,6 +1116,7 @@ autodetect_posix_shell
 # Set DKMLPARENTHOME_BUILDHOST
 set_dkmlparenthomedir
 
+do_pin_adds() {
 # We insert our pins if no pinned: [ ] section
 # OR it is empty like:
 #   pinned: [
@@ -1155,6 +1168,10 @@ if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_C
 
     # Done for this DKML version
     touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version"
+    fi
+}
+if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
+    do_pin_adds
 fi
 
 # END opam pin add
