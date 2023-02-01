@@ -791,7 +791,7 @@ do_switch_create() {
         # Ignore any switch the developer gave. We are creating our own.
         printf "%s\n" "export OPAMSWITCH="
         printf "%s\n" "export OPAM_SWITCH_PREFIX="
-        printf "exec env DKMLDIR='%s' DKML_TARGET_ABI='%s' '%s' \"\$@\"\n" "$DKMLDIR" "$DKMLABI" "$DKMLDIR/vendor/drd/src/unix/private/standard-compiler-env-to-ocaml-configure-launcher.sh"
+        printf "exec \"\$@\"\n"
     } > "$WORK"/switch-create-prehook.sh
     chmod +x "$WORK"/switch-create-prehook.sh
     if [ "${DKML_BUILD_TRACE:-OFF}" = ON ] && [ "${DKML_BUILD_TRACE_LEVEL:-0}" -ge 2 ]; then
