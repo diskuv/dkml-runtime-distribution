@@ -267,7 +267,8 @@ usage() {
     printf "%s\n" "       The hook file must be a /bin/sh script (POSIX compatible script, not Bash!)." >&2
     printf "%s\n" "       Opam commands should be platform-neutral, and will be executed after the switch has been initially" >&2
     printf "%s\n" "       created with a minimal OCaml compiler, and after pins and options are set for the switch." >&2
-    printf "%s\n" "       The Opam commands should use \$OPAMEXE as the path to the Opam executable." >&2
+    printf "%s\n" "       The Opam commands should use \$OPAMEXE as the path to the Opam executable. \$OPAMSWITCH and" >&2
+    printf "%s\n" "       \$OPAMROOT will have already been set; \$OPAMCONFIRMLEVEL will be 'unsafe-yes'." >&2
     printf "%s\n" "          Example: \$OPAMEXE pin add --yes opam-lib 'https://github.com/ocaml/opam.git#1.2'" >&2
     printf "%s\n" "       The hook file must use LF (not CRLF) line terminators. In a git project we recommend including" >&2
     printf "%s\n" "         *.sh text eol=lf" >&2
@@ -1254,7 +1255,7 @@ if [ -n "$DO_HOOKS" ]; then
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
 
         printf "  ";  cat "$WORK"/nonswitchcall.sh
-        printf "    exec -- '%s' 'OPAMEXE=%s' '__INTERNAL__DKMLDIR=%s' '%s' \"\$do_hook_FILE\"" \
+        printf "    exec -- '%s' 'OPAMEXE=%s' 'OPAMCONFIRMLEVEL=unsafe-yes' '__INTERNAL__DKMLDIR=%s' '%s' -euf \"\$do_hook_FILE\"" \
             "$DKMLSYS_ENV_MIXED" "$OPAMEXE" "$DKMLDIR" "$DKML_HOST_POSIX_SHELL"
         if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi; printf "\n"
 
