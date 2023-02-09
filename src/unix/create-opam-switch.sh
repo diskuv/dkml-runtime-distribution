@@ -1282,7 +1282,7 @@ if [ "$NEEDS_INVARIANT" = ON ] && [ -s "$WORK"/invariant.formula.txt ]; then
     OLD_HASH=$(cachekey_for_filename "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/switch-config")
     {
         cat "$WORK"/nonswitchexec.sh
-        printf "  switch set-invariant --packages="
+        printf "  switch set-invariant --quiet --packages="
         cat "$WORK"/invariant.formula.txt
     } > "$WORK"/set-invariant.sh
     log_shell "$WORK"/set-invariant.sh
