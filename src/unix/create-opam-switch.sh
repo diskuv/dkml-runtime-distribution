@@ -272,6 +272,8 @@ usage() {
     printf "%s\n" "       The hook file must use LF (not CRLF) line terminators. In a git project we recommend including" >&2
     printf "%s\n" "         *.sh text eol=lf" >&2
     printf "%s\n" "       or similar in a .gitattributes file so on Windows the file is not autoconverted to CRLF on git checkout." >&2
+    printf "%s\n" "    -0 WRAP_COMMAND: Use <WRAP_COMMAND> instead of with-dkml for wrap-build-commands, wrap-install-commands and" >&2
+    printf "%s\n" "       wrap-remove-commands" >&2
     printf "%s\n" "    -j PREBUILD: Optional; may be repeated. A pre-build-command that Opam will execute before building any" >&2
     printf "%s\n" "      Opam package. Documentation is at https://opam.ocaml.org/doc/Manual.html#configfield-pre-build-commands" >&2
     printf "%s\n" "      and the format of PREBUILD must be:" >&2
@@ -371,7 +373,8 @@ TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz" opt; do
+WRAP_COMMAND=
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:" opt; do
     case ${opt} in
         h )
             usage
@@ -411,6 +414,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz" opt; do
             EXTRAREPOCMDS="${EXTRAREPOCMDS}add_extra_repo '${OPTARG}'"
         ;;
         i ) add_do_hook "$OPTARG" ;;
+        0 ) WRAP_COMMAND=$OPTARG ;;
         j ) PREBUILDS="${PREBUILDS} [$OPTARG]" ;;
         k ) POSTINSTALLS="${POSTINSTALLS} [$OPTARG]" ;;
         l ) PREREMOVES="${PREREMOVES} [$OPTARG]" ;;
@@ -1078,34 +1082,44 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
 fi
 
 # We don't put with-dkml.exe into the `dkml` tools switch because with-dkml.exe (currently) needs a tools switch to compile itself.
-if [ "$DKML_TOOLS_SWITCH" = OFF ] && \
-        [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$WRAP_COMMANDS_CACHE_KEY" ]; then
-    # Set WITHDKMLEXE_DOS83_OR_BUILDHOST
-    autodetect_withdkmlexe
+do_set_wrap_commands() {
+    if [ -z "$WRAP_COMMAND" ]; then
+        # Set WITHDKMLEXE_DOS83_OR_BUILDHOST
+        autodetect_withdkmlexe
+        do_set_wrap_commands_WRAP="$WITHDKMLEXE_DOS83_OR_BUILDHOST"
+        do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}
+    else
+        do_set_wrap_commands_WRAP="$WRAP_COMMAND"
+        do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}_$(sha256compute "$WRAP_COMMAND")
+    fi
+    if [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$do_set_wrap_commands_KEY" ]; then
+        printf "%s" "$do_set_wrap_commands_WRAP" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
+        DOW_PATH=$(cat "$WORK"/dow.path)
+        {
+            cat "$WORK"/nonswitchexec.sh
+            printf "  option wrap-build-commands='[\"%s\"]' " "$DOW_PATH"
+            if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+        } > "$WORK"/wbc.sh
+        log_shell "$WORK"/wbc.sh
+        {
+            cat "$WORK"/nonswitchexec.sh
+            printf "  option wrap-install-commands='[\"%s\"]' " "$DOW_PATH"
+            if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+        } > "$WORK"/wbc.sh
+        log_shell "$WORK"/wbc.sh
+        {
+            cat "$WORK"/nonswitchexec.sh
+            printf "  option wrap-remove-commands='[\"%s\"]' " "$DOW_PATH"
+            if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
+        } > "$WORK"/wbc.sh
+        log_shell "$WORK"/wbc.sh
 
-    printf "%s" "$WITHDKMLEXE_DOS83_OR_BUILDHOST" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
-    DOW_PATH=$(cat "$WORK"/dow.path)
-    {
-        cat "$WORK"/nonswitchexec.sh
-        printf "  option wrap-build-commands='[\"%s\"]' " "$DOW_PATH"
-        if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-    } > "$WORK"/wbc.sh
-    log_shell "$WORK"/wbc.sh
-    {
-        cat "$WORK"/nonswitchexec.sh
-        printf "  option wrap-install-commands='[\"%s\"]' " "$DOW_PATH"
-        if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-    } > "$WORK"/wbc.sh
-    log_shell "$WORK"/wbc.sh
-    {
-        cat "$WORK"/nonswitchexec.sh
-        printf "  option wrap-remove-commands='[\"%s\"]' " "$DOW_PATH"
-        if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-    } > "$WORK"/wbc.sh
-    log_shell "$WORK"/wbc.sh
-
-    # Done. Don't repeat anymore
-    touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$WRAP_COMMANDS_CACHE_KEY"
+        # Done. Don't repeat anymore
+        touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$do_set_wrap_commands_KEY"
+    fi
+}
+if [ "$DKML_TOOLS_SWITCH" = OFF ]; then
+    do_set_wrap_commands
 fi
 
 option_command() {
