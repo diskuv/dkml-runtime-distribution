@@ -245,6 +245,8 @@ usage() {
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
     printf "%s\n" "        Useful during local development" >&2
+    printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
+    printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
     printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
@@ -368,7 +370,8 @@ TARGETLOCAL_OPAMSWITCH=
 TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wx" opt; do
+DISABLE_DEFAULT_INVARIANTS=OFF
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz" opt; do
     case ${opt} in
         h )
             usage
@@ -414,6 +417,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wx" opt; do
         m ) EXTRAINVARIANTS="$EXTRAINVARIANTS,$OPTARG" ;;
         w ) DISABLE_UPDATE=ON ;;
         x ) DISABLE_SWITCH_CREATE=ON ;;
+        z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -575,6 +579,7 @@ PINNED_PACKAGES_OPAM="$PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC $PINNED_PACKAGES_OPA
 # any autodetect_compiler() flags will be standard ./configure flags ... and
 # in a hook we'll convert them all to OCaml ./configure flags.
 #
+true > "$WORK"/invariant.formula.txt
 if [ "$BUILD_OCAML_BASE" = ON ]; then
     # Frame pointers enabled
     # ----------------------
@@ -586,8 +591,6 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     #  https://github.com/ocaml/ocaml/blob/e93f6f8e5f5a98e7dced57a0c81535481297c413/configure#L17455-L17472
     #  https://github.com/ocaml/opam-repository/blob/ed5ed7529d1d3672ed4c0d2b09611a98ec87d690/packages/ocaml-option-fp/ocaml-option-fp.1/opam#L6
     OCAML_OPTIONS=
-    true > "$WORK"/invariant_for_base.formula.head.txt
-    true > "$WORK"/invariant_for_base.formula.tail.txt
     case "$BUILDTYPE" in
         Debug*) BUILD_DEBUG=ON; BUILD_RELEASE=OFF ;;
         Release*) BUILD_DEBUG=OFF; BUILD_RELEASE=ON ;;
@@ -768,21 +771,28 @@ do_switch_create() {
         printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
     fi
 
-    if [ "$BUILD_OCAML_BASE" = ON ]; then
-        # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
-        invariants=$(printf "dkml-base-compiler.%s%s\n" \
-            "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
-            "$EXTRAINVARIANTS"
-        )
+    if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ]; then
+        if [ "$BUILD_OCAML_BASE" = ON ]; then
+            # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
+            invariants=$(printf "dkml-base-compiler.%s%s\n" \
+                "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
+                "$EXTRAINVARIANTS"
+            )
+        else
+            # ex. '"ocaml-system" {= "4.12.1"}'
+            invariants=$(printf "ocaml-system.%s%s\n" \
+                "$OCAMLVERSION" \
+                "$EXTRAINVARIANTS"
+            )
+        fi
+        printf "  --packages='%s' %s\n" "$invariants" "\\" >> "$WORK"/switchcreateargs.sh
+        printf "'%s'" "$invariants" >> "$WORK"/invariant.formula.txt
+    elif [ -n "$EXTRAINVARIANTS" ]; then
+        printf "  --packages='%s' %s\n" "$EXTRAINVARIANTS" "\\" >> "$WORK"/switchcreateargs.sh
+        printf "'%s'" "$EXTRAINVARIANTS" >> "$WORK"/invariant.formula.txt
     else
-        # ex. '"ocaml-system" {= "4.12.1"}'
-        invariants=$(printf "ocaml-system.%s%s\n" \
-            "$OCAMLVERSION" \
-            "$EXTRAINVARIANTS"
-        )
+        printf "  --empty %s\n" "\\" >> "$WORK"/switchcreateargs.sh
     fi
-    printf "  --packages='%s' %s\n" "$invariants" "\\" >> "$WORK"/switchcreateargs.sh
-    printf "'%s'" "$invariants" >> "$WORK"/invariant_for_base.formula.head.txt
 
     if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "  --debug-level 2 \\" >> "$WORK"/switchcreateargs.sh; fi
 
@@ -1197,7 +1207,11 @@ do_pin_adds() {
     fi
 }
 if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
-    do_pin_adds
+    # When there are no invariants (ie. --empty), there can't be any pins since
+    # `.opam-switch/switch-state` will not be present (at least in prereleases of opam 2.2).
+    if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ] || [ -n "$EXTRAINVARIANTS" ]; then
+        do_pin_adds
+    fi
 fi
 
 # END opam pin add
@@ -1247,19 +1261,14 @@ fi
 # --------------------------------
 # BEGIN opam switch set-invariant
 
-if [ "$NEEDS_INVARIANT" = ON ]; then
+if [ "$NEEDS_INVARIANT" = ON ] && [ -s "$WORK"/invariant.formula.txt ]; then
     # We also should change the switch invariant if an upgrade occurred. The best way to detect
     # that we need to upgrade after the switch invariant change is to see if the switch-config changed
     OLD_HASH=$(cachekey_for_filename "$OPAMSWITCHFINALDIR_BUILDHOST/.opam-switch/switch-config")
     {
         cat "$WORK"/nonswitchexec.sh
         printf "  switch set-invariant --packages="
-        if [ "$BUILD_OCAML_BASE" = ON ]; then
-            cat "$WORK"/invariant_for_base.formula.head.txt
-            cat "$WORK"/invariant_for_base.formula.tail.txt
-        else
-            printf "'ocaml-system.%s%s'" "$OCAMLVERSION" "$EXTRAINVARIANTS"
-        fi
+        cat "$WORK"/invariant.formula.txt
     } > "$WORK"/set-invariant.sh
     log_shell "$WORK"/set-invariant.sh
 
