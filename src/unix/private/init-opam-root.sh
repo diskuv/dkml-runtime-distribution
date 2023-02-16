@@ -379,7 +379,12 @@ if [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
     else
         syspkgmgrpath="$DKMLMSYS2DIR_BUILDHOST/usr/bin/pacman"
     fi
+    # TODO: We'll do both for now until https://github.com/ocaml/opam/pull/5436 propagates
+    #   to DKML. Then only **sys-pkg-manager-cmd** should be kept.
+    # NOTE: sys-pkg-manager-cmd+= is idempotent, even if msys2 has a different existing
+    #   value.
     run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath"
+    run_opam option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath\"]"
 fi
 
 # Diagnostics
