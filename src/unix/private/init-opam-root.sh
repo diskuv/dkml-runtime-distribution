@@ -224,6 +224,11 @@ run_opam() {
         -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" \
         -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
+run_opam_return_error() {
+    log_trace --return-error-code "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
+        -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" \
+        -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
+}
 
 # `opam init`.
 #
@@ -379,12 +384,17 @@ if [ -n "${DKMLMSYS2DIR_BUILDHOST:-}" ] && [ -n "${MSYSTEM:-}" ]; then
     else
         syspkgmgrpath="$DKMLMSYS2DIR_BUILDHOST/usr/bin/pacman"
     fi
-    # TODO: We'll do both for now until https://github.com/ocaml/opam/pull/5436 propagates
+    # Tell opam about MSYS2.
+    # * We can use sys-pkg-manager-cmd+= is idempotent, even if msys2 has a
+    #   different existing value.
+    # * Only some later prereleases of opam 2.2 support that option, so we'll
+    #   use essentially a try/catch to fallback to the older option.
+    #   That can disappear sometime after
+    #   https://github.com/ocaml/opam/pull/5436 propagates
     #   to DKML. Then only **sys-pkg-manager-cmd** should be kept.
-    # NOTE: sys-pkg-manager-cmd+= is idempotent, even if msys2 has a different existing
-    #   value.
-    run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath"
-    run_opam option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath\"]"
+    if ! run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath\"]"; then
+        run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath"
+    fi
 fi
 
 # Diagnostics
