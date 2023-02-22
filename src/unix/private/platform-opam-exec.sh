@@ -54,7 +54,8 @@ usage() {
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
     printf "%s\n" "    -b: No Opam root will be used. No Opam switch will be used." >&2
-    printf "%s\n" "    -s: Select the [dkml] switch. If specified adds --switch to opam" >&2
+    printf "%s\n" "    -a: Do not look for with-dkml. By default with-dkml is searched for and then added to the PATH." >&2
+    printf "%s\n" "    -s: Select the [dkml] switch. If specified adds --switch to opam, and implies -x option" >&2
     printf "%s\n" "    -n GLOBALOPAMSWITCH: The target global Opam switch. If specified adds --switch to opam" >&2
     printf "%s\n" "    -t LOCALOPAMSWITCH: The target Opam switch. If specified adds --switch to opam." >&2
     printf "%s\n" "       Usability enhancement: Opam init shell scripts search the ancestor paths for an" >&2
@@ -111,7 +112,8 @@ TARGETGLOBAL_OPAMSWITCH=
 OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 USE_ROOT=ON
-while getopts ":h0:1:p:sn:t:d:u:o:v:b" opt; do
+NO_WITHDKML=OFF
+while getopts ":h0:1:p:sn:t:d:u:o:v:ba" opt; do
     case ${opt} in
         h )
             usage
@@ -130,6 +132,7 @@ while getopts ":h0:1:p:sn:t:d:u:o:v:b" opt; do
         u ) true ;;
         b ) USE_ROOT=OFF ;;
         s ) DKML_TOOLS_SWITCH=ON ;;
+        a ) NO_WITHDKML=ON ;;
         n ) TARGETGLOBAL_OPAMSWITCH=$OPTARG ;;
         t ) TARGETLOCAL_OPAMSWITCH=$OPTARG ;;
         o ) OPAMEXE_OR_HOME=$OPTARG ;;
@@ -277,8 +280,12 @@ if [ "$USE_SWITCH" = ON ]; then
         # Set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND, OPAMSWITCHFINALDIR_BUILDHOST, OPAMSWITCHNAME_EXPAND
         set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
 
-        # Set WITHDKMLEXE_BUILDHOST
-        autodetect_withdkmlexe
+        # Set WITHDKMLEXE_BUILDHOST (or unset it)
+        if [ "$NO_WITHDKML" = ON ]; then
+            unset WITHDKMLEXE_BUILDHOST
+        else
+            autodetect_withdkmlexe
+        fi
     fi
 
     # We check if the switch exists before we add --switch. Otherwise `opam` will complain:

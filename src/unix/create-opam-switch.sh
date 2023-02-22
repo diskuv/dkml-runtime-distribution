@@ -242,6 +242,8 @@ usage() {
     printf "%s\n" "        ReleaseCompatFuzz - Compatibility with 'afl' fuzzing tool." >&2
     printf "%s\n" "       Ignored when -v OCAMLHOME is a OCaml home" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
+    printf "%s\n" "    -a: Do not look for with-dkml. By default with-dkml is added to the PATH and used as the wrap-build-commands," >&2
+    printf "%s\n" "        wrap-install-commands and wrap-remove-commands. Use -0 WRAP_COMMAND if you want your own wrap commands" >&2
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
     printf "%s\n" "        Useful during local development" >&2
@@ -375,7 +377,8 @@ DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
 WRAP_COMMAND=
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:" opt; do
+NO_WITHDKML=OFF
+while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:a" opt; do
     case ${opt} in
         h )
             usage
@@ -423,6 +426,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:" opt; do
         w ) DISABLE_UPDATE=ON ;;
         x ) DISABLE_SWITCH_CREATE=ON ;;
         z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
+        a ) NO_WITHDKML=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -702,6 +706,9 @@ else
     set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
 
     OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGETLOCAL_OPAMSWITCH' -n '$TARGETGLOBAL_OPAMSWITCH' -u $USERMODE -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
+fi
+if [ "$NO_WITHDKML" = ON ]; then
+    OPAM_EXEC_OPTS="$OPAM_EXEC_OPTS -a"
 fi
 printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh
@@ -1086,9 +1093,11 @@ fi
 do_set_wrap_commands() {
     if [ -z "$WRAP_COMMAND" ]; then
         # Set WITHDKMLEXE_DOS83_OR_BUILDHOST
-        autodetect_withdkmlexe
-        do_set_wrap_commands_WRAP="$WITHDKMLEXE_DOS83_OR_BUILDHOST"
-        do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}
+        if [ "$NO_WITHDKML" = OFF ]; then
+            autodetect_withdkmlexe
+            do_set_wrap_commands_WRAP="$WITHDKMLEXE_DOS83_OR_BUILDHOST"
+            do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}
+        fi
     else
         do_set_wrap_commands_WRAP="$WRAP_COMMAND"
         do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}_$(sha256compute "$WRAP_COMMAND")
