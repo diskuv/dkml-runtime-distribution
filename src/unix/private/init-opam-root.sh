@@ -21,12 +21,14 @@ set -euf
 
 usage() {
     printf "%s\n" "Usage:" >&2
-    printf "%s\n" "    init-opam-root.sh -h                   Display this help message" >&2
-    printf "%s\n" "    init-opam-root.sh [-d STATEDIR] -p DKMLABI  Initialize the Opam root" >&2
-    printf "%s\n" "      Without '-d' the Opam root will be the Opam 2.2 default" >&2
+    printf "%s\n" "    init-opam-root.sh -h                         Display this help message" >&2
+    printf "%s\n" "    init-opam-root.sh [-r OPAMROOT] -p DKMLABI   Initialize the Opam root" >&2
+    printf "%s\n" "      Without '-r' or '-d' the Opam root will be the Opam 2.2 default" >&2
     printf "%s\n" "Options:" >&2
     printf "%s\n" "    -p DKMLABI: The DKML ABI (not 'dev')" >&2
-    printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
+    printf "%s\n" "    -r OPAMROOT: Use <OPAMROOT> as the Opam root. Unlike [-d] no modifications are made to its system variables" >&2
+    printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root and modify its sys-ocaml-* variables." >&2
+    printf "%s\n" "       It is an error for both [-r] and [-d] to be specified" >&2
     printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
@@ -39,12 +41,13 @@ usage() {
 }
 
 DKMLABI=
+DKML_OPAM_ROOT=
 STATEDIR=
 OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
 CENTRAL_REPO=https://opam.ocaml.org
-while getopts ":hp:d:o:v:ac:" opt; do
+while getopts ":hp:r:d:o:v:ac:" opt; do
     case ${opt} in
         h )
             usage
@@ -54,10 +57,11 @@ while getopts ":hp:d:o:v:ac:" opt; do
             DKMLABI=$OPTARG
             if [ "$DKMLABI" = dev ]; then
                 usage
-                exit 0
+                exit 1
             fi
         ;;
         d ) STATEDIR=$OPTARG ;;
+        r ) DKML_OPAM_ROOT=$OPTARG ;;
         o ) OPAMEXE_OR_HOME=$OPTARG ;;
         v )
             OCAMLVERSION_OR_HOME=$OPTARG
@@ -74,19 +78,18 @@ done
 shift $((OPTIND -1))
 
 if [ -z "$DKMLABI" ]; then
+    printf "%s\n" "Missing -p DKMLABI option" >&2
+    usage
+    exit 1
+fi
+if [ -n "$STATEDIR" ] && [ -n "$DKML_OPAM_ROOT" ]; then
+    printf "%s\n" "Both -d and -r cannot be specified at the same time" >&2
     usage
     exit 1
 fi
 
 # END Command line processing
 # ------------------
-
-# Set deprecated, implicit USERMODE
-if [ -n "$STATEDIR" ]; then
-    USERMODE=OFF
-else
-    USERMODE=ON
-fi
 
 DKMLDIR=$(dirname "$0")
 DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
@@ -225,12 +228,12 @@ set_opamrootdir
 
 run_opam() {
     log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
-        -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" \
+        -p "$DKMLABI" -d "$STATEDIR" -r "$DKML_OPAM_ROOT" \
         -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
 run_opam_return_error() {
     log_trace --return-error-code "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
-        -p "$DKMLABI" -u "$USERMODE" -d "$STATEDIR" \
+        -p "$DKMLABI" -d "$STATEDIR" -r "$DKML_OPAM_ROOT" \
         -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
 

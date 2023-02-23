@@ -29,19 +29,21 @@ usage() {
     printf "%s\n" "                                                                 in the global [dkml] switch (if -s) or the" >&2
     printf "%s\n" "                                                                 global GLOBALOPAMSWITCH switch or the local" >&2
     printf "%s\n" "                                                                 LOCALOPAMSWITCH switch" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI (-d STATEDIR|-r OPAMROOT)" >&2
     printf "%s\n" "                          [--] var|clean|help|...                Run the opam command with the Opam root" >&2
-    printf "%s\n" "                                                                 STATEDIR/opam without any Opam switch" >&2
+    printf "%s\n" "                                                                 OPAMROOT or STATEDIR/opam without any Opam switch" >&2
     printf "%s\n" "                                                                 selected" >&2
-    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI -d STATEDIR (-s|-n GLOBALOPAMSWITCH|-t LOCALOPAMSWITCH)" >&2
+    printf "%s\n" "    platform-opam-exec.sh -p DKMLABI (-d STATEDIR|-r OPAMROOT) (-s|-n GLOBALOPAMSWITCH|-t LOCALOPAMSWITCH)" >&2
     printf "%s\n" "                          [--] install|clean|help|...            Run the opam command with the Opam root" >&2
-    printf "%s\n" "                                                                 STATEDIR/opam in the global [dkml] switch (if -s)" >&2
+    printf "%s\n" "                                                                 OPAMROOT or STATEDIR/opam in the global [dkml] switch (if -s)" >&2
     printf "%s\n" "                                                                 or the global GLOBALOPAMSWITCH switch or the" >&2
     printf "%s\n" "                                                                 local LOCALOPAMSWITCH switch" >&2
     printf "%s\n" "" >&2
     printf "%s\n" "Opam root directory:" >&2
-    printf "%s\n" "    If -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
+    printf "%s\n" "    If -r OPAMROOT then <OPAMROOT> is the Opam root directory." >&2
+    printf "%s\n" "    Or if -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
     printf "%s\n" "    Otherwise the Opam root directory is the user's standard Opam root directory." >&2
+    printf "%s\n" "    It is an error for both [-r] and [-d] to be specified" >&2
     printf "%s\n" "Opam [dkml] switch:" >&2
     printf "%s\n" "    The default [dkml] switch is the 'dkml' global switch." >&2
     printf "%s\n" "    In highest precedence order:" >&2
@@ -60,6 +62,7 @@ usage() {
     printf "%s\n" "    -t LOCALOPAMSWITCH: The target Opam switch. If specified adds --switch to opam." >&2
     printf "%s\n" "       Usability enhancement: Opam init shell scripts search the ancestor paths for an" >&2
     printf "%s\n" "       '_opam' directory, so the local switch will be found if you are in <LOCALOPAMSWITCH>" >&2
+    printf "%s\n" "    -r OPAMROOT: Use <OPAMROOT> as the Opam root" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/opam as the Opam root directory" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
@@ -104,6 +107,7 @@ fi
 #   and added to OPAM_OPTS. We'll parse 'somecommand ...' options in a second getopts loop.
 DKMLABI=
 DKML_TOOLS_SWITCH=OFF
+DKML_OPAM_ROOT=
 STATEDIR=
 PREHOOK_SINGLE_EVAL=
 PREHOOK_DOUBLE_EVAL=
@@ -113,7 +117,7 @@ OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 USE_ROOT=ON
 NO_WITHDKML=OFF
-while getopts ":h0:1:p:sn:t:d:u:o:v:ba" opt; do
+while getopts ":h0:1:p:sn:t:d:r:u:o:v:ba" opt; do
     case ${opt} in
         h )
             usage
@@ -126,9 +130,8 @@ while getopts ":h0:1:p:sn:t:d:u:o:v:ba" opt; do
                 exit 0
             fi
         ;;
-        d )
-            STATEDIR=$OPTARG
-        ;;
+        d ) STATEDIR=$OPTARG ;;
+        r ) DKML_OPAM_ROOT=$OPTARG ;;
         u ) true ;;
         b ) USE_ROOT=OFF ;;
         s ) DKML_TOOLS_SWITCH=ON ;;
@@ -154,6 +157,11 @@ shift $((OPTIND -1))
 
 if [ -z "${DKMLABI:-}" ]; then
     echo "FATAL: Missing -p DKMLABI option" >&2
+    usage
+    exit 1
+fi
+if [ -n "$STATEDIR" ] && [ -n "$DKML_OPAM_ROOT" ]; then
+    printf "%s\n" "Both -d and -r cannot be specified at the same time" >&2
     usage
     exit 1
 fi
@@ -192,14 +200,6 @@ if [ -x /usr/bin/cygpath ]; then
     if [ -n "$OPAMEXE_OR_HOME" ]; then OPAMEXE_OR_HOME=$(/usr/bin/cygpath -am "$OPAMEXE_OR_HOME"); fi
 fi
 
-# Set deprecated, implicit USERMODE
-if [ -n "$STATEDIR" ]; then
-    USERMODE=OFF
-else
-    # shellcheck disable=SC2034
-    USERMODE=ON
-fi
-
 # shellcheck disable=SC1091
 . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
 
@@ -233,7 +233,7 @@ set_opamexe
 
 OPAM_ROOT_OPT=() # we have a separate array for --root since --root is mandatory for `opam init`
 if [ "$USE_ROOT" = ON ]; then
-    # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND
+    # Set OPAMROOTDIR_BUILDHOST and OPAMROOTDIR_EXPAND (from DKML_OPAM_ROOT and/or STATEDIR if set)
     set_opamrootdir
 
     # We check if the root exists before we add --root

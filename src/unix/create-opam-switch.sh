@@ -215,8 +215,10 @@ usage() {
     printf "%s\n" "                                       create and use an OCaml home. DKSDK will also supply variables so that the" >&2
     printf "%s\n" "                                       -b option is not needed; otherwise -b option is required." >&2
     printf "%s\n" "Opam root directory:" >&2
-    printf "%s\n" "    If -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
+    printf "%s\n" "    If -r OPAMROOT then <OPAMROOT> is the Opam root directory." >&2
+    printf "%s\n" "    Or if -d STATEDIR then <STATEDIR>/opam is the Opam root directory." >&2
     printf "%s\n" "    Otherwise the Opam root directory is the user's standard Opam root directory." >&2
+    printf "%s\n" "    It is an error for both [-r] and [-d] to be specified" >&2
     printf "%s\n" "Opam [dkml] switch:" >&2
     printf "%s\n" "    The default [dkml] switch is the 'dkml' global switch." >&2
     printf "%s\n" "    In highest precedence order:" >&2
@@ -234,6 +236,7 @@ usage() {
     printf "%s\n" "    -t LOCALOPAMSWITCH: The target Opam switch. If specified adds --switch to opam." >&2
     printf "%s\n" "       Usability enhancement: Opam init shell scripts search the ancestor paths for an" >&2
     printf "%s\n" "       '_opam' directory, so the local switch will be found if you are in <LOCALOPAMSWITCH>" >&2
+    printf "%s\n" "    -r OPAMROOT: Use <OPAMROOT> as the Opam root" >&2
     printf "%s\n" "    -d STATEDIR: Use <STATEDIR>/opam as the Opam root directory" >&2
     printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
     printf "%s\n" "        Debug" >&2
@@ -262,7 +265,7 @@ usage() {
     printf "%s\n" "       to all users of and packages in the switch" >&2
     printf "%s\n" "    -f NAME=VAL or -f NAME=: Optional; can be repeated. Opam variables that will be available" >&2
     printf "%s\n" "       to all <package>.opam in the switch. '-f NAME=' will delete the variable if present" >&2
-    printf "%s\n" "    -r NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
+    printf "%s\n" "    -R NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
     printf "%s\n" "       than the implicit repositories like the default opam.ocaml.org repository. First repository listed on command" >&2
     printf "%s\n" "       line will be highest priority of the extra repositories." >&2
     printf "%s\n" "    -i HOOK: Optional; may be repeated. Command that will be run after the Opam switch has been created." >&2
@@ -360,6 +363,7 @@ add_do_hook() {
 
 BUILDTYPE=
 DKML_TOOLS_SWITCH=OFF
+DKML_OPAM_ROOT=
 STATEDIR=
 YES=OFF
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
@@ -378,7 +382,7 @@ DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
 WRAP_COMMAND=
 NO_WITHDKML=OFF
-while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:a" opt; do
+while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:a" opt; do
     case ${opt} in
         h )
             usage
@@ -394,9 +398,8 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:a" opt; do
         b )
             BUILDTYPE=$OPTARG
         ;;
-        d)
-            STATEDIR=$OPTARG
-        ;;
+        d ) STATEDIR=$OPTARG ;;
+        r ) DKML_OPAM_ROOT=$OPTARG ;;
         s ) DKML_TOOLS_SWITCH=ON ;;
         n ) TARGETGLOBAL_OPAMSWITCH=$OPTARG ;;
         t ) TARGETLOCAL_OPAMSWITCH=$OPTARG ;;
@@ -411,7 +414,7 @@ while getopts ":hb:p:sd:u:o:n:t:v:yc:r:e:f:i:j:k:l:m:wxz0:a" opt; do
         c ) EXTRAPATH=$OPTARG ;;
         e ) add_do_setenv_option "$OPTARG" ;;
         f ) add_do_var "$OPTARG" ;;
-        r )
+        R )
             if [ -n "$EXTRAREPOCMDS" ]; then
                 EXTRAREPOCMDS="$EXTRAREPOCMDS; "
             fi
@@ -441,6 +444,11 @@ if [ -z "${DKMLABI:-}" ]; then
     usage
     exit 1
 fi
+if [ -n "$STATEDIR" ] && [ -n "$DKML_OPAM_ROOT" ]; then
+    printf "%s\n" "Both -d and -r cannot be specified at the same time" >&2
+    usage
+    exit 1
+fi
 
 #   At most one of -t LOCALOPAMSWITCH, -s, -n GLOBALOPAMSWITCH
 _switch_count=
@@ -460,20 +468,12 @@ fi
 # END Command line processing
 # ------------------
 
-# Set deprecated, implicit USERMODE
-if [ -n "$STATEDIR" ]; then
-    USERMODE=OFF
-else
-    USERMODE=ON
-fi
-
 if [ -z "${DKMLDIR:-}" ]; then
     DKMLDIR=$(dirname "$0")
     DKMLDIR=$(cd "$DKMLDIR/../../../.." && pwd)
 fi
 if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not embedded within or launched from a 'diskuv-ocaml' Local Project" >&2 ; exit 1; fi
 
-# `dkml` is the host architecture, so use `dev` as its platform
 if [ -n "$STATEDIR" ]; then
     # shellcheck disable=SC2034
     TOPDIR="$STATEDIR"
@@ -694,7 +694,7 @@ fi
 
 # Make launchers for opam switch create <...> and for opam <...>
 if [ "$DKML_TOOLS_SWITCH" = ON ]; then
-    OPAM_EXEC_OPTS="-s -d '$STATEDIR' -p '$DKMLABI' -u $USERMODE -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS="-s -r '$DKML_OPAM_ROOT' -d '$STATEDIR' -p '$DKMLABI' -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
 
     # Set OPAMROOTDIR_BUILDHOST and OPAMSWITCHFINALDIR_BUILDHOST
     OPAMROOTDIR_BUILDHOST="$TOOLS_OPAMROOTDIR_BUILDHOST"
@@ -705,7 +705,7 @@ else
     # and set OPAMROOTDIR_BUILDHOST, OPAMROOTDIR_EXPAND
     set_opamrootandswitchdir "$TARGETLOCAL_OPAMSWITCH" "$TARGETGLOBAL_OPAMSWITCH"
 
-    OPAM_EXEC_OPTS=" -p '$DKMLABI' -d '$STATEDIR' -t '$TARGETLOCAL_OPAMSWITCH' -n '$TARGETGLOBAL_OPAMSWITCH' -u $USERMODE -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
+    OPAM_EXEC_OPTS=" -p '$DKMLABI' -r '$DKML_OPAM_ROOT' -d '$STATEDIR' -t '$TARGETLOCAL_OPAMSWITCH' -n '$TARGETGLOBAL_OPAMSWITCH' -o '$OPAMEXE_OR_HOME' -v '$OCAMLVERSION_OR_HOME'"
 fi
 if [ "$NO_WITHDKML" = ON ]; then
     OPAM_EXEC_OPTS="$OPAM_EXEC_OPTS -a"
