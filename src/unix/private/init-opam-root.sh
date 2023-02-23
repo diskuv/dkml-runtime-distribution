@@ -34,6 +34,8 @@ usage() {
     printf "%s\n" "       The bin/ subdir of the OCaml home is added to the PATH; currently, passing an OCaml version does nothing" >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
     printf "%s\n" "    -a Use local repository rather than git repository for diskuv-opam-repository. Requires rsync" >&2
+    printf "%s\n" "    -c CENTRAL_REPO: Use CENTRAL_REPO rather than the default https://opam.ocaml.org repository. Valid opam" >&2
+    printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
 }
 
 DKMLABI=
@@ -41,7 +43,8 @@ STATEDIR=
 OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
-while getopts ":hp:d:o:v:a" opt; do
+CENTRAL_REPO=https://opam.ocaml.org
+while getopts ":hp:d:o:v:ac:" opt; do
     case ${opt} in
         h )
             usage
@@ -60,6 +63,7 @@ while getopts ":hp:d:o:v:a" opt; do
             OCAMLVERSION_OR_HOME=$OPTARG
         ;;
         a ) DISKUVOPAMREPO=LOCAL ;;
+        c ) CENTRAL_REPO=$OPTARG ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -243,7 +247,7 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
         # with Ubuntu 20.04 LTS in WSL2 and got (paths are slightly changed):
         #   [ERROR] Sandboxing is not working on your platform ubuntu:
         #           "~/build/opam/opam-init/hooks/sandbox.sh build sh -c echo SUCCESS >$TMPDIR/opam-sandbox-check-out && cat $TMPDIR/opam-sandbox-check-out; rm -f $TMPDIR/opam-sandbox-check-out" exited with code 1 "bwrap: Can't bind mount /oldroot/mnt/z/source on /newroot/home/jonah/source: No such file or directory"
-        run_opam init --yes --no-setup --bare --disable-sandboxing
+        run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
     elif [ -n "${DEFAULT_DOCKCROSS_IMAGE:-}" ] || [ -e /dockcross ]; then
         # Inside dockcross is already sandboxed. And often Docker containers can't
         # be nested, so bwrap probably won't work. Regardless, Opam will
@@ -251,9 +255,9 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
         #   [ERROR] Missing dependencies -- the following commands are required for opam to operate:
         #       - bwrap: Sandboxing tool bwrap was not found. You should install 'bubblewrap'. See https://opam.ocaml.org/doc/FAQ.html#Why-does-opam-require-bwrap.
         # which we shouldn't do anything about.
-        run_opam init --yes --no-setup --bare --disable-sandboxing
+        run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
     else
-        run_opam init --yes --no-setup --bare
+        run_opam init --yes --no-setup --bare default "$CENTRAL_REPO"
     fi
 fi
 
@@ -334,7 +338,7 @@ fi
 
 # add the [default] repository if a [default] is not there
 if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
-    run_opam repository add default https://opam.ocaml.org --yes --dont-select --rank=3
+    run_opam repository add default "$CENTRAL_REPO" --yes --dont-select --rank=3
 else
     # force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
     # [default] is not versioned (which means we have no way to tell it is up-to-date)
