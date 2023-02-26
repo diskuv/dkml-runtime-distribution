@@ -250,6 +250,8 @@ usage() {
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
     printf "%s\n" "        Useful during local development" >&2
+    printf "%s\n" "    -F: Disable adding of the fdopen repository on Windows. Diskuv OCaml installs a pruned repository which, without" >&2
+    printf "%s\n" "        the -F option, would be added to the new switch" >&2
     printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
     printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
@@ -380,9 +382,10 @@ TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
+DISABLE_FDOPEN=OFF
 WRAP_COMMAND=
 NO_WITHDKML=OFF
-while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:a" opt; do
+while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
     case ${opt} in
         h )
             usage
@@ -430,6 +433,7 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:a" opt; do
         x ) DISABLE_SWITCH_CREATE=ON ;;
         z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
         a ) NO_WITHDKML=ON ;;
+        F ) DISABLE_FDOPEN=ON;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -756,7 +760,7 @@ if [ -n "$EXTRAREPOCMDS" ]; then
 fi
 
 do_switch_create() {
-    if is_unixy_windows_build_machine; then
+    if [ "$DISABLE_FDOPEN" = OFF ] && is_unixy_windows_build_machine; then
         # create fdopen-mingw-xxx-yyy as rank=2 if not already exists; rank=0 and rank=1 defined in init-opam-root.sh
         if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION.tar.gz" ]; then
             # Use the snapshot of fdopen-mingw (https://github.com/fdopen/opam-repository-mingw) that comes with ocaml-opam Docker image.
