@@ -38,6 +38,8 @@ usage() {
     printf "%s\n" "    -a Use local repository rather than git repository for diskuv-opam-repository. Requires rsync" >&2
     printf "%s\n" "    -c CENTRAL_REPO: Use CENTRAL_REPO rather than the default https://opam.ocaml.org repository. Valid opam" >&2
     printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
+    printf "%s\n" "    -x Disable sandboxing in all platforms. By default, sandboxing is disabled in Windows, WSL2 and in dockcross" >&2
+    printf "%s\n" "       Linux containers" >&2
 }
 
 DKMLABI=
@@ -47,7 +49,8 @@ OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
 CENTRAL_REPO=https://opam.ocaml.org
-while getopts ":hp:r:d:o:v:ac:" opt; do
+DISABLE_SANDBOX=OFF
+while getopts ":hp:r:d:o:v:ac:x" opt; do
     case ${opt} in
         h )
             usage
@@ -68,6 +71,7 @@ while getopts ":hp:r:d:o:v:ac:" opt; do
         ;;
         a ) DISKUVOPAMREPO=LOCAL ;;
         c ) CENTRAL_REPO=$OPTARG ;;
+        x ) DISABLE_SANDBOX=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -258,6 +262,8 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
         #   [ERROR] Missing dependencies -- the following commands are required for opam to operate:
         #       - bwrap: Sandboxing tool bwrap was not found. You should install 'bubblewrap'. See https://opam.ocaml.org/doc/FAQ.html#Why-does-opam-require-bwrap.
         # which we shouldn't do anything about.
+        run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
+    elif [ "$DISABLE_SANDBOX" = ON ]; then
         run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
     else
         run_opam init --yes --no-setup --bare default "$CENTRAL_REPO"
