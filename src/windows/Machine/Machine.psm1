@@ -10,9 +10,27 @@ Import-Module DeploymentHash # for Get-Sha256Hex16OfText
 # * Microsoft build numbers
 # * Semver numbers
 
-#   OCaml on Windows 32-bit requires Windows SDK 10.0.18362.0 (MSVC bug). Let's be consistent and use it for 64-bit as well.
-$Windows10SdkVer = "18362"        # KEEP IN SYNC with WindowsAdministrator.rst and dkml-installer-ocaml/installer/winget/manifest/Diskuv.OCaml.installer.yaml
-$Windows10SdkFullVer = "10.0.$Windows10SdkVer.0"
+$Windows10SdkCompatibleTriples = @(
+    # Highest priority to lowest priority.
+    # KEEP IN SYNC with WindowsAdministrator.rst and dkml-installer-ocaml/installer/winget/manifest/Diskuv.OCaml.installer.yaml
+
+    #   Since we have the longest experience with 18362, we make that highest priority.
+    #   Original:
+    #   * OCaml 4.12.0 on Windows 32-bit requires Windows SDK 10.0.18362.0 (MSVC bug). Let's be consistent and use it for 64-bit as well.
+    "10.0.18362",
+
+    #   GitLab CI switched to 19041 with https://gitlab.com/gitlab-org/ci-cd/shared-runners/images/gcp/windows-containers/-/commit/5f94426f12d082c2226da29ab7b79f0b90ec7725
+    "10.0.19041"
+    )
+$Windows10SdkCompatibleVers = $Windows10SdkCompatibleTriples | ForEach-Object {
+    # 10.0.18362 -> 18362
+    $_.Split(".")[2]
+}
+$Windows10SdkCompatibleComponents = $Windows10SdkCompatibleVers | ForEach-Object {
+    # Ex. Microsoft.VisualStudio.Component.Windows10SDK.19041
+    "Microsoft.VisualStudio.Component.Windows10SDK.${_}"
+}
+if ($null -eq $Windows10SdkCompatibleComponents) { $Windows10SdkCompatibleComponents = @() }
 
 # Visual Studio minimum version
 # Why MSBuild / Visual Studio 2015+? Because [vcpkg](https://vcpkg.io/en/getting-started.html) needs
@@ -62,8 +80,8 @@ $VsBuildToolsInstallChannel = "https://aka.ms/vs/16/release/channel" # use 'inst
 #   - Windows 10 SDK (10.0.18362.0)
 #   - Same version in ocaml-opam Docker image as of 2021-10-10
 #
-# VISUAL STUDIO BUG 1
-# -------------------
+# VISUAL STUDIO BUG 1 for OCAML 4.12.0
+# ------------------------------------
 #     ../../ocamlopt.opt.exe -nostdlib -I ../../stdlib -I ../../otherlibs/win32unix -c -w +33..39 -warn-error A -g -bin-annot -safe-string  semaphore.ml
 #     ../../ocamlopt.opt.exe -nostdlib -I ../../stdlib -I ../../otherlibs/win32unix -linkall -a -cclib -lthreadsnat  -o threads.cmxa thread.cmx mutex.cmx condition.cmx event.cmx threadUnix.cmx semaphore.cmx
 #     OCAML_FLEXLINK="../../boot/ocamlrun ../../flexdll/flexlink.exe" ../../boot/ocamlrun.exe ../../tools/ocamlmklib.exe -o threadsnat st_stubs.n.obj
@@ -97,12 +115,47 @@ $VsBuildToolsInstallChannel = "https://aka.ms/vs/16/release/channel" # use 'inst
 # or the specific compiler selected:
 #   >> Microsoft.VisualStudio.Component.VC.14.26.x86.x64 <<
 # Either of those will give use 14.26 compiler tools.
-$VcVarsVer = "14.26"
-$VcVarsCompatibleVers = @( "14.25" ) # Tested with GitHub Actions at https://github.com/diskuv/diskuv-ocaml-starter-ghmirror/actions
-$VcVarsCompatibleComponents = $VcVarsCompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
+$VcVars2019CompatibleVers = @( 
+    # Highest priority to lowest priority.
+
+    #   Original GitLab CI
+    #   Original C:\DiskuvOCaml\BuildTools
+    "14.26",
+
+    #   Original GitHub Actions
+    "14.25",
+    
+    #   GitLab CI as of https://gitlab.com/gitlab-org/ci-cd/shared-runners/images/gcp/windows-containers/-/commit/5f94426f12d082c2226da29ab7b79f0b90ec7725
+    "14.29"
+    )
+$VcVarsCompatibleComponents = $VcVars2019CompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
 if ($null -eq $VcVarsCompatibleComponents) { $VcVarsCompatibleComponents = @() }
-$VcStudioVcToolsMajorVer = 16
-$VcStudioVcToolsMinorVer = 6
+
+function Get-CompatibleVisualStudioVcVarsVer {
+    param (
+        $VsToolsMajorMinVer,
+        [switch]
+        $ThrowIfIncompatible
+    )
+    switch ("$VsToolsMajorMinVer")
+    {
+        # https://en.wikipedia.org/wiki/Microsoft_Visual_C%2B%2B
+        "16.4" { if ($ThrowIfIncompatible) { throw "VS 16.4 (aka 14.24) has not been verified to be compatible with OCaml by Diskuv" } }
+        "16.5" {"14.25"}
+        "16.6" {"14.26"}
+        "16.7" { if ($ThrowIfIncompatible) { throw "VS 16.7 (aka 14.27) has not been verified to be compatible with OCaml by Diskuv" } }
+        "16.8" { if ($ThrowIfIncompatible) { throw "VS 16.8 (aka 14.28) has not been verified to be compatible with OCaml by Diskuv" } }
+        "16.9" { if ($ThrowIfIncompatible) { throw "VS 16.9 (aka 14.28) has not been verified to be compatible with OCaml by Diskuv" } }
+        "16.11" {"14.29"}
+        "17.0" { if ($ThrowIfIncompatible) { throw "VS 17.0 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
+        "17.2" { if ($ThrowIfIncompatible) { throw "VS 17.2 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
+        "17.3" { if ($ThrowIfIncompatible) { throw "VS 17.3 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
+        default {
+            if ($ThrowIfIncompatible) { throw "Visual Studio $VsToolsMajorMinVer is not yet supported by Diskuv" }
+        }
+    }
+}
+
 $VsComponents = @(
     # Verbatim (except variable replacement) from vsconfig.json that was "Export configuration" from the
     # correctly versioned vs_buildtools.exe installer, but removed all transitive dependencies.
@@ -115,14 +168,18 @@ $VsComponents = @(
     # We do not include "Microsoft.VisualStudio.Component.VC.(Tools|$VcVarsVer).x86.x64" because
     # we need special logic in Get-CompatibleVisualStudios to detect it.
 
-    "Microsoft.VisualStudio.Component.Windows10SDK.$Windows10SdkVer",
+    # 2023-03-14/jonahbeckford@:
+    # We do not include "Microsoft.VisualStudio.Component.Windows10SDK.$Windows10SdkVer" because
+    # we need special logic in Get-CompatibleVisualStudios to detect it.
+
     "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
 )
 $VsSpecialComponents = @(
     # 2021-09-22/jonahbeckford@:
     # We only install this component if a viable "Microsoft.VisualStudio.Component.VC.Tools.x86.x64" not detected
     # in Get-CompatibleVisualStudios.
-    "Microsoft.VisualStudio.Component.VC.$VcVarsVer.x86.x64"
+    "Microsoft.VisualStudio.Component.Windows10SDK.$($Windows10SdkCompatibleVers[0])",
+    "Microsoft.VisualStudio.Component.VC.$($VcVars2019CompatibleVers[0]).x86.x64"
 )
 $VsAvailableProductLangs = @(
     # https://docs.microsoft.com/en-us/visualstudio/install/use-command-line-parameters-to-install-visual-studio?view=vs-2019#list-of-language-locales
@@ -144,17 +201,13 @@ $VsAvailableProductLangs = @(
 
 # Consolidate the magic constants into a single deployment id
 $VsComponentsHash = Get-Sha256Hex16OfText -Text ($CygwinPackagesArch -join ',')
-$MachineDeploymentId = "winsdk-$Windows10SdkVer;vsvermin-$VsVerMin;vssetup-$VsSetupVer;vscomp-$VsComponentsHash"
+$Windows10SdkTriplesHash = Get-Sha256Hex16OfText -Text ($Windows10SdkCompatibleTriples -join ',')
+$MachineDeploymentId = "winsdk-$Windows10SdkTriplesHash;vsvermin-$VsVerMin;vssetup-$VsSetupVer;vscomp-$VsComponentsHash"
 
 Export-ModuleMember -Variable MachineDeploymentId
 Export-ModuleMember -Variable VsBuildToolsMajorVer
 Export-ModuleMember -Variable VsBuildToolsInstaller
 Export-ModuleMember -Variable VsBuildToolsInstallChannel
-
-# Exports for when someone wants to do:
-#   cmake -G "Visual Studio 16 2019" -D CMAKE_SYSTEM_VERSION=$Windows10SdkFullVer -T version=$VcVarsVer
-Export-ModuleMember -Variable Windows10SdkFullVer
-Export-ModuleMember -Variable VcVarsVer
 
 # -----------------------------------
 
@@ -189,17 +242,19 @@ function Get-VisualStudioComponentDescription {
     )
 
     # Troubleshooting description of what needs to be installed
+    $Windows10SdkFullVersDescription = $Windows10SdkCompatibleTriples -join " or "
+    $VcVars2019Description = ($VcVars2019CompatibleVers | ForEach-Object { "v$_" }) -join " or "
     if ($VcpkgCompatibility) {
         (
             "`ta) English language pack (en-US)`n" +
-            "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools (v$VcVarsVer)`n" +
+            "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools ($VcVars2019Description)`n" +
             "`tc) MSVC v142 - VS 2019 C++ x64/x86 build tools (Latest)`n" +
-            "`td) Windows 10 SDK ($Windows10SdkFullVer)`n")
+            "`td) Windows 10 SDK ($Windows10SdkFullVersDescription)`n")
     } else {
         (
-            "`ta) MSVC v142 - VS 2019 C++ x64/x86 build tools (v$VcVarsVer)`n" +
+            "`ta) MSVC v142 - VS 2019 C++ x64/x86 build tools ($VcVars2019Description)`n" +
             "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools (Latest)`n" +
-            "`tc) Windows 10 SDK ($Windows10SdkFullVer)`n")
+            "`tc) Windows 10 SDK ($Windows10SdkFullVersDescription)`n")
     }
 }
 
@@ -271,30 +326,39 @@ function Get-VisualStudioProperties {
     }
     $CMakeGenerator = ("Visual Studio " + $VisualStudioInstallation.InstallationVersion.Major + " " + $CMakeVsYear)
 
+    # Find a compatible Component.VC.<version>.x86.x64
     $VcVarsVerCandidates = $VisualStudioInstallation.Packages | Where-Object {
-        $_.Id -eq "Microsoft.VisualStudio.Component.VC.$VcVarsVer.x86.x64" -or
         $VcVarsCompatibleComponents.Contains($_.Id)
     }
     if ($VcVarsVerCandidates.Count -eq 0) {
-        $VcVarsVerCandidates = $VisualStudioInstallation.Packages | Where-Object {
-            $_.Id -eq "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-        }
-        if ($VcVarsVerCandidates.Count -eq 0) {
-            throw "Get-CompatibleVisualStudios is not in sync with Get-VisualStudioProperties"
-        }
-        $VcVarsVerChoice = $VcVarsVer
+        # Only Microsoft.VisualStudio.Component.VC.Tools.x86.x64 (part of $VsComponents)
+        # is available.
+        # So use the default version for the installed Visual Studio.
+        # (It is also found as the UniqueId on Microsoft.VisualStudio.Component.VC.Tools.x86.x64.)
+        $VcVarsVerChoice = Get-CompatibleVisualStudioVcVarsVer -ThrowIfIncompatible -VsToolsMajorMinVer "$MsvsPreference"
     } else {
-        # pick the latest compatible version
+        # Pick the latest (not the highest priority) compatible version
         ($VcVarsVerCandidates | Sort-Object -Property Version -Descending | Select-Object -Property Id -First 1).Id -match "Microsoft[.]VisualStudio[.]Component[.]VC[.](?<VCVersion>.*)[.]x86[.]x64"
         $VcVarsVerChoice = $Matches.VCVersion
     }
+
+    # Find a compatible Component.Windows10SDK.<version>
+    $Windows10SdkCandidates = $VisualStudioInstallation.Packages | Where-Object {
+        $Windows10SdkCompatibleComponents.Contains($_.Id)
+    }
+    # Pick the latest (not the highest priority) compatible version
+    # Caution: The different component "UniqueId":  "Win10SDK_10.0.19041,version=10.0.19041.1"
+    # implies that -winsdk=10.0.19041.1. However, it is -winsdk=10.0.19041.0.
+    # Always use the .0 suffix.
+    ($Windows10SdkCandidates | Sort-Object -Property Version -Descending | Select-Object -Property Id -First 1).Id -match "Microsoft[.]VisualStudio[.]Component[.]Windows10SDK[.](?<Win10SDKVersion>.*)"
+    $Windows10SdkChoice = "10.0.$($Matches.Win10SDKVersion).0"
 
     @{
         InstallPath = $VisualStudioInstallation.InstallationPath;
         MsvsPreference = "VS$MsvsPreference";
         CMakeGenerator = "$CMakeGenerator";
         VcVarsVer = $VcVarsVerChoice;
-        WinSdkVer = $Windows10SdkFullVer;
+        WinSdkVer = $Windows10SdkChoice;
     }
 }
 Export-ModuleMember -Function Get-VisualStudioProperties
@@ -324,19 +388,17 @@ function Get-CompatibleVisualStudios {
     # select installations that have `VC.Tools (Latest)` -and- the exact `VC.MM.NN (vMM.NN)`,
     # -or- `VC.Tools (Latest)` if the Visual Studio Tools version matches MM.NN.
     $instances = $instances | Where-Object {
-        $VCToolsMatch = $VCTools = $_.Packages | Where-Object {
-            $_.Id -eq "Microsoft.VisualStudio.Component.VC.Tools.x86.x64" -and $_.Version.Major -eq $VcStudioVcToolsMajorVer -and $_.Version.Minor -eq $VcStudioVcToolsMinorVer
+        $VCToolsMatch = $_.Packages | Where-Object {
+            $VcVarsVer = Get-CompatibleVisualStudioVcVarsVer -VsToolsMajorMinVer "$($_.Version.Major).$($_.Version.Minor)"
+            $VcVarsVer -and ($_.Id -eq "Microsoft.VisualStudio.Component.VC.Tools.x86.x64")
         }
         $VCTools = $_.Packages | Where-Object {
             $_.Id -eq "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
         };
-        $VCExact = $_.Packages | Where-Object {
-            $_.Id -eq "Microsoft.VisualStudio.Component.VC.$VcVarsVer.x86.x64"
-        };
         $VCCompatible = $_.Packages | Where-Object {
             $VcVarsCompatibleComponents.Contains($_.Id)
         }
-        ($VCToolsMatch.Count -gt 0) -or (  ($VCTools.Count -gt 0) -and (($VCExact.Count -gt 0) -or ($VCCompatible.Count -gt 0))  )
+        ($VCToolsMatch.Count -gt 0) -or ( ($VCTools.Count -gt 0) -and ($VCCompatible.Count -gt 0) )
     }
     # select only installations that have the English language pack
     if ($VcpkgCompatibility) {
