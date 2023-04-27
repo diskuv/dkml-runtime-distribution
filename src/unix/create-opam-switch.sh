@@ -1196,7 +1196,7 @@ do_pin_adds() {
             printf "%s" "$PINNED_PACKAGES_DKML_PATCHES $PINNED_PACKAGES_OPAM" | xargs -n1 printf '  "%s"\n' | sed 's/,/./'
 
             # fdopen-mingw has pins that must be used since we've trimmed the fdopen repository
-            if is_unixy_windows_build_machine; then
+            if [ "$DISABLE_FDOPEN" = OFF ] && is_unixy_windows_build_machine; then
                 # Input: opam pin add --yes --no-action -k version "0install" "2.17"
                 # Input (older versions): opam pin add --yes --no-action -k version 0install 2.17
                 # Output:   "0install.2.17"
@@ -1213,7 +1213,9 @@ do_pin_adds() {
             diff "$WORK"/new-pinned "$WORK"/new-pinned.uniq >&2 || true
             printf "%s\n" "(Debugging) PINNED_PACKAGES_DKML_PATCHES=$PINNED_PACKAGES_DKML_PATCHES" >&2
             printf "%s\n" "(Debugging) PINNED_PACKAGES_OPAM=$PINNED_PACKAGES_OPAM" >&2
-            printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
+            if [ "$DISABLE_FDOPEN" = OFF ] && is_unixy_windows_build_machine; then
+                printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
+            fi
             exit 1
         fi
 
