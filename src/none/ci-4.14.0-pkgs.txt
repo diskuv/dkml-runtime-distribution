@@ -24,13 +24,13 @@ dkml-c-probe.3.0.0
 ##      global-install
 #       bin/dkml-fswatch.exe
 #       bin/dkml-confdir.exe
-dkml-apps.1.2.1~prerel8
+dkml-apps.1.2.1~prerel9
 ##      global-install
 #       bin/dkml.exe
-dkml-exe.1.2.1~prerel8
+dkml-exe.1.2.1~prerel9
 ##      global-install
 #       bin/with-dkml.exe
-with-dkml.1.2.1~prerel8
+with-dkml.1.2.1~prerel9
 
 # conf-withdkml is needed so dune+shim is built+installed correctly
 ##      global-install
