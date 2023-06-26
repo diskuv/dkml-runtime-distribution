@@ -14,8 +14,9 @@ set -euf
 # Summary: DKML provides patches for these
 #
 # Sections:
+# 0. Subset of packages from dune-*-pkgs.txt, in `.txt` order
 # 1. Subset of packages from ci-*-pkgs.txt, in `.txt` order
-# 2. Subset of packages from full-no-ci-pkgs.txt, in `.txt` order
+# 2. Subset of packages from full-pkgs.txt, in `.txt` order
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
 PINNED_PACKAGES_DKML_PATCHES="
     ocamlfind,1.9.1
@@ -71,8 +72,9 @@ PINNED_PACKAGES_DKML_PATCHES="
 #    - forces OCaml 5 for non-Windows systems. We do _not_ want to pin it until we have safely moved to OCaml 5
 #
 # Sections:
+# 0. Subset of packages from dune-*-pkgs.txt, in `.txt` order
 # 1. Subset of packages from ci-*-pkgs.txt, in `.txt` order
-# 2. Subset of packages from full-anyver-no-ci-pkgs.txt, in `.txt` order
+# 2. Subset of packages from full-anyver-pkgs.txt, in `.txt` order
 # 3. ppxlib and ppx_jane.v0.14.0 and its dependencies (except those from #1 and #2)
 # 4. Any packages that don't belong in #1 and #2 and #3, in alphabetical order
 PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
@@ -104,7 +106,6 @@ export PINNED_PACKAGES_OPAM_4_12_1="
     odoc,2.1.0
     odoc-parser,0.9.0
     stdio,v0.14.0
-    base,v0.14.2
     mdx,2.0.0
 
     lsp,1.9.0

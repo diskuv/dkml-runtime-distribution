@@ -7,23 +7,33 @@
    (progn
     (echo "type directive = Global_install | Global_compile\n")
     (echo "let ocaml_version = {version|%{ocaml_version}|version}\n")
-    ; ci
+    ; dune-anyver
+    (with-stdin-from
+     ../src/none/dune-anyver-pkgs.txt
+     (run config/read_pkgs.exe "dune_anyver_pkgs"))
+    ; ci-anyver
     (with-stdin-from
      ../src/none/ci-anyver-pkgs.txt
      (run config/read_pkgs.exe "ci_anyver_pkgs"))
     ; full-anyver
     (with-stdin-from
-     ../src/none/full-anyver-no-ci-pkgs.txt
+     ../src/none/full-anyver-pkgs.txt
      (run config/read_pkgs.exe "full_anyver_pkgs"))
+    ; dune-<ocamlver>
+    (with-stdin-from
+     ../src/none/dune-%{ocaml_version}-pkgs.txt
+     (run config/read_pkgs.exe "dune_ocamlver_pkgs"))
     ; ci-<ocamlver>
     (with-stdin-from
      ../src/none/ci-%{ocaml_version}-pkgs.txt
      (run config/read_pkgs.exe "ci_ocamlver_pkgs"))
-    (echo "let ci_pkgs = ci_anyver_pkgs @ ci_ocamlver_pkgs\n")
     ; full-<ocamlver>
     (with-stdin-from
-     ../src/none/full-%{ocaml_version}-no-ci-pkgs.txt
+     ../src/none/full-%{ocaml_version}-pkgs.txt
      (run config/read_pkgs.exe "full_ocamlver_pkgs"))
+    ; *_pks
+    (echo "let dune_pkgs = dune_anyver_pkgs @ dune_ocamlver_pkgs\n")
+    (echo "let ci_pkgs = ci_anyver_pkgs @ ci_ocamlver_pkgs\n")
     (echo "let full_pkgs = full_anyver_pkgs @ full_ocamlver_pkgs\n")))))
 
 (library

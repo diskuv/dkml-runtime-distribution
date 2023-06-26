@@ -2,6 +2,10 @@
 
 ## Flavors
 
+### Dune
+
+Only Dune.
+
 ### CI
 
 These are the packages required to build most OCaml packages on a CI system.
@@ -14,9 +18,11 @@ Should align very closely to the [OCaml Platform](https://ocaml.org/docs/platfor
 ## File Format
 
 Lexical rules:
+
 1. Leading and trailing whitespace are ignored in the semantic rules.
 
 Semantic rules:
+
 1. Any line that begins with a '#' and one or more SPACEs is a comment.
 2. Any line that begins with a '##' and one or more SPACEs is a directive. See [Directives](#directives)
    for details.
@@ -27,6 +33,7 @@ Semantic rules:
    `Package.Ver`.
 
 The goal of the above rules is to:
+
 1. Have each `Package.Ver` pinned in end-user DKML switches during `dkml init`.
 2. In addition, mark some `Package.Ver` for special treatment using directives.
 
@@ -41,7 +48,7 @@ installation.
 
 Example:
 
-```
+```text
 ##      global-install
 #       bin/dune
 #       bin/dune-real
@@ -60,7 +67,7 @@ dune.2.9.3
   even if they are compiled in one directory yet installed in a different directory.
   The relocation may be to a different machine, but the relocated machine's DKML ABI
   will always match the "target" DKML ABI at compile time. Confer with
-  https://github.com/diskuv/dkml-c-probe#readme for DKML ABI details.
+  <https://github.com/diskuv/dkml-c-probe#readme> for DKML ABI details.
 
 Other comments and directives **MAY** be between the `global-install` directive
 and the opam packager version.
@@ -77,7 +84,7 @@ system.
 
 Example:
 
-```
+```text
 ##      global-compile
 #       bin/ocamlfind
 #       lib/findlib.conf
@@ -111,24 +118,29 @@ Each Package.Ver must go into either:
 Each one of the following sections has its own opam constraints ...
 
 All DKML + DKSDK repo pkgs:
+
 * At least one is selected as a cornerstone. Ex. `ocaml-variants.4.12.1+options+dkml+msvc64`
 * All other packages must be constrained to versions that are present in UNION(DKML repo,DKSDK repo). Ex. `(mirage-crypto.0.10.3 | mirage-crypto.0.10.4)`
 
-Foundation packages (either ci-packages -or- full-no-ci-pkgs -or- some other flavor) {nit: rename flavor to foundation}
+Foundation packages (either ci-packages -or- full-pkgs -or- some other flavor) {nit: rename flavor to foundation}
+
 * All packages are presence constraints. Ex. `dune`
 
 No-go packages (known not to compile on Win32 like Async, or known bad license)
+
 * Some packages are no-presence constraints. Ex. `!async`
 * Autoprobe packages are version constraints. Ex. `!async.v0.14.0`
 
 `https://github.com/ocaml-opam/opam-0install-solver ==> solution ALPHA is a list of transitive_reach{cornerstore,foundation} (pkg,ver).`
 
 Remainder of Opam packages are free-floating
+
 * Package `a` picked at random. Test adding `a` to ALPHA; if build and test of `a` on Windows works, add it to "tested" package.
 * All packages are presence constraints. Ex. `helloworld`
 
 `https://github.com/ocaml-opam/opam-0install-solver ==> solution is a list of transitive_reach{cornerstore,foundation,tested} (pkg,ver).`
 
 Then:
+
 * Any (pkg,ver) present in both Opam and fdopen that are equivalent are removed from compact fdopen repository. (New rule)
 * Any pkg with (pkg,ver) not present in full fdopen repository is removed from compact fdopen repository. (Old rule)

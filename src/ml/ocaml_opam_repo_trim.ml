@@ -287,7 +287,6 @@ let packages_fdopen_to_remove =
     "odoc";
     "odoc-parser";
     "stdio";
-    "base";
     "mdx";
     "dune";
     "dune-action-plugin";

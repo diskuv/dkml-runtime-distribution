@@ -1,5 +1,6 @@
 # All packages listed in this file are installed as part of
-# the "dkml" system switch.
+# the "dkml" system switch as part of the "CI" distribution,
+# but only when distributing OCaml 4.14.0.
 
 # See README.md for a description of this file format.
 

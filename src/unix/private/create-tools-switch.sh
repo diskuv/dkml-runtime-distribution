@@ -38,7 +38,7 @@ usage() {
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
-    printf "%s\n" "    -f FLAVOR: Optional. The flavor of system packages: 'CI' or 'Full'" >&2
+    printf "%s\n" "    -f FLAVOR: Optional. The flavor of system packages: 'Dune', 'CI' or 'Full'" >&2
     printf "%s\n" "       'Full' is the same as CI, but has packages for UIs like utop and a language server" >&2
     printf "%s\n" "       If not specified, no system packages are installed unless [-a EXTRAPKG] is used" >&2
     printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
@@ -89,10 +89,11 @@ while getopts ":hb:d:u:o:p:v:f:a:w" opt; do
             ;;
         f )
             case "$OPTARG" in
+                Dune|DUNE|dune) FLAVOR=Dune ;;
                 Ci|CI|ci)       FLAVOR=CI ;;
                 Full|FULL|full) FLAVOR=Full ;;
                 *)
-                    printf "%s\n" "FLAVOR must be CI or Full"
+                    printf "%s\n" "FLAVOR must be Dune, CI or Full"
                     usage
                     exit 1
             esac
@@ -239,15 +240,26 @@ chmod +x "$WORK"/troubleshoot-opam.sh
     case "$FLAVOR" in
         "")
             ;;
+        Dune)
+            get_ocamlver
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            ;;
         CI)
+            get_ocamlver
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-anyver-pkgs.txt | tr -d '\r'
             awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             ;;
         Full)
             get_ocamlver
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-anyver-no-ci-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-"$OCAMLVERSION"-no-ci-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-anyver-pkgs.txt | tr -d '\r'
+            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             ;;
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac

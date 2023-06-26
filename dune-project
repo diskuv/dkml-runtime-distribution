@@ -21,7 +21,7 @@
 * a machine (ex. system or Administrator assembly/C compilers)")
  (depends
   (ocaml
-    ; src/none/full-<VER>-no-ci-pkgs.txt has a list of DKML packages for that version of OCaml
+    ; src/none/full-<VER>-pkgs.txt has a list of DKML packages for that version of OCaml
     (or
       (and (>= 4.12.1~) (< 4.12.2~))
       (and (>= 4.14.0~) (< 4.14.1~))

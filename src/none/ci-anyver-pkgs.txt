@@ -18,20 +18,3 @@ ocamlfind.1.9.1
 # BUT ocaml-config.3 requires OCaml 5 for non-Windows machines. So do _not_ pin it
 # until we've upgraded to OCaml 5
 # ocaml-config.3
-
-# Dune is needed to compile dkml-findup.exe
-# dune-* must be compatible with Dune
-##      global-install
-#       bin/dune
-#       bin/dune-real
-#       man/man1/dune-build.1
-#       man/man1/...
-#       man/man1/dune.1
-#       man/man5/dune-config.5
-dune.3.6.2+shim
-dune-action-plugin.3.6.2
-dune-glob.3.6.2
-dune-private-libs.3.6.2
-dune-rpc-lwt.3.6.2
-dune-rpc.3.6.2
-dune-site.3.6.2
