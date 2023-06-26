@@ -36,6 +36,8 @@ usage() {
     printf "%s\n" "       The bin/ subdir of the OCaml home is added to the PATH; currently, passing an OCaml version does nothing" >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
     printf "%s\n" "    -a Use local repository rather than git repository for diskuv-opam-repository. Requires rsync" >&2
+    printf "%s\n" "    -e DISKUV_REPO: Use DISKUV_REPO rather than the default diskuv-opam-repository. Valid opam" >&2
+    printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
     printf "%s\n" "    -c CENTRAL_REPO: Use CENTRAL_REPO rather than the default https://opam.ocaml.org repository. Valid opam" >&2
     printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
     printf "%s\n" "    -x Disable sandboxing in all platforms. By default, sandboxing is disabled in Windows, WSL2 and in dockcross" >&2
@@ -50,7 +52,7 @@ OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
 CENTRAL_REPO=https://opam.ocaml.org
 DISABLE_SANDBOX=OFF
-while getopts ":hp:r:d:o:v:ac:x" opt; do
+while getopts ":hp:r:d:o:v:ac:xe:" opt; do
     case ${opt} in
         h )
             usage
@@ -70,6 +72,7 @@ while getopts ":hp:r:d:o:v:ac:x" opt; do
             OCAMLVERSION_OR_HOME=$OPTARG
         ;;
         a ) DISKUVOPAMREPO=LOCAL ;;
+        e ) DISKUVOPAMREPO=$OPTARG ;;
         c ) CENTRAL_REPO=$OPTARG ;;
         x ) DISABLE_SANDBOX=ON ;;
         \? )
@@ -340,8 +343,10 @@ if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version" ] && [ ! -e "$
     if [ "$DISKUVOPAMREPO" = LOCAL ]; then
         OPAMREPO_DISKUV="$OPAMREPOS_MIXED/diskuv-opam-repository"
         run_opam repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
-    else
+    elif [ "$DISKUVOPAMREPO" = REMOTE ]; then
         run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
+    else
+        run_opam repository add diskuv-"$dkml_root_version" "$DISKUVOPAMREPO" --yes --dont-select --rank=1
     fi
 fi
 
