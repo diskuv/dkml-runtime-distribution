@@ -162,57 +162,69 @@ autodetect_system_binaries
 # -----------------------
 # BEGIN install opam repositories
 
-# Make versioned repos
+# 2023-06-25:
+#   The versioning of diskuv-opam-repository is done using git tags with
+#   DkML's release.sh (which is changing to a CMake packaging/ target).
+#   The LOCAL form of diskuv-opam-repository is no longer needed, although
+#   the option still exists. Not only that, the LOCAL form requires that
+#   there is the correct version of the repository available; if someone
+#   used the DkML installer, it is quite possible that the versions will
+#   not match. So ... avoid the LOCAL form.
 #
-# Q: Why is repos here rather than in DiskuvOCamlHome?
-# The repos are required for Unix, not just Windows.
+# Original notes:
+#   Make versioned repos
 #
-# Q: Why aren't we using an HTTP(S) site?
-# Yep, we could have done `opam admin index`
-# and followed the https://opam.ocaml.org/doc/Manual.html#Repositories instructions.
-# It is not hard _but_ we want a) versioning of the repository to coincide with
-# the version of Diskuv OCaml and b) ability to
-# edit the repository for `AdvancedToolchain.rst` patching. We could have done
-# both with HTTP(S) but simpler is usually better.
+#   Q: Why is repos here rather than in DiskuvOCamlHome?
+#   The repos are required for Unix, not just Windows.
+#
+#   Q: Why aren't we using an HTTP(S) site?
+#   Yep, we could have done `opam admin index`
+#   and followed the https://opam.ocaml.org/doc/Manual.html#Repositories instructions.
+#   It is not hard _but_ we want a) versioning of the repository to coincide with
+#   the version of Diskuv OCaml and b) ability to
+#   edit the repository for `AdvancedToolchain.rst` patching. We could have done
+#   both with HTTP(S) but simpler is usually better.
 
-if [ -x /usr/bin/cygpath ]; then
-    # shellcheck disable=SC2154
-    OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
-    OPAMREPOS_UNIX=$(/usr/bin/cygpath -au "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
-else
-    OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
-    OPAMREPOS_UNIX="$OPAMREPOS_MIXED"
-fi
-if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
-    install -d "$OPAMREPOS_UNIX"
-    if [ -n "${DKMLHOME_UNIX:-}" ] && is_unixy_windows_build_machine; then
-        if [ ! "${DKMLVERSION:-}" = "$dkml_root_version" ]; then
-            printf "FATAL: The DKML source code at %s needs DKML version '%s', but only '%s' was installed\n" \
-                "$DKMLDIR" "$dkml_root_version" "${DKMLVERSION:-}" >&2
-            exit 107
+if [ "$DISKUVOPAMREPO" = LOCAL ]; then
+    if [ -x /usr/bin/cygpath ]; then
+        # shellcheck disable=SC2154
+        OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
+        OPAMREPOS_UNIX=$(/usr/bin/cygpath -au "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
+    else
+        OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
+        OPAMREPOS_UNIX="$OPAMREPOS_MIXED"
+    fi
+    if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
+        install -d "$OPAMREPOS_UNIX"
+        if [ -n "${DKMLHOME_UNIX:-}" ] && is_unixy_windows_build_machine; then
+            if [ ! "${DKMLVERSION:-}" = "$dkml_root_version" ]; then
+                printf "FATAL: The DKML source code at %s needs DKML version '%s', but only '%s' was installed\n" \
+                    "$DKMLDIR" "$dkml_root_version" "${DKMLVERSION:-}" >&2
+                exit 107
+            fi
+            if has_rsync; then
+                # shellcheck disable=SC2154
+                log_trace spawn_rsync -ap \
+                    "$DKMLHOME_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH"/ \
+                    "$OPAMREPOS_UNIX"/fdopen-mingw
+            else
+                log_trace install -d "$OPAMREPOS_UNIX"/fdopen-mingw
+                log_trace sh -x -c "cp -r '$DKMLHOME_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH'/* '$OPAMREPOS_UNIX/fdopen-mingw/'"
+            fi
         fi
         if has_rsync; then
-            # shellcheck disable=SC2154
-            log_trace spawn_rsync -ap \
-                "$DKMLHOME_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH"/ \
-                "$OPAMREPOS_UNIX"/fdopen-mingw
+            if [ "$DISKUVOPAMREPO" = LOCAL ]; then
+                log_trace spawn_rsync -ap "$DKMLDIR"/vendor/diskuv-opam-repository/ "$OPAMREPOS_UNIX/diskuv-opam-repository"
+            fi
         else
-            log_trace install -d "$OPAMREPOS_UNIX"/fdopen-mingw
-            log_trace sh -x -c "cp -r '$DKMLHOME_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH'/* '$OPAMREPOS_UNIX/fdopen-mingw/'"
+            log_trace install -d "$OPAMREPOS_UNIX"
+            if [ "$DISKUVOPAMREPO" = LOCAL ]; then
+                log_trace install -d "$OPAMREPOS_UNIX"/diskuv-opam-repository
+                log_trace sh -x -c "cp -r '$DKMLDIR/vendor/diskuv-opam-repository'/* '$OPAMREPOS_UNIX/diskuv-opam-repository/'"
+            fi
         fi
+        touch "$OPAMREPOS_UNIX".complete
     fi
-    if has_rsync; then
-        if [ "$DISKUVOPAMREPO" = LOCAL ]; then
-            log_trace spawn_rsync -ap "$DKMLDIR"/vendor/diskuv-opam-repository/ "$OPAMREPOS_UNIX/diskuv-opam-repository"
-        fi
-    else
-        log_trace install -d "$OPAMREPOS_UNIX"
-        if [ "$DISKUVOPAMREPO" = LOCAL ]; then
-            log_trace install -d "$OPAMREPOS_UNIX"/diskuv-opam-repository
-            log_trace sh -x -c "cp -r '$DKMLDIR/vendor/diskuv-opam-repository'/* '$OPAMREPOS_UNIX/diskuv-opam-repository/'"
-        fi
-    fi
-    touch "$OPAMREPOS_UNIX".complete
 fi
 
 # END install opam repositories
