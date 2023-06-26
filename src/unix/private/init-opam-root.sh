@@ -98,8 +98,10 @@ fi
 # END Command line processing
 # ------------------
 
-DKMLDIR=$(dirname "$0")
-DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
+if [ -z "${DKMLDIR:-}" ]; then
+    DKMLDIR=$(dirname "$0")
+    DKMLDIR=$(cd "$DKMLDIR/../../../../.." && pwd)
+fi
 
 # shellcheck disable=SC1091
 . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
