@@ -7,9 +7,9 @@ set -euf
 #
 # The format is `PACKAGE_NAME,PACKAGE_VERSION`. Notice the **comma** inside the quotes!
 
-# These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove]
-# and https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/logic/model.ml's [global_env_vars]
-# and https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/scripts/setup-dkml.sh's [do_pins]
+# These MUST BE IN SYNC with:
+# https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/logic/model.ml's [global_env_vars]
+# https://github.com/diskuv/dkml-workflows-prerelease/blob/v1/src/scripts/setup-dkml.sh's [do_pins]
 #
 # Summary: DKML provides patches for these
 #
@@ -18,168 +18,6 @@ set -euf
 # 1. Subset of packages from ci-*-pkgs.txt, in `.txt` order
 # 2. Subset of packages from full-pkgs.txt, in `.txt` order
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
-PINNED_PACKAGES_DKML_PATCHES="
-    ocamlfind,1.9.1
-
-    ocp-indent,1.8.2-windowssupport
-
-    alcotest,1.6.0
-    alcotest-async,1.6.0
-    alcotest-js,1.6.0
-    alcotest-lwt,1.6.0
-    alcotest-mirage,1.6.0
-    base,v0.15.1
-    base_bigstring,v0.15.0
-    bigstringaf,0.9.0+msvc
-    core_kernel,v0.15.0
-    core,v0.15.1
-    ctypes-foreign,0.19.2-windowssupport-r5
-    ctypes,0.19.2-windowssupport-r5
-    curly,0.2.1-windows-env_r2
-    feather,0.3.0
-    mccs,1.1+13
-    ocamlbuild,0.14.0
-    ppx_expect,v0.15.1
-
-    dkml-apps,1.2.1~prerel10
-    dkml-exe,1.2.1~prerel10
-    with-dkml,1.2.1~prerel10
-    "
-
-# These MUST BE IN SYNC with vendor/drd/src/ml/ocaml_opam_repo_trim.ml's [packages_fdopen_to_remove].
-# Summary: Packages which MUST be pinned and come from the central Opam repository.
-# Reasons:
-# a) pkg used a major version bump and caused major breaking changes to downstream packages or broke OS (ex. Win32) compatibility
-# b) pkgver not yet present in fdopen
-# c) pkgver is in fdopen, but `opam` file is equivalent to central Opam repository (so no fdopen modifications)
-#
-# Callouts:
-# * (a) ppxlib incorrectly did not use a major version bump and caused major breaking changes to downstream packages.
-#   That is, ppxlib.0.23.0 breaks ppx_variants_conv.v0.14.1. PR to fix is https://github.com/janestreet/ppx_variants_conv/pull/9
-#   This has a ripple effect that the Jane Street PPX can only be v0.14.x or lower. Easiest to find dependencies by
-#   installing ppx_jane.v0.14.0 in a minimal Opam switch and then doing a
-#     `opam list | awk '$2 ~ /^v0[.]14[.]/ {printf "%s,%s\n", $1, $2}'`.
-#   We can't list other pinned Jane Street dependencies, so filter with
-#     `| grep -v base, | grep -v stdio, | grep -v core_kernel, | grep -v ppx_expect, | grep -v sexplib,`
-#   2022-09-03: ppxlib.0.22.0 is no longer needed. Just use ppxlib.0.25.1
-# * (b) jsonrpc, lsp and ocaml-lsp-server as of 2021-11-22 was not present in the fdopen repository, but was needed by lsp.1.9.0
-# * (c) bos, sha and sexplib are needed to compile with-dkml.exe; bos needs rresult and fmt, and fdopen `opam` files are same as https://opam.ocaml.org/
-# * (c) cmdliner and opam-client (+ opam-*) are needed to compile dkml.exe; same `opam` as https://opam.ocaml.org/
-# * (a) alcotest.1.4.0 works with Win32 MSVC; 1.5.0 does not
-#
-# Exceptions:
-#    ocaml-config,3
-#    - forces OCaml 5 for non-Windows systems. We do _not_ want to pin it until we have safely moved to OCaml 5
-#
-# Sections:
-# 0. Subset of packages from dune-*-pkgs.txt, in `.txt` order
-# 1. Subset of packages from ci-*-pkgs.txt, in `.txt` order
-# 2. Subset of packages from full-anyver-pkgs.txt, in `.txt` order
-# 3. ppxlib and ppx_jane.v0.14.0 and its dependencies (except those from #1 and #2)
-# 4. Any packages that don't belong in #1 and #2 and #3, in alphabetical order
-PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC="
-    bos,0.2.1
-    fmt,0.9.0
-    rresult,0.7.0
-    sha,1.15.2
-    dkml-c-probe,3.0.0
-
-    utop,2.10.0
-    "
-export PINNED_PACKAGES_OPAM_4_12_1="
-    sexplib,v0.14.0
-
-    cmdliner,1.0.4
-    crunch,3.2.0
-    uuidm,0.9.7
-
-    dune,2.9.3+shim.1.0.2~r13
-    dune-action-plugin,2.9.3
-    dune-glob,2.9.3
-    dune-private-libs,2.9.3
-    dune-site,2.9.3
-
-    ocamlformat,0.19.0
-    ocamlformat-rpc,0.19.0
-    ocamlformat-rpc-lib,0.19.0
-
-    odoc,2.1.0
-    odoc-parser,0.9.0
-    stdio,v0.14.0
-    mdx,2.0.0
-
-    lsp,1.9.0
-    ocaml-lsp-server,1.9.0
-    jsonrpc,1.9.0
-
-    ppxlib,0.25.1
-
-    base_quickcheck,v0.14.1
-    bin_prot,v0.14.1
-    fieldslib,v0.14.0
-    jane-street-headers,v0.14.0
-    jst-config,v0.14.1
-    ppx_assert,v0.14.0
-    ppx_bench,v0.14.1
-    ppx_bin_prot,v0.14.0
-    ppx_cold,v0.14.0
-    ppx_compare,v0.14.0
-    ppx_custom_printf,v0.14.1
-    ppx_enumerate,v0.14.0
-    ppx_fields_conv,v0.14.2
-    ppx_fixed_literal,v0.14.0
-    ppx_hash,v0.14.0
-    ppx_here,v0.14.0
-    ppx_inline_test,v0.14.1
-    ppx_jane,v0.14.0
-    ppx_js_style,v0.14.1
-    ppx_let,v0.14.0
-    ppx_module_timer,v0.14.0
-    ppx_optcomp,v0.14.3
-    ppx_optional,v0.14.0
-    ppx_pipebang,v0.14.0
-    ppx_sexp_conv,v0.14.3
-    ppx_sexp_message,v0.14.1
-    ppx_sexp_value,v0.14.0
-    ppx_stable,v0.14.1
-    ppx_string,v0.14.1
-    ppx_typerep_conv,v0.14.2
-    ppx_variants_conv,v0.14.2
-    sexplib0,v0.14.0
-    splittable_random,v0.14.0
-    time_now,v0.14.0
-    typerep,v0.14.0
-    variantslib,v0.14.0
-"
-export PINNED_PACKAGES_OPAM_4_14_0="
-    sexplib.v0.15.1
-
-    cmdliner,1.1.1
-    crunch,3.3.1
-    uuidm,0.9.8
-
-    dune,3.6.2+shim
-    dune-action-plugin,3.6.2
-    dune-glob,3.6.2
-    dune-private-libs,3.6.2
-    dune-rpc-lwt,3.6.2
-    dune-rpc,3.6.2
-    dune-site,3.6.2
-
-    ocamlformat,0.24.1
-    ocamlformat-rpc-lib,0.24.1
-
-    odoc,2.2.0
-    odoc-parser,2.0.0
-    stdio,v0.15.0
-    mdx,2.1.0
-
-    lsp,1.12.2
-    ocaml-lsp-server,1.12.2
-    jsonrpc,1.12.2
-
-    omd,1.3.1
-"
 
 OCAML_DEFAULT_VERSION=4.14.0
 
@@ -578,12 +416,6 @@ case "$OCAMLVERSION_OR_HOME_UNIX" in
         fi
         ;;
 esac
-
-# Make PINNED_PACKAGES_OPAM be version agnostic + version specific packages
-OCAMLVERSION_ID=$(printf "%s" "$OCAMLVERSION" | $DKMLSYS_TR . _)
-PINNED_PACKAGES_OPAM_VERSIONSPECIFIC_NAME=$(eval printf "PINNED_PACKAGES_OPAM_%s" "$OCAMLVERSION_ID")
-PINNED_PACKAGES_OPAM_VERSIONSPECIFIC=$(eval echo '$'"$PINNED_PACKAGES_OPAM_VERSIONSPECIFIC_NAME")
-PINNED_PACKAGES_OPAM="$PINNED_PACKAGES_OPAM_VERSIONAGNOSTIC $PINNED_PACKAGES_OPAM_VERSIONSPECIFIC"
 
 # Set OCAML_OPTIONS if we are building the OCaml base. And if so, set
 # TARGET_ variables that can be used to pick the DKMLBASECOMPILERVERSION later.
@@ -1190,44 +1022,174 @@ do_pin_adds() {
     get_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned > "$WORK"/pinned
     PINNED_NUMLINES=$(awk 'END{print NR}' "$WORK"/pinned)
     if [ "$PINNED_NUMLINES" -le 2 ] || ! [ -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version" ]; then
-        # The pins have to be sorted
-        {
-            # Input: dune-configurator,2.9.0
-            # Output:  "dune-configurator.2.9.0"
-            printf "%s" "$PINNED_PACKAGES_DKML_PATCHES $PINNED_PACKAGES_OPAM" | xargs -n1 printf '  "%s"\n' | sed 's/,/./'
-
-            # fdopen-mingw has pins that must be used since we've trimmed the fdopen repository
-            if [ "$DISABLE_FDOPEN" = OFF ] && is_unixy_windows_build_machine; then
-                # Input: opam pin add --yes --no-action -k version "0install" "2.17"
-                # Input (older versions): opam pin add --yes --no-action -k version 0install 2.17
-                # Output:   "0install.2.17"
-                # Caution: `tr` on MSYS2 only operates on standard input and output; no named file argument.
-                tr -d '"' < "$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt" | \
-                awk -v dquot='"' 'NF>=2 { l2=NF-1; l1=NF; print "  " dquot $l2 "." $l1 dquot}'
-            fi
-        } | sort > "$WORK"/new-pinned
-
-        # The pins should also be unique
-        sort -u "$WORK"/new-pinned > "$WORK"/new-pinned.uniq
-        if ! cmp -s "$WORK"/new-pinned "$WORK"/new-pinned.uniq; then
-            printf "%s\n" "FATAL: The pins should be unique! Instead we have some duplicated entries that may lead to problems:" >&2
-            diff "$WORK"/new-pinned "$WORK"/new-pinned.uniq >&2 || true
-            printf "%s\n" "(Debugging) PINNED_PACKAGES_DKML_PATCHES=$PINNED_PACKAGES_DKML_PATCHES" >&2
-            printf "%s\n" "(Debugging) PINNED_PACKAGES_OPAM=$PINNED_PACKAGES_OPAM" >&2
-            if [ "$DISABLE_FDOPEN" = OFF ] && is_unixy_windows_build_machine; then
-                printf "%s\n" "(Debugging) Pins at '$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version/fdopen-mingw/$OCAMLVERSION/pins.txt'" >&2
-            fi
-            exit 1
-        fi
-
         # Make the new switch state
         {
             # everything except any old pinned section
             delete_opam_switch_state_toplevelsection "$OPAMSWITCHFINALDIR_BUILDHOST" pinned
 
-            printf "%s\n" 'pinned: ['
-            cat "$WORK"/new-pinned
-            printf "%s\n" ']'
+### BEGIN pinned-section. DO NOT EDIT THE LINES IN THIS SECTION
+# Managed by bump-packages.cmake
+echo 'pinned: [
+  "alcotest.1.6.0"
+  "astring.0.8.5"
+  "base.v0.15.1"
+  "base_bigstring.v0.15.0"
+  "base_quickcheck.v0.15.0"
+  "bigarray-compat.1.1.0"
+  "bigstringaf.0.9.0+msvc"
+  "bin_prot.v0.15.0"
+  "bos.0.2.1"
+  "camlp-streams.5.0.1"
+  "checkseum.0.3.4+android"
+  "cmdliner.1.1.1"
+  "conf-pkg-config.2+cpkgs"
+  "core.v0.15.1"
+  "core_kernel.v0.15.0"
+  "cppo.1.6.9"
+  "crunch.3.3.1"
+  "csexp.1.5.2"
+  "cstruct.6.2.0"
+  "ctypes-foreign.0.19.2-windowssupport-r6"
+  "ctypes.0.19.2-windowssupport-r6"
+  "cudf.0.10"
+  "curly.0.2.1-windows-env_r2"
+  "digestif.1.1.2+msvc"
+  "diskuvbox.0.2.0"
+  "dkml-apps.1.2.1~prerel10"
+  "dkml-base-compiler.4.14.0~v1.2.1~prerel10"
+  "dkml-c-probe.3.0.0"
+  "dkml-compiler-env.1.2.1~prerel10"
+  "dkml-exe-lib.1.2.1~prerel10"
+  "dkml-exe.1.2.1~prerel10"
+  "dkml-runtime-common-native.1.2.1~prerel10"
+  "dkml-runtime-common.1.2.1~prerel10"
+  "dkml-runtime-distribution.1.2.1~prerel10"
+  "dkml-runtimelib.1.2.1~prerel10"
+  "dkml-runtimescripts.1.2.1~prerel10"
+  "dune-action-plugin.3.6.2"
+  "dune-build-info.3.8.2"
+  "dune-configurator.3.8.2"
+  "dune-glob.3.6.2"
+  "dune-private-libs.3.6.2"
+  "dune-rpc-lwt.3.6.2"
+  "dune-rpc.3.6.2"
+  "dune-site.3.6.2"
+  "dune.3.6.2+shim"
+  "dyn.3.6.2"
+  "either.1.0.0"
+  "eqaf.0.9"
+  "extlib.1.7.9"
+  "feather.0.3.0"
+  "fiber.3.6.2"
+  "fieldslib.v0.15.0"
+  "fix.20230505"
+  "fmt.0.9.0"
+  "fpath.0.7.3"
+  "int_repr.v0.15.0"
+  "integers.0.7.0"
+  "jane-street-headers.v0.15.0"
+  "jsonrpc.1.12.2"
+  "jst-config.v0.15.1"
+  "lambda-term.3.3.1"
+  "logs.0.7.0"
+  "lsp.1.12.2"
+  "lwt.5.6.1"
+  "lwt_react.1.2.0"
+  "mccs.1.1+13"
+  "mdx.2.1.0"
+  "menhir.20230608"
+  "menhirLib.20230608"
+  "menhirSdk.20230608"
+  "mew.0.1.0"
+  "mew_vi.0.5.0"
+  "num.1.4"
+  "ocaml-compiler-libs.v0.12.4"
+  "ocaml-config.3"
+  "ocaml-syntax-shims.1.0.0"
+  "ocaml-version.3.5.0"
+  "ocaml.4.14.0"
+  "ocamlbuild.0.14.0"
+  "ocamlfind.1.9.1"
+  "ocamlformat-rpc-lib.0.24.1"
+  "ocamlformat.0.24.1"
+  "ocp-indent.1.8.2-windowssupport"
+  "ocplib-endian.1.2"
+  "octavius.1.2.2"
+  "odoc-parser.2.0.0"
+  "odoc.2.2.0"
+  "omd.1.3.1"
+  "optint.0.3.0"
+  "ordering.3.6.2"
+  "parsexp.v0.15.0"
+  "pp.1.1.2"
+  "ppx_assert.v0.15.0"
+  "ppx_base.v0.15.0"
+  "ppx_bench.v0.15.1"
+  "ppx_bin_prot.v0.15.0"
+  "ppx_cold.v0.15.0"
+  "ppx_compare.v0.15.0"
+  "ppx_custom_printf.v0.15.0"
+  "ppx_derivers.1.2.1"
+  "ppx_deriving.5.2.1"
+  "ppx_disable_unused_warnings.v0.15.0"
+  "ppx_enumerate.v0.15.0"
+  "ppx_expect.v0.15.1"
+  "ppx_fields_conv.v0.15.0"
+  "ppx_fixed_literal.v0.15.0"
+  "ppx_hash.v0.15.0"
+  "ppx_here.v0.15.0"
+  "ppx_ignore_instrumentation.v0.15.0"
+  "ppx_inline_test.v0.15.1"
+  "ppx_jane.v0.15.0"
+  "ppx_let.v0.15.0"
+  "ppx_log.v0.15.0"
+  "ppx_module_timer.v0.15.0"
+  "ppx_optcomp.v0.15.0"
+  "ppx_optional.v0.15.0"
+  "ppx_pipebang.v0.15.0"
+  "ppx_sexp_conv.v0.15.1"
+  "ppx_sexp_message.v0.15.0"
+  "ppx_sexp_value.v0.15.0"
+  "ppx_stable.v0.15.0"
+  "ppx_string.v0.15.0"
+  "ppx_typerep_conv.v0.15.0"
+  "ppx_variants_conv.v0.15.0"
+  "ppx_yojson_conv_lib.v0.16.0"
+  "ppxlib.0.30.0"
+  "ptime.1.1.0"
+  "re.1.10.4"
+  "react.1.2.2"
+  "result.1.5"
+  "rresult.0.7.0"
+  "seq.base"
+  "sexplib.v0.15.1"
+  "sexplib0.v0.15.1"
+  "sha.1.15.2"
+  "spawn.0.15.1+android"
+  "splittable_random.v0.15.0"
+  "stdio.v0.15.0"
+  "stdlib-shims.0.3.0"
+  "stdune.3.6.2"
+  "time_now.v0.15.0"
+  "topkg.1.0.7"
+  "trie.1.0.0"
+  "typerep.v0.15.0"
+  "tyxml.4.5.0"
+  "uchar.0.0.2"
+  "utop.2.10.0"
+  "uucp.15.0.0"
+  "uuidm.0.9.8"
+  "uuseg.15.0.0"
+  "uutf.1.0.3"
+  "variantslib.v0.15.0"
+  "with-dkml.1.2.1~prerel10"
+  "xdg.3.8.2"
+  "yojson.2.1.0"
+  "zed.3.2.1"
+]
+'
+### END pinned-section. DO NOT EDIT THE LINES ABOVE
+
         } > "$WORK"/new-switch-state
 
         # Reset the switch state

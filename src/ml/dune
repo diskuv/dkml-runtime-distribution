@@ -1,4 +1,0 @@
-(executable
- (name ocaml_opam_repo_trim)
- (modes byte exe)
- (libraries str unix))
