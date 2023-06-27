@@ -73,14 +73,17 @@ function DV_MSYS2PackagesAbi {
     # Needed for our own sanity!
     # ----
     # ag - search tool called Silver Surfer
+    # libffi - needed by OCaml package `ctypes`
 
     if ("$DkmlHostAbi" -eq "windows_x86_64") {
         @(
-            "mingw-w64-clang-x86_64-ag"
+            "mingw-w64-clang-x86_64-ag",
+            "mingw-w64-clang-x86_64-libffi"
         )
     } elseif ("$DkmlHostAbi" -eq "windows_x86") {
         @(
-            "mingw-w64-i686-ag"
+            "mingw-w64-i686-ag",
+            "mingw-w64-i686-libffi"
         )
     }
 }
