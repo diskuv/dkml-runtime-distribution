@@ -928,35 +928,52 @@ fi
 
 # We don't put with-dkml.exe into the `dkml` tools switch because with-dkml.exe (currently) needs a tools switch to compile itself.
 do_set_wrap_commands() {
+    do_set_wrap_commands_TOMBSTONE_KEY=tombstone
     if [ -z "$WRAP_COMMAND" ]; then
         # Set WITHDKMLEXE_DOS83_OR_BUILDHOST
         if [ "$NO_WITHDKML" = OFF ]; then
             autodetect_withdkmlexe
             do_set_wrap_commands_WRAP="$WITHDKMLEXE_DOS83_OR_BUILDHOST"
             do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}
+        else
+            # No wrapping supplied so not wrapping should be done.
+            # But we are idempotent so we have to remove any old
+            # wrapping commands.
+            do_set_wrap_commands_WRAP=
+            do_set_wrap_commands_KEY=${do_set_wrap_commands_TOMBSTONE_KEY}
         fi
     else
         do_set_wrap_commands_WRAP="$WRAP_COMMAND"
         do_set_wrap_commands_KEY=${WRAP_COMMANDS_CACHE_KEY}_$(sha256compute "$WRAP_COMMAND")
     fi
     if [ ! -e "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$do_set_wrap_commands_KEY" ]; then
-        printf "%s" "$do_set_wrap_commands_WRAP" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
-        DOW_PATH=$(cat "$WORK"/dow.path)
+        # Ensure partial failures, or switching between tombstone deletions and real values, works
+        rm -f "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$do_set_wrap_commands_TOMBSTONE_KEY"
+        rm -f "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/$do_set_wrap_commands_KEY"
+
+        if [ -z "$do_set_wrap_commands_WRAP" ]; then
+            # Deletions (tombstone values) are an empty array
+            DOW_PATH='[]'
+        else
+            # Real wrapping commands are a single-element array with a quoted item
+            printf '["%s"]' "$do_set_wrap_commands_WRAP" | sed 's/\\/\\\\/g' > "$WORK"/dow.path
+            DOW_PATH=$(cat "$WORK"/dow.path)
+        fi
         {
             cat "$WORK"/nonswitchexec.sh
-            printf "  option wrap-build-commands='[\"%s\"]' " "$DOW_PATH"
+            printf "  option wrap-build-commands='%s' " "$DOW_PATH"
             if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
         } > "$WORK"/wbc.sh
         log_shell "$WORK"/wbc.sh
         {
             cat "$WORK"/nonswitchexec.sh
-            printf "  option wrap-install-commands='[\"%s\"]' " "$DOW_PATH"
+            printf "  option wrap-install-commands='%s' " "$DOW_PATH"
             if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
         } > "$WORK"/wbc.sh
         log_shell "$WORK"/wbc.sh
         {
             cat "$WORK"/nonswitchexec.sh
-            printf "  option wrap-remove-commands='[\"%s\"]' " "$DOW_PATH"
+            printf "  option wrap-remove-commands='%s' " "$DOW_PATH"
             if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
         } > "$WORK"/wbc.sh
         log_shell "$WORK"/wbc.sh
