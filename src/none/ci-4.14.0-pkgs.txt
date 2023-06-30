@@ -34,6 +34,10 @@ dkml-exe.1.2.1~prerel10
 with-dkml.1.2.1~prerel10
 
 # conf-withdkml is needed so dune+shim is built+installed correctly
-##      global-install
-#       config/conf-withdkml.config
+# for any [global-compile] package that needs dune, except for the
+# dkml switch which does not install conf-withdkml. So we want
+# conf-withdkml to be a runtime decision. That is [create-opam-switch.sh
+# -m conf-withdkml] like is done by [dkml init] command.
+#
+#       .opam-switch/config/conf-withdkml.config
 conf-withdkml.2
