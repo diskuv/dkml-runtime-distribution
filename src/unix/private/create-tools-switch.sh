@@ -38,9 +38,10 @@ usage() {
     printf "%s\n" "    -d STATEDIR: If specified, use <STATEDIR>/opam as the Opam root" >&2
     printf "%s\n" "    -u ON|OFF: Deprecated" >&2
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
-    printf "%s\n" "    -f FLAVOR: Optional. The flavor of system packages: 'Dune', 'CI' or 'Full'" >&2
-    printf "%s\n" "       'Full' is the same as CI, but has packages for UIs like utop and a language server" >&2
-    printf "%s\n" "       If not specified, no system packages are installed unless [-a EXTRAPKG] is used" >&2
+    printf "%s\n" "    -f FLAVOR: Optional. The flavor of DkML \"global-compile\" distribution packages to install:" >&2
+    printf "%s\n" "          Dune, CI or Full" >&2
+    printf "%s\n" "       'Full' is the same as 'CI', but has packages for UIs like utop and a language server" >&2
+    printf "%s\n" "       If not specified, no global-compile packages are installed unless [-a EXTRAPKG] is used" >&2
     printf "%s\n" "    -b BUILDTYPE: The build type which is one of:" >&2
     printf "%s\n" "        Debug" >&2
     printf "%s\n" "        Release - Most optimal code. Should be faster than ReleaseCompat* builds" >&2
@@ -55,13 +56,13 @@ usage() {
     printf "%s\n" "    -a EXTRAPKG: Optional; can be repeated. An extra package to install in the tools switch" >&2
 }
 
+EXTRAPKGS=
 BUILDTYPE=
 STATEDIR=
 OCAMLVERSION_OR_HOME=
 OPAMEXE_OR_HOME=
 FLAVOR=
 DKMLABI=
-EXTRAPKGS=
 DISABLE_UPDATE=OFF
 while getopts ":hb:d:u:o:p:v:f:a:w" opt; do
     case ${opt} in
@@ -100,9 +101,10 @@ while getopts ":hb:d:u:o:p:v:f:a:w" opt; do
         ;;
         a )
             if [ -n "$EXTRAPKGS" ]; then
-                EXTRAPKGS="$EXTRAPKGS "
+                EXTRAPKGS="$EXTRAPKGS $OPTARG"
+            else
+                EXTRAPKGS="$OPTARG"
             fi
-            EXTRAPKGS="$EXTRAPKGS $OPTARG"
         ;;
         w ) DISABLE_UPDATE=ON ;;
         \? )
@@ -237,29 +239,30 @@ chmod +x "$WORK"/troubleshoot-opam.sh
     if [ -n "$EXTRAPKGS" ]; then
         printf " %s" "$EXTRAPKGS"
     fi
+    globalcompile_awk="$DKMLDIR/vendor/drd/src/unix/private/global-compile.awk"
     case "$FLAVOR" in
         "")
             ;;
         Dune)
             get_ocamlver
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             ;;
         CI)
             get_ocamlver
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/ci-anyver-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             ;;
         Full)
             get_ocamlver
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-anyver-pkgs.txt | tr -d '\r'
-            awk 'NF>0 && $1 !~ "#.*" {printf " %s", $1}' "$DKMLDIR"/vendor/drd/src/none/full-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/dune-anyver-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/dune-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/ci-anyver-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/ci-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/full-anyver-pkgs.txt | tr -d '\r'
+            awk -f "$globalcompile_awk" "$DKMLDIR"/vendor/drd/src/none/full-"$OCAMLVERSION"-pkgs.txt | tr -d '\r'
             ;;
         *) printf "%s\n" "FATAL: Unsupported flavor $FLAVOR" >&2; exit 107
     esac

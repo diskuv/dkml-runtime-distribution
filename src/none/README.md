@@ -29,8 +29,6 @@ Semantic rules:
 3. Any other line must be blank, or a `Package.Ver` with the format
    `<opam package name>.<opam package version>`. Example: `dune.2.9.3`.
    Package.Ver
-   See [Package.Ver Placement](#packagever-placement) to decide where to place the
-   `Package.Ver`.
 
 The goal of the above rules is to:
 
@@ -102,14 +100,6 @@ ocamlfind.1.9.1
 * In contrast to `global-install`, runtime package dependencies of `global-compile` opam packages
   do _not_ need to be marked as `global-compile`. All runtime package dependencies of
   `global-compile` are automatically installed into the global DKML system.
-
-### Package.Ver Placement
-
-Each Package.Ver must go into either:
-
-1. `PINNED_PACKAGES_OPAM_* *and* [packages_fdopen_to_remove] or        {package defn is in opam repo}`
-2. `PINNED_PACKAGES_DKML_PATCHES *and* [packages_fdopen_to_remove] or  {package defn is in dkml repo}`
-3. `[pkgvers_fdopen_compiler_agnostic]                                 {package defn is in fdopen repo}`
 
 ## Future Direction
 
