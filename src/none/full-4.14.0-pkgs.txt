@@ -30,7 +30,7 @@ ocamlformat-rpc-lib.0.24.1
 base.v0.16.1
 
 odoc-parser.2.0.0
-stdio.v0.15.0
+stdio.v0.16.0
 mdx.2.1.0
 
 # lsp, ocaml-lsp-server and jsonrpc are all vended from the ocaml-lsp project
