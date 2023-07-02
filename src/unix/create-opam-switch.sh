@@ -1127,6 +1127,7 @@ echo 'pinned: [
   "jingoo.1.4.4"
   "jsonrpc.1.12.2"
   "jst-config.v0.16.0"
+  "lambda-term.3.3.1"
   "logs.0.7.0"
   "lsp.1.12.2"
   "lwt.5.6.1"
@@ -1204,6 +1205,7 @@ echo 'pinned: [
   "typerep.v0.16.0"
   "tyxml.4.5.0"
   "uchar.0.0.2"
+  "utop.2.10.0"
   "uucp.15.0.0"
   "uuidm.0.9.8"
   "uuseg.15.0.0"
@@ -1212,6 +1214,7 @@ echo 'pinned: [
   "with-dkml.1.2.1~prerel10"
   "xdg.3.8.3"
   "yojson.2.1.0"
+  "zed.3.2.1"
 ]
 '
 ### END pinned-section. DO NOT EDIT THE LINES ABOVE
