@@ -41,3 +41,7 @@ with-dkml.1.2.1~prerel10
 #
 #       .opam-switch/config/conf-withdkml.config
 conf-withdkml.2
+
+##      global-compile
+# https://discuss.ocaml.org/t/idea-standard-ocaml-runtime-type-representation/12051/112
+refl.0.4.1
