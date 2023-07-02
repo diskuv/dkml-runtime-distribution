@@ -27,7 +27,7 @@ ocamlformat-rpc-lib.0.24.1
 #       lib/base/base.cma
 #       lib/stublibs/dllbase_internalhash_types_stubs.dll
 #       lib/stublibs/dllbase_stubs.dll
-base.v0.15.1
+base.v0.16.1
 
 odoc-parser.2.0.0
 stdio.v0.15.0
