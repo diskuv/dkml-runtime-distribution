@@ -89,8 +89,7 @@ usage() {
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
     printf "%s\n" "        Useful during local development" >&2
-    printf "%s\n" "    -F: Disable adding of the fdopen repository on Windows. Diskuv OCaml installs a pruned repository which, without" >&2
-    printf "%s\n" "        the -F option, would be added to the new switch" >&2
+    printf "%s\n" "    -F: Deprecated. Disable adding of the fdopen repository on Windows, which is no longer available" >&2
     printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
     printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
@@ -221,7 +220,6 @@ TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
-DISABLE_FDOPEN=OFF
 WRAP_COMMAND=
 NO_WITHDKML=OFF
 while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
@@ -272,7 +270,7 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
         x ) DISABLE_SWITCH_CREATE=ON ;;
         z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
         a ) NO_WITHDKML=ON ;;
-        F ) DISABLE_FDOPEN=ON;;
+        F ) ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -596,32 +594,8 @@ if [ -n "$EXTRAREPOCMDS" ]; then
 fi
 
 do_switch_create() {
-    if [ "$DISABLE_FDOPEN" = OFF ] && is_unixy_windows_build_machine; then
-        # create fdopen-mingw-xxx-yyy as rank=2 if not already exists; rank=0 and rank=1 defined in init-opam-root.sh
-        if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/fdopen-mingw-$dkml_root_version-$OCAMLVERSION.tar.gz" ]; then
-            # Use the snapshot of fdopen-mingw (https://github.com/fdopen/opam-repository-mingw) that comes with ocaml-opam Docker image.
-            # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
-            if [ -x /usr/bin/cygpath ]; then
-                # shellcheck disable=SC2154
-                OPAMREPOS_MIXED=$(/usr/bin/cygpath -am "$DKMLPARENTHOME_BUILDHOST\\repos\\$dkml_root_version")
-            else
-                OPAMREPOS_MIXED="$DKMLPARENTHOME_BUILDHOST/repos/$dkml_root_version"
-            fi
-            OPAMREPO_WINDOWS_OCAMLOPAM="$OPAMREPOS_MIXED/fdopen-mingw/$OCAMLVERSION"
-            {
-                cat "$WORK"/nonswitchexec.sh
-                printf "  repository add fdopen-mingw-%s-%s '%s' --yes --dont-select --kind local --rank=2" "$dkml_root_version" "$OCAMLVERSION" "$OPAMREPO_WINDOWS_OCAMLOPAM"
-                if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi
-            } > "$WORK"/repoadd.sh
-            log_shell "$WORK"/repoadd.sh
-        fi
-
-        printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version fdopen-mingw-$dkml_root_version-$OCAMLVERSION default \\" > "$WORK"/repos-choice.lst
-        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,fdopen-mingw-$dkml_root_version-$OCAMLVERSION,default" "\\" >> "$WORK"/switchcreateargs.sh
-    else
-        printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
-        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
-    fi
+    printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
+    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
 
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ]; then
         if [ "$BUILD_OCAML_BASE" = ON ]; then

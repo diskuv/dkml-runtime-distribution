@@ -196,22 +196,6 @@ if [ "$DISKUVOPAMREPO" = LOCAL ]; then
     fi
     if [ ! -e "$OPAMREPOS_UNIX".complete ]; then
         install -d "$OPAMREPOS_UNIX"
-        if [ -n "${DKMLHOME_UNIX:-}" ] && is_unixy_windows_build_machine; then
-            if [ ! "${DKMLVERSION:-}" = "$dkml_root_version" ]; then
-                printf "FATAL: The DKML source code at %s needs DKML version '%s', but only '%s' was installed\n" \
-                    "$DKMLDIR" "$dkml_root_version" "${DKMLVERSION:-}" >&2
-                exit 107
-            fi
-            if has_rsync; then
-                # shellcheck disable=SC2154
-                log_trace spawn_rsync -ap \
-                    "$DKMLHOME_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH"/ \
-                    "$OPAMREPOS_UNIX"/fdopen-mingw
-            else
-                log_trace install -d "$OPAMREPOS_UNIX"/fdopen-mingw
-                log_trace sh -x -c "cp -r '$DKMLHOME_UNIX/$SHARE_OCAML_OPAM_REPO_RELPATH'/* '$OPAMREPOS_UNIX/fdopen-mingw/'"
-            fi
-        fi
         if has_rsync; then
             if [ "$DISKUVOPAMREPO" = LOCAL ]; then
                 log_trace spawn_rsync -ap "$DKMLDIR"/vendor/diskuv-opam-repository/ "$OPAMREPOS_UNIX/diskuv-opam-repository"
@@ -349,7 +333,7 @@ if is_unixy_windows_build_machine; then
     fi
 fi
 
-# Make a `default` repo that is actually an overlay of diskuv-opam-repository and fdopen (only on Windows and defined as --rank=2 in create-opam-switch.sh) and finally the offical Opam repository.
+# Make a `default` repo that is an overlay of diskuv-opam-repository and finally the offical Opam repository.
 # If we don't we get make a repo named "default" in opam 2.1.0 the following will happen:
 #     #=== ERROR while compiling ocamlbuild.0.14.0 ==================================#
 #     Sys_error("C:\\Users\\user\\.opam\\repo\\default\\packages\\ocamlbuild\\ocamlbuild.0.14.0\\files\\ocamlbuild-0.14.0.patch: No such file or directory")
