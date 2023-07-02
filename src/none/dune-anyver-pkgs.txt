@@ -12,10 +12,18 @@
 #       man/man1/...
 #       man/man1/dune.1
 #       man/man5/dune-config.5
-dune.3.6.2+shim
-dune-action-plugin.3.6.2
-dune-glob.3.6.2
-dune-private-libs.3.6.2
-dune-rpc-lwt.3.6.2
-dune-rpc.3.6.2
-dune-site.3.6.2
+dune.3.8.3+shim
+dune-action-plugin.3.8.3
+dune-build-info.3.8.3
+dune-configurator.3.8.3
+dune-glob.3.8.3
+dune-private-libs.3.8.3
+dune-rpc.3.8.3
+dune-rpc-lwt.3.8.3
+dune-site.3.8.3
+dyn.3.8.3
+# fiber is special; does not go past 3.7.0
+fiber.3.7.0
+ordering.3.8.3
+stdune.3.8.3
+xdg.3.8.3
