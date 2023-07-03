@@ -28,9 +28,14 @@ ocamlformat-rpc-lib.0.24.1
 #       lib/stublibs/dllbase_internalhash_types_stubs.dll
 #       lib/stublibs/dllbase_stubs.dll
 base.v0.16.1
+# Other Jane Street packages
+stdio.v0.16.0
+#   These are independent of base and stdio, so bring them
+#   along to the same version
+ppx_ignore_instrumentation.v0.16.0
+ppx_pipebang.v0.16.0
 
 odoc-parser.2.0.0
-stdio.v0.16.0
 mdx.2.1.0
 
 # lsp, ocaml-lsp-server and jsonrpc are all vended from the ocaml-lsp project
