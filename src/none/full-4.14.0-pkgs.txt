@@ -18,8 +18,8 @@ odoc.2.2.0
 #       bin/ocamlformat
 #       man/man1/ocamlformat.1
 #       share/emacs/site-lisp/ocamlformat.el
-ocamlformat.0.24.1
-ocamlformat-rpc-lib.0.24.1
+ocamlformat.0.25.1
+ocamlformat-rpc-lib.0.25.1
 
 ##      global-compile
 #       note: The global-compile is so that the (bytecode, non-relocatable) utop can
