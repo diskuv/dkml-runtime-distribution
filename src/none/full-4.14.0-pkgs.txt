@@ -36,7 +36,7 @@ ppx_ignore_instrumentation.v0.16.0
 ppx_pipebang.v0.16.0
 
 odoc-parser.2.0.0
-mdx.2.1.0
+mdx.2.3.0
 
 # lsp, ocaml-lsp-server and jsonrpc are all vended from the ocaml-lsp project
 lsp.1.12.2
