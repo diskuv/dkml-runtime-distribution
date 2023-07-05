@@ -1080,7 +1080,7 @@ echo 'pinned: [
   "dkml-runtime-distribution.1.2.1~prerel10"
   "dkml-runtimelib.1.2.1~prerel10"
   "dkml-runtimescripts.1.2.1~prerel10"
-  "dkml-workflows.1.2.0"
+  "dkml-workflows.1.2.1~prerel10"
   "dune-action-plugin.3.8.3"
   "dune-build-info.3.8.3"
   "dune-configurator.3.8.3"
