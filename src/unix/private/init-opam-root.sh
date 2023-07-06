@@ -338,14 +338,24 @@ fi
 #     #=== ERROR while compiling ocamlbuild.0.14.0 ==================================#
 #     Sys_error("C:\\Users\\user\\.opam\\repo\\default\\packages\\ocamlbuild\\ocamlbuild.0.14.0\\files\\ocamlbuild-0.14.0.patch: No such file or directory")
 if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version.tar.gz" ]; then
-    if [ "$DISKUVOPAMREPO" = LOCAL ]; then
-        OPAMREPO_DISKUV="$OPAMREPOS_MIXED/diskuv-opam-repository"
-        run_opam repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
-    elif [ "$DISKUVOPAMREPO" = REMOTE ]; then
-        run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
-    else
-        run_opam repository add diskuv-"$dkml_root_version" "$DISKUVOPAMREPO" --yes --dont-select --rank=1
-    fi
+    case "$DISKUVOPAMREPO" in
+        LOCAL)
+            OPAMREPO_DISKUV="$OPAMREPOS_MIXED/diskuv-opam-repository"
+            run_opam repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
+            ;;
+        REMOTE)
+            run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
+            ;;
+        *)
+            run_opam repository add diskuv-"$dkml_root_version" "$DISKUVOPAMREPO" --yes --dont-select --rank=1
+    esac
+else
+    # If there is an update for an updateable repository, use it
+    case "$DISKUVOPAMREPO" in
+        LOCAL|REMOTE) ;;
+        *)
+            run_opam repository set-url diskuv-"$dkml_root_version" "$DISKUVOPAMREPO" --yes
+    esac
 fi
 
 # add the [default] repository if a [default] is not there
