@@ -12,7 +12,7 @@
 #       man/man5/META.5
 #       man/man5/findlib.conf.5
 #       man/man5/site-lib.5
-ocamlfind.1.9.1
+ocamlfind.1.9.5
 
 # ocaml-config.3 is first version supporting DKML compiler (and Windows)
 # BUT ocaml-config.3 requires OCaml 5 for non-Windows machines. So do _not_ pin it
