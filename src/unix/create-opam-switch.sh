@@ -1047,6 +1047,8 @@ echo 'pinned: [
   "dkml-compiler-env.1.2.1~prerel10"
   "dkml-exe-lib.1.2.1~prerel10"
   "dkml-exe.1.2.1~prerel10"
+  "dkml-install-installer.0.4.0"
+  "dkml-install-runner.0.4.0"
   "dkml-install.0.4.0"
   "dkml-runtime-common-native.1.2.1~prerel10"
   "dkml-runtime-common.1.2.1~prerel10"
