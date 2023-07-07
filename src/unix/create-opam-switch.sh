@@ -1050,6 +1050,7 @@ echo 'pinned: [
   "dkml-compiler-src.1.2.1~prerel12"
   "dkml-component-common-opam.2.2.0~alpha0~20221228"
   "dkml-component-common-unixutils.0.2.0"
+  "dkml-component-staging-dkmlconfdir.1.2.1~prerel12"
   "dkml-component-staging-ocamlrun.4.14.0~v1.2.1~prerel12"
   "dkml-component-staging-opam32.2.2.0~alpha0~20221228"
   "dkml-component-staging-withdkml.1.2.1~prerel12"
