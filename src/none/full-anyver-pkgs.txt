@@ -11,10 +11,7 @@
 ocp-indent.1.8.2-windowssupport
 
 ##      global-compile
-#       note: this could be global-install if we had a shim.
-#             bin/utop and bin/utop-full are bytecode ocamlrun
-#             executables, so the shim just needs to proxy to
-#             bin/ocamlrun.
+#       note: bin/utop is a executable will become a bytecode shim
 #       bin/utop
 #       bin/utop-full
 #       man/man1/utop-full.1
@@ -24,4 +21,50 @@ ocp-indent.1.8.2-windowssupport
 #       share/utop
 #       share/utop/utoprc-dark
 #       share/utop/utoprc-light
-utop.2.12.1
+utop.2.13.0
+
+# ------------ utop transitive dependencies ------------
+# lib/utop/META:
+#   requires = "compiler-libs.toplevel findlib.top lambda-term logs.lwt threads zed"
+# But to get all transitive dependencies, we use:
+#   opam list --resolve=utop --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+##      global-compile
+csexp.1.5.2
+##      global-compile
+#       bin/lambda-term-actions # not in [is_bytecode_exe] in dkml-runtime-apps
+lambda-term.3.3.1
+##      global-compile
+logs.0.7.0
+##      global-compile
+lwt.5.6.1
+##      global-compile
+lwt_react.1.2.0
+##      global-compile
+mew.0.1.0
+##      global-compile
+mew_vi.0.5.0
+##      global-compile
+ocplib-endian.1.2
+##      global-compile
+react.1.2.2
+##      global-compile
+result.1.5
+##      global-compile
+trie.1.0.0
+##      global-compile
+uchar.0.0.2
+##      global-compile
+uucp.15.0.0
+##      global-compile
+#       bin/usegtrip.exe # not in [is_bytecode_exe] in dkml-runtime-apps
+uuseg.15.0.0
+##      global-compile
+uutf.1.0.3
+##      global-compile
+zed.3.2.2
