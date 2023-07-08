@@ -45,3 +45,29 @@ conf-withdkml.2
 ##      global-compile
 # https://discuss.ocaml.org/t/idea-standard-ocaml-runtime-type-representation/12051/112
 refl.0.4.1
+
+# ------------ refl transitive dependencies ------------
+# To get all transitive dependencies, we use:
+#   opam list --resolve=refl --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+#unneeded: fix.20230505
+#unneeded: metaquot.0.5.2
+##      global-compile
+metapp.0.4.4+win
+##      global-compile
+ocaml-compiler-libs.v0.12.4
+##      global-compile
+ppx_derivers.1.2.1
+##      global-compile
+ppxlib.0.30.0
+##      global-compile
+stdcompat.19+optautoconf
+##      global-compile
+stdlib-shims.0.3.0
+##      global-compile
+traverse.0.3.0
