@@ -24,9 +24,7 @@ ocp-indent.1.8.2-windowssupport
 utop.2.13.0+win32
 
 # ------------ utop transitive dependencies ------------
-# lib/utop/META:
-#   requires = "compiler-libs.toplevel findlib.top lambda-term logs.lwt threads zed"
-# But to get all transitive dependencies, we use:
+# To get all transitive dependencies, we use:
 #   opam list --resolve=utop --columns=package
 # and exclude:
 #   base-*.base, cppo,

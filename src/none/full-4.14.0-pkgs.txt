@@ -28,7 +28,22 @@ ocamlformat-rpc-lib.0.25.1
 #       lib/stublibs/dllbase_internalhash_types_stubs.dll
 #       lib/stublibs/dllbase_stubs.dll
 base.v0.16.1
-# Other Jane Street packages
+
+# ------------ base transitive dependencies ------------
+# To get all transitive dependencies, we use:
+#   opam list --resolve=base --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+#Already in [utop transitive dependencies]: csexp.1.5.2
+
+##      global-compile
+sexplib0.v0.16.0
+
+# ------------ Other Jane Street packages ------------
 stdio.v0.16.0
 #   These are independent of base and stdio, so bring them
 #   along to the same version
@@ -44,3 +59,4 @@ lsp.1.16.2
 #       bin/ocamllsp
 ocaml-lsp-server.1.16.2
 jsonrpc.1.16.2
+
