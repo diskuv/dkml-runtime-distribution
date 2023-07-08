@@ -10,6 +10,8 @@
 #       share/ocp-indent/vim/indent/ocaml.vim
 ocp-indent.1.8.2-windowssupport
 
+# ------------ utop and its transitive dependencies ------------
+
 ##      global-compile
 #       note: bin/utop is a executable will become a bytecode shim
 #       bin/utop
@@ -23,7 +25,6 @@ ocp-indent.1.8.2-windowssupport
 #       share/utop/utoprc-light
 utop.2.13.0+win32
 
-# ------------ utop transitive dependencies ------------
 # To get all transitive dependencies, we use:
 #   opam list --resolve=utop --columns=package
 # and exclude:
@@ -66,3 +67,18 @@ uuseg.15.0.0
 uutf.1.0.3
 ##      global-compile
 zed.3.2.2
+
+# ------------ graphics and its transitive dependencies ------------
+
+##      global-compile
+graphics.5.1.2
+
+# To get all transitive dependencies, we use:
+#   opam list --resolve=graphics --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+#already part of utop: csexp.1.5.2

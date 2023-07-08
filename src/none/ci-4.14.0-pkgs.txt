@@ -42,11 +42,12 @@ with-dkml.1.2.1~prerel12
 #       .opam-switch/config/conf-withdkml.config
 conf-withdkml.2
 
+# ------------ refl and its transitive dependencies ------------
+
 ##      global-compile
 # https://discuss.ocaml.org/t/idea-standard-ocaml-runtime-type-representation/12051/112
 refl.0.4.1
 
-# ------------ refl transitive dependencies ------------
 # To get all transitive dependencies, we use:
 #   opam list --resolve=refl --columns=package
 # and exclude:

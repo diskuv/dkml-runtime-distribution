@@ -21,6 +21,8 @@ odoc.2.2.0
 ocamlformat.0.25.1
 ocamlformat-rpc-lib.0.25.1
 
+# ------------ base and its transitive dependencies ------------
+
 ##      global-compile
 #       note: The global-compile is so that the (bytecode, non-relocatable) utop can
 #              load in base with: #require "base";;
@@ -29,7 +31,6 @@ ocamlformat-rpc-lib.0.25.1
 #       lib/stublibs/dllbase_stubs.dll
 base.v0.16.1
 
-# ------------ base transitive dependencies ------------
 # To get all transitive dependencies, we use:
 #   opam list --resolve=base --columns=package
 # and exclude:
@@ -59,4 +60,3 @@ lsp.1.16.2
 #       bin/ocamllsp
 ocaml-lsp-server.1.16.2
 jsonrpc.1.16.2
-
