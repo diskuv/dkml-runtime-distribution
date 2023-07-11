@@ -23,7 +23,7 @@ ocp-indent.1.8.2-windowssupport
 #       share/utop
 #       share/utop/utoprc-dark
 #       share/utop/utoprc-light
-utop.2.13.0+win32
+utop.2.13.1
 
 # To get all transitive dependencies, we use:
 #   opam list --resolve=utop --columns=package
