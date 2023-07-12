@@ -1152,7 +1152,7 @@ echo 'pinned: [
   "tsort.2.1.0"
   "tyxml.4.5.0"
   "uchar.0.0.2"
-  "utop.2.13.0+win32"
+  "utop.2.13.1"
   "uucp.15.0.0"
   "uuidm.0.9.8"
   "uuseg.15.0.0"
