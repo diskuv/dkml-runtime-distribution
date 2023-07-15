@@ -1026,6 +1026,7 @@ do_pin_adds() {
 echo 'pinned: [
   "astring.0.8.5"
   "base.v0.16.1"
+  "base64.3.5.1"
   "bigarray-compat.1.1.0"
   "bos.0.2.1"
   "camlp-streams.5.0.1"
