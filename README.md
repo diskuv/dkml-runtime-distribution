@@ -1,4 +1,4 @@
-# dkml-runtime-distribution 1.2.1-12
+# dkml-runtime-distribution 2.0.0
 
 Scripts used by the Diskuv OCaml distribution during the installation of:
 
