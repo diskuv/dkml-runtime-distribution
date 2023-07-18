@@ -1069,6 +1069,7 @@ echo 'pinned: [
   "dkml-install-installer.0.4.0"
   "dkml-install-runner.0.4.0"
   "dkml-install.0.4.0"
+  "dkml-installer-network-ocaml.2.0.0"
   "dkml-package-console.0.4.0"
   "dkml-runtime-common-native.2.0.0"
   "dkml-runtime-common.2.0.0"
