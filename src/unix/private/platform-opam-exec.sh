@@ -226,6 +226,14 @@ PLATFORM_EXEC_PRE_DOUBLE="$PREHOOK_DOUBLE_EVAL"
 OPAM_ENV_STMT=
 
 # ------------
+
+# Clean opam environment. Everything that influences opam should come from a
+# [platform-opam-exec] command line option so it is reproducible.
+export OPAMROOT=
+export OPAMSWITCH=
+export OPAM_SWITCH_PREFIX=
+
+# ------------
 # BEGIN --root
 
 # Set OPAMEXE from OPAMEXE_OR_HOME
