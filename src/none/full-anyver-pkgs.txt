@@ -82,3 +82,21 @@ graphics.5.1.2
 #   ocamlfind, topkg
 
 #already part of utop: csexp.1.5.2
+
+# ------------ sqlite3 and its transitive dependencies ------------
+
+##      global-compile
+#       lib/sqlite3/libsqlite3_stubs.lib
+#       lib/stublibs/dllsqlite3_stubs.dll
+sqlite3.5.1.0+msvc
+
+# To get all transitive dependencies, we use:
+#   opam list --resolve=sqlite3 --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+##      global-compile
+conf-sqlite3.3.1+cpkgs
