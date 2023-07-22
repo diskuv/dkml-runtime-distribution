@@ -80,7 +80,17 @@ function Invoke-CygwinCommand {
 Export-ModuleMember -Function Invoke-CygwinCommand
 
 $INVOKER_MSYSTEM_PREFIX = "/clang64"
+$INVOKER_MSYSTEM_CARCH = "x86_64"
+$INVOKER_MSYSTEM_CHOST = "x86_64-w64-mingw32"
+$INVOKER_MINGW_CHOST = "x86_64-w64-mingw32"
+$INVOKER_MINGW_PACKAGE_PREFIX = "mingw-w64-clang-x86_64"
+$INVOKER_MINGW_PREFIX = "/clang64"
 Export-ModuleMember -Variable INVOKER_MSYSTEM_PREFIX
+Export-ModuleMember -Variable INVOKER_MSYSTEM_CARCH
+Export-ModuleMember -Variable INVOKER_MSYSTEM_CHOST
+Export-ModuleMember -Variable INVOKER_MINGW_CHOST
+Export-ModuleMember -Variable INVOKER_MINGW_PACKAGE_PREFIX
+Export-ModuleMember -Variable INVOKER_MINGW_PREFIX
 
 function Invoke-MSYS2Command {
     <#
@@ -113,6 +123,11 @@ function Invoke-MSYS2Command {
     )
     $arglist = @("MSYSTEM=CLANG64",
         "MSYSTEM_PREFIX=$INVOKER_MSYSTEM_PREFIX",
+        "MSYSTEM_CARCH=$INVOKER_MSYSTEM_CARCH"
+        "MSYSTEM_CHOST=$INVOKER_MSYSTEM_CHOST"
+        "MINGW_CHOST=$INVOKER_MINGW_CHOST"
+        "MINGW_PACKAGE_PREFIX=$INVOKER_MINGW_PACKAGE_PREFIX"
+        "MINGW_PREFIX=$INVOKER_MINGW_PREFIX"
         "HOME=/home/$env:USERNAME",
         "PATH=$INVOKER_MSYSTEM_PREFIX/bin:/usr/bin:/bin"
         $Command) + $ArgumentList
