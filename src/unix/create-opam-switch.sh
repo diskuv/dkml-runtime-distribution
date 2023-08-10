@@ -625,6 +625,7 @@ do_switch_create() {
     {
         printf "%s\n" "#!$DKML_POSIX_SHELL"
         # Ignore any switch the developer gave. We are creating our own.
+        printf "%s\n" "export OPAMROOT="
         printf "%s\n" "export OPAMSWITCH="
         printf "%s\n" "export OPAM_SWITCH_PREFIX="
         printf "exec \"\$@\"\n"
