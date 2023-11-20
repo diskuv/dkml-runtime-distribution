@@ -17,25 +17,18 @@
     The PowerShell progress identifier. Optional, defaults to -1.
     Use when embedding this script within another setup program
     that reports its own progress.
-.Parameter DkmlPath
-    The directory containing .dkmlroot
 .Parameter TempParentPath
     Temporary directory. A subdirectory will be created within -TempParentPath.
     Defaults to $env:temp\diskuvocaml\setupmachine.
 
-.Parameter SkipAutoInstallVsBuildTools
+.Parameter AuditOnly
     Do not automatically install Visual Studio Build Tools.
 
     Even with this switch is selected a compatibility check is
     performed to make sure there is a version of Visual Studio
-    installed that has all the components necessary for Diskuv OCaml.
+    installed that has all the components necessary for DkML.
 .Parameter SilentInstall
     When specified no user interface should be shown.
-    We do not recommend you do this unless you are in continuous
-    integration (CI) scenarios.
-.Parameter AllowRunAsAdmin
-    When specified you will be allowed to run this script using
-    Run as Administrator.
     We do not recommend you do this unless you are in continuous
     integration (CI) scenarios.
 .Parameter VcpkgCompatibility
@@ -51,11 +44,9 @@ param (
     [int]
     $ParentProgressId = -1,
     [string]
-    $DkmlPath,
-    [string]
     $TempParentPath,
     [switch]
-    $SkipAutoInstallVsBuildTools,
+    $AuditOnly,
     [switch]
     $SilentInstall,
     [switch]
@@ -71,27 +62,10 @@ $InformationPreference = "Continue"
 
 $HereScript = $MyInvocation.MyCommand.Path
 $HereDir = (get-item $HereScript).Directory
-if (!$DkmlPath) {
-    $DkmlPath = $HereDir.Parent.Parent.FullName
-}
-if (!(Test-Path -Path $DkmlPath\.dkmlroot)) {
-    throw "Could not locate the DKML scripts. Thought DkmlPath was $DkmlPath"
-}
 
 $dsc = [System.IO.Path]::DirectorySeparatorChar
-$env:PSModulePath += "$([System.IO.Path]::PathSeparator)$HereDir${dsc}SingletonInstall"
-$env:PSModulePath += "$([System.IO.Path]::PathSeparator)$DkmlPath${dsc}vendor${dsc}drd${dsc}src${dsc}windows"
-Import-Module Deployers
+$env:PSModulePath += "$([System.IO.Path]::PathSeparator)$HereDir${dsc}src${dsc}windows"
 Import-Module Machine
-
-# Make sure not Run as Administrator
-if ([System.Environment]::OSVersion.Platform -eq "Win32NT") {
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    if ((-not $AllowRunAsAdmin) -and $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-        Write-Error "You are in an PowerShell Run as Administrator session. Please run $HereScript from a non-Administrator PowerShell session."
-        exit 1
-    }
-}
 
 # Older versions of PowerShell and Windows Server use SSL 3 / TLS 1.0 while our sites
 # (especially gitlab assets) may require the use of TLS 1.2
@@ -115,19 +89,6 @@ function Write-ProgressStep {
     }
     $global:ProgressStep += 1
 }
-function Write-ProgressCurrentOperation {
-    param(
-        $CurrentOperation
-    )
-    if (!$SkipProgress) {
-        Write-Progress -Id $ProgressId `
-            -ParentId $ParentProgressId `
-            -Activity $global:ProgressActivity `
-            -Status $global:ProgressStatus `
-            -CurrentOperation $CurrentOperation `
-            -PercentComplete (100 * ($global:ProgressStep / $ProgressTotalSteps))
-    }
-}
 
 function Write-Error($message) {
     # https://stackoverflow.com/questions/38064704/how-can-i-display-a-naked-error-message-in-powershell-without-an-accompanying
@@ -146,13 +107,121 @@ function Write-Error($message) {
 $global:ProgressActivity = "Starting ..."
 $global:ProgressStatus = "Starting ..."
 
-# We use "deployments" for any temporary directory we need since the
-# deployment process handles an aborted setup and the necessary cleaning up of disk
-# space (eventually).
-if (!$TempParentPath) {
-    $TempParentPath = "$Env:temp\diskuvocaml\setupmachine"
+# CODE DUPLICATION ALERT: Originally from dkml-component-ocamlcompiler-src/assets/staging-files/win32/SingletonInstall/Deployers/Deployers.psm1
+#
+# Remove-DirectoryFully
+#
+# Remove a directory and all of its contents. Unlike Remove-Item -Recurse this will work in
+# all versions of Windows.
+# Will not fail if the path does not already exist.
+#
+# This behaves like the DKML Install API's [uninstall_directory] function that
+# tells you and waits for you to close any open files.
+function Remove-DirectoryFully {
+    param(
+        [Parameter(Mandatory = $true)] $Path,
+        [int] $WaitSecondsIfStuck = -1,
+        [string] $StuckMessageFormatInfo = "Stuck during removal of directory after {0} seconds.`n`t{1}",
+        [string] $StuckMessageFormatCritical = "`t{1}"
+    )
+
+    if (Test-Path -Path $Path) {
+        # On Windows 11 Build 22478.1012 with Powershell 5.1, even though `Remove-Item -Force`
+        # should delete ReadOnly files (which are typical for Opam installed executables), it
+        # fails with: "You do not have sufficient access rights to perform this operation".
+        # Instead we have to remove the ReadOnly attribute.
+        $firstFailure = $null
+        Get-ChildItem $Path -Recurse -Force | Where-Object { $_.Attributes -band [io.fileattributes]::ReadOnly } | ForEach-Object {
+            # $_ is now the file object
+            $currentFile = $_
+            try {
+                Set-ItemProperty -Path $_.FullName -Name Attributes -Value ($_.Attributes -band (-bnot [io.fileattributes]::ReadOnly))
+            } catch {
+                # Handle drives that do not support setting attributes, even though we are not adding any!
+                # https://github.com/diskuv/dkml-installer-ocaml/issues/38.
+                # $_ is now the error object
+                if ($null -eq $firstFailure) {
+                    $firstFailure = (
+                        "The drive containing $Path does not support setting attributes on some or all of its files. " +
+                        "Here is one file that could not be set: $($currentFile.FullName). $_")
+                }
+            }
+        }
+        if ($firstFailure) {
+            Write-Warning "$firstFailure"
+        }
+
+        # We want to do `Remove-Item -Path $Path -Recurse -Force`. However the docs for Remove-Item
+        # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/remove-item?view=powershell-7.2#parameters
+        # say:
+        # > The Recurse parameter might not delete all subfolders or all child items. This is a known issue.
+        # > ! Note
+        # > This behavior was fixed in Windows versions 1909 and newer.
+        # So we use the Command Prompt instead (with COMSPEC so that MSYS2 "cmd" does not get run).
+        $timer = [Diagnostics.Stopwatch]::StartNew()
+        if ("$env:COMSPEC" -eq "") {
+            # not Windows
+
+            # TODO: We have no "STUCK" logic to check if process needs to be stopped!
+            # On Linux systems we can remove the file while it is being
+            # used... the inode lives on.
+            # Don't know if the same goes for macOS.
+
+            Remove-Item -Path $Path -Recurse -Force
+            $success = $true
+        } else {
+            # Windows
+
+            # We have "STUCK" logic where ... if a file can't be deleted
+            # because it was in use by another porcess ... we say so and
+            # wait. This logic only occurs when $WaitSecondsIfStuck >= 0.
+
+            # Sigh ... we won't get any error codes from `rd`. But we will get:
+            #   C:\Users\beckf\AppData\Local\Temp\f46f0508-df03-40e8-8661-728f1be41647\UninstallBlueGreenDeploy2\0\cmd.exe - Access is denied.
+            # So any output on the error console indicates a problem
+            $success = $false
+            $stderr = New-TemporaryFile
+            do {
+                Start-Process `
+                    -Wait `
+                    -NoNewWindow `
+                    -RedirectStandardError $stderr `
+                    -FilePath "$env:COMSPEC" `
+                    -ArgumentList @("/c", "rd /s /q `"$Path`"")
+                $errlen = (Get-Item -Path $stderr).Length
+                if ($errlen -eq 0) {
+                    # no errors means success
+                    $success = $true
+                    break
+                }
+
+                # If not explicit that we want to wait, immediately exit
+                # and say what the problem was.
+                if ($WaitSecondsIfStuck -lt 0) {
+                    throw (Get-Content $stderr)
+                }
+
+                # We are waiting until unstuck!
+                $sofar = $timer.elapsed.totalseconds
+                #   don't overwhelm display or PowerShell if lots of errors
+                $errcontent = Get-Content -TotalCount 5 $stderr | Out-String
+		#   Write-Information is missing -NoNewline and -ForegroundColor
+		#   so we use Write-Host
+                Write-Host ($StuckMessageFormatInfo -f @($sofar, $errcontent)) -NoNewline
+                Write-Host ($StuckMessageFormatCritical -f @($sofar, $errcontent)) -ForegroundColor Red -BackgroundColor Black
+                Start-Sleep -Seconds 5
+            } while ($timer.elapsed.totalseconds -lt $WaitSecondsIfStuck)
+            Remove-Item $stderr
+        }
+        if (!$success -and ($WaitSecondsIfStuck -ge 0)) {
+            throw "Could not remove the directory $Path after waiting $WaitSecondsIfStuck seconds"
+        }
+    }
 }
-$TempPath = Start-BlueGreenDeploy -ParentPath $TempParentPath -DeploymentId $MachineDeploymentId -LogFunction ${function:\Write-ProgressCurrentOperation}
+
+if (!$TempParentPath) {
+    $TempParentPath = "$Env:temp\DkML\setupmachine"
+}
 
 # END Start deployment
 # ----------------------------------------------------------------
@@ -161,10 +230,11 @@ $TempPath = Start-BlueGreenDeploy -ParentPath $TempParentPath -DeploymentId $Mac
 # BEGIN Visual Studio Setup PowerShell Module
 $global:ProgressActivity = "Install Visual Studio Setup PowerShell Module"
 Write-ProgressStep
-# only error if user said $SkipAutoInstallVsBuildTools but there was no visual studio found
-Import-VSSetup -TempPath "$TempPath\vssetup"
+# only error if user said $AuditOnly but there was no visual studio found
+Remove-DirectoryFully -Path "$TempParentPath\vssetup"
+Import-VSSetup -TempPath "$TempParentPath\vssetup"
 # magic exit code = 17 needed for `network_ocamlcompiler.ml:needs_install_admin`
-$CompatibleVisualStudios = Get-CompatibleVisualStudios -ErrorIfNotFound:$SkipAutoInstallVsBuildTools -ExitCodeIfNotFound:17 -VcpkgCompatibility:$VcpkgCompatibility
+$CompatibleVisualStudios = Get-CompatibleVisualStudios -ErrorIfNotFound:$AuditOnly -ExitCodeIfNotFound:17 -VcpkgCompatibility:$VcpkgCompatibility
 # END Visual Studio Setup PowerShell Module
 # ----------------------------------------------------------------
 
@@ -201,7 +271,7 @@ $CompatibleVisualStudios = Get-CompatibleVisualStudios -ErrorIfNotFound:$SkipAut
 $global:ProgressActivity = "Install Visual Studio Build Tools"
 Write-ProgressStep
 
-if ((-not $SkipAutoInstallVsBuildTools) -and ($CompatibleVisualStudios | Measure-Object).Count -eq 0) {
+if ((-not $AuditOnly) -and ($CompatibleVisualStudios | Measure-Object).Count -eq 0) {
     # Create BuildTools directory
     $BuildToolsPath = "$env:SystemDrive\DiskuvOCaml\BuildTools"
     if (!(Test-Path -Path $BuildToolsPath)) { New-Item -Path $BuildToolsPath -ItemType Directory | Out-Null }
@@ -247,7 +317,7 @@ if ((-not $SkipAutoInstallVsBuildTools) -and ($CompatibleVisualStudios | Measure
         #    "--channelUri", "$env:SystemDrive\doesntExist.chman"
         # b) the normal release channel:
         "--channelUri", "https://aka.ms/vs/$VsBuildToolsMajorVer/release/channel"
-        # c) mistaken sticky value from Diskuv OCaml 0.1.x: "--channelUri", "$VsInstallPath\VisualStudio.chman"
+        # c) mistaken sticky value from DkML 0.1.x: "--channelUri", "$VsInstallPath\VisualStudio.chman"
     ) + $VsComponents.Add
     if ($SilentInstall) {
         $CommonArgs += @("--quiet")
@@ -324,26 +394,18 @@ if ((-not $SkipAutoInstallVsBuildTools) -and ($CompatibleVisualStudios | Measure
 }
 
 if ($SkipProgress) {
-    Write-Information "`n`nBEGIN Visual Studio(s) compatible with Diskuv OCaml"
+    Write-Information "`n`nBEGIN Visual Studio(s) compatible with DkML"
 } else {
-    Write-Host -ForegroundColor White -BackgroundColor DarkGreen "`n`nBEGIN Visual Studio(s) compatible with Diskuv OCaml"
+    Write-Host -ForegroundColor White -BackgroundColor DarkGreen "`n`nBEGIN Visual Studio(s) compatible with DkML"
 }
 Write-Information ($CompatibleVisualStudios | ConvertTo-Json -Depth 1) # It is fine if we truncate at level 1 ... this is just meant to be a summary
 if ($SkipProgress) {
-    Write-Information "END Visual Studio(s) compatible with Diskuv OCaml`n`n"
+    Write-Information "END Visual Studio(s) compatible with DkML`n`n"
 } else {
-    Write-Host -ForegroundColor White -BackgroundColor DarkGreen "END Visual Studio(s) compatible with Diskuv OCaml`n`n"
+    Write-Host -ForegroundColor White -BackgroundColor DarkGreen "END Visual Studio(s) compatible with DkML`n`n"
 }
 
 # END Visual Studio Build Tools
-# ----------------------------------------------------------------
-
-# ----------------------------------------------------------------
-# BEGIN Stop deployment
-
-Stop-BlueGreenDeploy -ParentPath $TempParentPath -DeploymentId $MachineDeploymentId # no -Success so always delete the temp directory
-
-# END Stop deployment
 # ----------------------------------------------------------------
 
 if (-not $SkipProgress) { Write-Progress -Id $ProgressId -ParentId $ParentProgressId -Activity $global:ProgressActivity -Completed }
