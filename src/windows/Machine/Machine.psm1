@@ -212,7 +212,17 @@ Export-ModuleMember -Variable VsBuildToolsInstallChannel
 # -----------------------------------
 
 $MachineDeploymentHash = Get-Sha256Hex16OfText -Text $MachineDeploymentId
-$DkmlPowerShellModules = "$env:SystemDrive\DiskuvOCaml\PowerShell\$MachineDeploymentHash\Modules"
+
+if ($env:LOCALAPPDATA) {
+    $DkmlParentHomeDir = "$env:LOCALAPPDATA\Programs\DkML"
+} elseif ($env:XDG_DATA_HOME) {
+    $DkmlParentHomeDir = "$env:XDG_DATA_HOME/dkml"
+} elseif ($env:HOME) {
+    $DkmlParentHomeDir = "$env:HOME/.local/share/dkml"
+}
+
+$dsc = [System.IO.Path]::DirectorySeparatorChar
+$DkmlPowerShellModules = "$DkmlParentHomeDir${dsc}PowerShell${dsc}$MachineDeploymentHash${dsc}Modules"
 $env:PSModulePath += "$([System.IO.Path]::PathSeparator)$DkmlPowerShellModules"
 
 function Import-VSSetup {
