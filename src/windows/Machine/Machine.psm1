@@ -415,7 +415,23 @@ function Get-CompatibleVisualStudios {
         Write-Warning "`n`nBEGIN Dump all incompatible Visual Studio(s)`n`n"
         if ($null -ne $allinstances) { Write-Warning ($allinstances | ConvertTo-Json -Depth 5) }
         Write-Warning "`n`nEND Dump all incompatible Visual Studio(s)`n`n"
-        $err = "There is no $VsDescribeVerMin with the following:`n$VsDescribeComponents"
+        $err = (
+            "There is no $VsDescribeVerMin with the following:`n$VsDescribeComponents`n`n" +
+            "CHOOSE ONE OF THE SOLUTIONS BELOW`n" +
+            "---------------------------------`n`n" +
+            "SOLUTION 1 (Recommended)`n"+
+            "1. Install winget (skip this step on Windows 11 or later since already installed):`n"+
+            "     https://learn.microsoft.com/en-us/windows/package-manager/winget/#install-winget)`n"+
+            "2. Run:`n"+
+            "     winget install Microsoft.VisualStudio.2019.BuildTools --override `"--wait --quiet --addProductLang En-us --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended`"`n" +
+            "`nSOLUTION 2`n"+
+            "1. Go to https://visualstudio.microsoft.com/vs/older-downloads/. Click the 'Download' button for 2019.`n" +
+            "2. You may need to create a free account. Then download 'Build Tools for Visual Studio 2019'.`n" +
+            "3. Run the Build Tools installer, and install all the components you see in the WARNING above.`n" +
+            "`nSOLUTION 3 (inside Windows Sandbox only)`n" +
+            "1. Follow https://learn.microsoft.com/en-us/windows/package-manager/winget/#install-winget-on-windows-sandbox`n" +
+            "2. Use the second step of SOLUTION 1."
+            )
         Write-Warning $err
         # flush for GitLab CI
         [Console]::Out.Flush()
