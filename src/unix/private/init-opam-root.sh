@@ -122,32 +122,6 @@ fi
 # Set DKMLPARENTHOME_BUILDHOST
 set_dkmlparenthomedir
 
-# -------------------
-# BEGIN dkmlvars.sexp
-#
-# Windows defines many variables in setup-userprofile.ps1. Since setup-userprofile.ps1 will call this script
-# on Windows, and dkmlvars.sexp should only be written at the end of a successful install, we explicitly only
-# set dkmlvars.sexp for non-Windows.
-# Some don't make sense for Unix (MSYS2Dir, Home) and some we don't have (DeploymentId).
-#
-# dkml-runtime-apps' dkml_context.ml, among others, uses [DiskuvOCamlVarsVersion] and
-# [DiskuvOCamlVersion] as the minimal environment variables.
-
-if ! is_unixy_windows_build_machine && [ ! -e "$DKMLPARENTHOME_BUILDHOST"/dkmlvars-v2.sexp ] ; then
-    install -d "$DKMLPARENTHOME_BUILDHOST"
-    # shellcheck disable=SC2154
-    cat > "$DKMLPARENTHOME_BUILDHOST"/dkmlvars.sexp.tmp <<EOF
-(
-("DiskuvOCamlVarsVersion" ("2"))
-("DiskuvOCamlVersion" ("$dkml_root_version"))
-)
-EOF
-    mv "$DKMLPARENTHOME_BUILDHOST"/dkmlvars.sexp.tmp "$DKMLPARENTHOME_BUILDHOST"/dkmlvars-v2.sexp
-fi
-
-# END dkmlvars.sexp
-# -------------------
-
 # Set DKMLSYS_AWK and other things
 autodetect_system_binaries
 
