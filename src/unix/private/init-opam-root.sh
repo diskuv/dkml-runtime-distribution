@@ -42,6 +42,7 @@ usage() {
     printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
     printf "%s\n" "    -x Disable sandboxing in all platforms. By default, sandboxing is disabled in Windows, WSL2 and in dockcross" >&2
     printf "%s\n" "       Linux containers" >&2
+    printf "%s\n" "    -i Re-init the Opam root. Useful to force disabling of the sandboxing" >&2
 }
 
 DKMLABI=
@@ -52,7 +53,8 @@ OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
 CENTRAL_REPO=https://opam.ocaml.org
 DISABLE_SANDBOX=OFF
-while getopts ":hp:r:d:o:v:ac:xe:" opt; do
+REINIT=OFF
+while getopts ":hp:r:d:o:v:ac:xie:" opt; do
     case ${opt} in
         h )
             usage
@@ -75,6 +77,7 @@ while getopts ":hp:r:d:o:v:ac:xe:" opt; do
         e ) DISKUVOPAMREPO=$OPTARG ;;
         c ) CENTRAL_REPO=$OPTARG ;;
         x ) DISABLE_SANDBOX=ON ;;
+        i ) REINIT=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -209,11 +212,20 @@ run_opam_return_error() {
 }
 
 # `opam init`.
-#
-# --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
-#             the home directory inside the Docker container is not persistent anyways.
-# --bare: so we can configure its settings before adding the OCaml system compiler.
-if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
+if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]; then
+    # Common options.
+    # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
+    #             the home directory inside the Docker container is not persistent anyways.
+    # --bare: so we can configure its settings before adding the OCaml system compiler.
+    if [ "$REINIT" = ON ]; then
+        run_opam_init() {
+            run_opam init --yes --no-setup --bare --reinit "$@"
+        }
+    else
+        run_opam_init() {
+            run_opam init --yes --no-setup --bare "$@"
+        }
+    fi
     if is_unixy_windows_build_machine || [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
         # --disable-sandboxing: Sandboxing does not work on native Windows.
         # And in WSL2 the bwrap sandboxing does not work.
@@ -221,7 +233,7 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
         # with Ubuntu 20.04 LTS in WSL2 and got (paths are slightly changed):
         #   [ERROR] Sandboxing is not working on your platform ubuntu:
         #           "~/build/opam/opam-init/hooks/sandbox.sh build sh -c echo SUCCESS >$TMPDIR/opam-sandbox-check-out && cat $TMPDIR/opam-sandbox-check-out; rm -f $TMPDIR/opam-sandbox-check-out" exited with code 1 "bwrap: Can't bind mount /oldroot/mnt/z/source on /newroot/home/jonah/source: No such file or directory"
-        run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
+        run_opam_init --disable-sandboxing default "$CENTRAL_REPO"
     elif [ -n "${DEFAULT_DOCKCROSS_IMAGE:-}" ] || [ -e /dockcross ]; then
         # Inside dockcross is already sandboxed. And often Docker containers can't
         # be nested, so bwrap probably won't work. Regardless, Opam will
@@ -229,11 +241,11 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST"; then
         #   [ERROR] Missing dependencies -- the following commands are required for opam to operate:
         #       - bwrap: Sandboxing tool bwrap was not found. You should install 'bubblewrap'. See https://opam.ocaml.org/doc/FAQ.html#Why-does-opam-require-bwrap.
         # which we shouldn't do anything about.
-        run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
+        run_opam_init --disable-sandboxing default "$CENTRAL_REPO"
     elif [ "$DISABLE_SANDBOX" = ON ]; then
-        run_opam init --yes --no-setup --bare --disable-sandboxing default "$CENTRAL_REPO"
+        run_opam_init --disable-sandboxing default "$CENTRAL_REPO"
     else
-        run_opam init --yes --no-setup --bare default "$CENTRAL_REPO"
+        run_opam_init default "$CENTRAL_REPO"
     fi
 fi
 
