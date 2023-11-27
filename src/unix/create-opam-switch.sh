@@ -316,7 +316,7 @@ if [ -z "${DKMLDIR:-}" ]; then
     DKMLDIR=$(dirname "$0")
     DKMLDIR=$(cd "$DKMLDIR/../../../.." && pwd)
 fi
-if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not embedded within or launched from a 'diskuv-ocaml' Local Project" >&2 ; exit 1; fi
+if [ ! -e "$DKMLDIR/.dkmlroot" ]; then printf "%s\n" "FATAL: Not launched within a directory tree containing a .dkmlroot file" >&2 ; exit 1; fi
 
 # shellcheck disable=SC1091
 . "$DKMLDIR"/vendor/drc/unix/_common_tool.sh
