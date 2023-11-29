@@ -433,7 +433,7 @@ function Get-CompatibleVisualStudios {
             "1. Install winget (skip this step on Windows 11 or later since already installed):`n"+
             "     https://learn.microsoft.com/en-us/windows/package-manager/winget/#install-winget)`n"+
             "2. Run:`n"+
-            "     winget install Microsoft.VisualStudio.2019.BuildTools --override `"--wait --quiet --addProductLang En-us --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended`"`n" +
+            "     winget install Microsoft.VisualStudio.2019.BuildTools --override `"--wait --passive --installPath $($pwd.drive.name):\VS --addProductLang En-us --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended`"`n" +
             "`nSOLUTION 2`n"+
             "1. Go to https://visualstudio.microsoft.com/vs/older-downloads/. Click the 'Download' button for 2019.`n" +
             "2. You may need to create a free account. Then download 'Build Tools for Visual Studio 2019'.`n" +
