@@ -92,8 +92,8 @@ usage() {
     printf "%s\n" "    -F: Deprecated. Disable adding of the fdopen repository on Windows, which is no longer available" >&2
     printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
     printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
-    printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home (containing usr/bin/ocaml or bin/ocaml)" >&2
-    printf "%s\n" "       to use. The OCaml home determines the native code produced by the switch." >&2
+    printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home containing bin/ocaml or usr/bin/ocaml" >&2
+    printf "%s\n" "       to use. The OCaml home, which prefers bin/ocaml over usr/bin/ocaml determines the native code produced by the switch." >&2
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
     printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
@@ -402,7 +402,7 @@ case "$OCAMLVERSION_OR_HOME_UNIX" in
         BUILD_OCAML_BASE=ON
         if [ -z "$BUILDTYPE" ]; then
             usage
-            printf "FATAL: Missing -b BUILDTYPE. Required except when -v OCAMLHOME is specified and contains usr/bin/ocaml or bin/ocaml\n" >&2
+            printf "FATAL: Missing -b BUILDTYPE. Required except when -v OCAMLHOME is specified and contains bin/ocaml or usr/bin/ocaml\n" >&2
             exit 1
         fi
         ;;
