@@ -1044,6 +1044,8 @@ echo 'pinned: [
   "dkml-component-common-opam.2.2.0~alpha0~20221228"
   "dkml-component-common-unixutils.0.2.0"
   "dkml-component-ocamlcompiler-common.4.14.0~v2.1.0"
+  "dkml-component-ocamlcompiler-network.4.14.0~v2.1.0"
+  "dkml-component-ocamlcompiler-offline.4.14.0~v2.1.0"
   "dkml-component-offline-desktop-full.2.1.0"
   "dkml-component-offline-opamshim.2.2.0~alpha0~20221228"
   "dkml-component-offline-unixutils.0.2.0"
