@@ -1046,6 +1046,7 @@ echo 'pinned: [
   "dkml-component-staging-desktop-full.2.1.0"
   "dkml-component-staging-dkmlconfdir.2.1.0"
   "dkml-component-staging-opam32.2.2.0~alpha0~20221228"
+  "dkml-component-staging-opam64.2.2.0~alpha0~20221228"
   "dkml-component-staging-unixutils.0.2.0"
   "dkml-component-staging-withdkml.2.1.0"
   "dkml-component-xx-console.0.1.1"
