@@ -3,8 +3,10 @@
 
 # See README.md for a description of this file format.
 
-# Dune is needed to compile dkml-findup.exe
-# dune-* must be compatible with Dune
+# As of DkML 2.1.0, dune is not installed globally. But that non-installation
+# is performed by the gitlab.com/dkml/distributions/dkml's cmake scripts
+# (and dkml-component-desktop) only using the [ci] and [full] flavors, rather
+# than also this [dune] flavor.
 ##      global-install
 #       bin/dune
 #       bin/dune-real
@@ -12,24 +14,25 @@
 #       man/man1/...
 #       man/man1/dune.1
 #       man/man5/dune-config.5
-dune.3.8.3+shim
-dune-action-plugin.3.8.3
-dune-build-info.3.8.3
-dune-configurator.3.8.3
-dune-glob.3.8.3
-dune-private-libs.3.8.3
-dune-rpc.3.8.3
-dune-rpc-lwt.3.8.3
-dune-site.3.8.3
-dyn.3.8.3
-# fiber is special; does not go past 3.7.0
+dune.3.12.1
+#   [dune-*] must be compatible with [dune]
+dune-action-plugin.3.12.1
+dune-build-info.3.12.1
+dune-configurator.3.12.1
+dune-glob.3.12.1
+dune-private-libs.3.12.1
+dune-rpc.3.12.1
+dune-rpc-lwt.3.12.1
+dune-site.3.12.1
+dyn.3.12.1
+#   fiber is special; does not go past 3.7.0
 fiber.3.7.0
-ordering.3.8.3
-stdune.3.8.3
+ordering.3.12.1
+stdune.3.12.1
 # xdg is a Dune related package but is listed separately
 
 ##      global-compile
 #       note: xdg.3.9.0+ is used by utop.2.13.0, and is independent from the
 #             rest of the Dune packages
 #       lib/stublibs/dllxdg_stubs.dll
-xdg.3.9.0
+xdg.3.12.1
