@@ -540,7 +540,7 @@ if [ "$NO_WITHDKML" = ON ]; then
 fi
 printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh
-printf "%s\n" "'$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchcall.sh
+printf "%s\n" "'$DKMLDIR/vendor/drd/src/unix/private/platform-opam-exec.sh' \\" > "$WORK"/nonswitchcall.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchcall.sh
 
 printf "%s\n" "switch create \\" > "$WORK"/switchcreateargs.sh
@@ -761,6 +761,7 @@ fi
 if [ -n "$DO_VARS" ]; then
     {
         printf "#!%s\n" "$DKML_POSIX_SHELL"
+        printf "#   shellcheck disable=SC1091\n"
         printf ". '%s'\n" "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
 
         printf "do_var() {\n"
@@ -777,7 +778,7 @@ if [ -n "$DO_VARS" ]; then
         printf "  do_var_ARG_CHKSUM=\$(cachekey_for_filename '%s'/do_var_value.%s.txt)\n" \
             "$WORK" \
             '$$'
-        printf "  if [ -e '%s'/do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once ]; then return 0; fi\n" \
+        printf "  if [ -e '%s'/\"do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once\" ]; then return 0; fi\n" \
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
         # shellcheck disable=SC2016
         printf "  do_var_VALUE=\$(%s)\n" \
@@ -785,18 +786,19 @@ if [ -n "$DO_VARS" ]; then
         # VALUE, since it is an OCaml value, will have escaped backslashes and quotes
         printf "  do_var_VALUE=\$(escape_arg_as_ocaml_string \"\$do_var_VALUE\")\n"
 
-        #   Example: var ${do_var_NAME}=\"${do_var_VALUE}\""
+        #   Example: var "${do_var_NAME}=${do_var_VALUE}"
         printf "  ";  cat "$WORK"/nonswitchcall.sh
-        printf "    var \${do_var_NAME}=\\\"\${do_var_VALUE}\\\" "
+        printf "    var \"\${do_var_NAME}=\${do_var_VALUE}\" "
         if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi; printf "\n"
 
         #       Done. Don't repeat anymore
-        printf "  touch '%s'/do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once\n" \
+        printf "  touch '%s'/\"do_var-\${do_var_NAME}-%s.\${do_var_ARG_CHKSUM}.once\"\n" \
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
 
         printf "}\n"
 
         printf "%s" "$DO_VARS" ; printf "\n"
+        # debugging: printf "do_var 'dkml-test=C:%sUsers%sJoe Smith%sWith%sQuotes'\n" '\' '\' '\' '"'
     } > "$WORK"/setvars.sh
     log_shell "$WORK"/setvars.sh
 fi
@@ -805,9 +807,8 @@ fi
 if [ -n "$DO_SETENV_OPTIONS" ]; then
     {
         printf "#!%s\n" "$DKML_POSIX_SHELL"
+        printf "#   shellcheck disable=SC1091\n"
         printf ". '%s'\n" "$DKMLDIR"/vendor/drc/unix/crossplatform-functions.sh
-
-        printf "modifications=OFF\n"
 
         #   Example: opam option setenv | sed "s/]/\n/g; s/\[/\n/g" > commands_env.txt; do
         printf "rm -f '%s'/commands_env.txt\n" \
@@ -829,18 +830,18 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "  remove_setenv_OP=\$1\n"
         printf "  shift\n"
 
-        #   Example: cat commands_env.txt | awk '$1=="DKML_3P_PREFIX_PATH"{print}' | while read remove_setenv_VALUE; do
+        #   Example: awk '$1=="DKML_3P_PREFIX_PATH"{print}' commands_env.txt | while read remove_setenv_VALUE; do
         printf "  make_commands_env\n"
-        printf "  cat '%s'/commands_env.txt | awk -v \"NAME=\$remove_setenv_NAME\" -v \"OP=\$remove_setenv_OP\" '\$1==NAME && \$2==OP {print}' > '%s'/do_setenv_option_vars.%s.txt\n" \
+        printf "  awk -v \"NAME=\$remove_setenv_NAME\" -v \"OP=\$remove_setenv_OP\" '\$1==NAME && \$2==OP {print}' '%s/commands_env.txt' > '%s'/do_setenv_option_vars.%s.txt\n" \
             "$WORK" \
             "$WORK" \
             '$$'
         printf "  cat '%s'/do_setenv_option_vars.%s.txt | while IFS="" read -r remove_setenv_VALUE; do\n" \
             "$WORK" \
             '$$'
-        #       Example: option setenv-="${remove_setenv_VALUE}"
+        #       Example: option "setenv-=${remove_setenv_VALUE}"
         printf "    ";  cat "$WORK"/nonswitchcall.sh
-        printf "      option setenv-=\"\${remove_setenv_VALUE}\"\n"
+        printf "      option \"setenv-=\${remove_setenv_VALUE}\"\n"
         #   Example: done
         printf "  done\n"
 
@@ -866,7 +867,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "  do_setenv_option_ARG_CHKSUM=\$(cachekey_for_filename '%s'/do_setenv_option_value.%s.txt)\n" \
             "$WORK" \
             '$$'
-        printf "  if [ -e '%s'/do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once ]; then return 0; fi\n" \
+        printf "  if [ -e '%s'/\"do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once\" ]; then return 0; fi\n" \
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
         # shellcheck disable=SC2016
         printf "  do_setenv_option_VALUE=\$(%s)\n" \
@@ -875,22 +876,23 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "  do_setenv_option_VALUE=\$(escape_arg_as_ocaml_string \"\$do_setenv_option_VALUE\")\n"
 
         # Remove setenv entry
-        printf "  remove_setenv \$do_setenv_option_NAME \$do_setenv_option_OP\n"
+        printf "  remove_setenv \"\$do_setenv_option_NAME\" \"\$do_setenv_option_OP\"\n"
 
         #   Example: option setenv+="${do_setenv_option_NAME} = \"${do_setenv_option_VALUE}\""
         printf "  ";  cat "$WORK"/nonswitchcall.sh
         printf "    option setenv+=\"\${do_setenv_option_NAME} \$do_setenv_option_OP \\\\\"\${do_setenv_option_VALUE}\\\\\"\" "
         if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s" " --debug-level 2"; fi; printf "\n"
 
-        printf "  modifications=ON\n"
         #       Done. Don't repeat anymore
-        printf "  touch '%s'/do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once\n" \
+        printf "  touch '%s'/\"do_setenv_option-\${do_setenv_option_NAME}-%s.\${do_setenv_option_ARG_CHKSUM}.once\"\n" \
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
 
         printf "}\n"
 
         printf "%s" "$DO_SETENV_OPTIONS" ; printf "\n"
     } > "$WORK"/setenv.sh
+    # debugging:
+    if [ -e /home/jonahbeckford/source/dkml/setvars.sh ]; then install "$WORK/setenv.sh" /home/jonahbeckford/source/dkml/setvars.sh; fi
     log_shell "$WORK"/setenv.sh
 fi
 
