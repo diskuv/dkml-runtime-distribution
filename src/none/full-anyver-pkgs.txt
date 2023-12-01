@@ -29,7 +29,6 @@ utop.2.13.1
 #   opam list --resolve=utop --columns=package
 # and exclude:
 #   base-*.base, cppo,
-#   dune (dune*, xdg),
 #   ocaml, ocaml-config, ocaml-system, ocamlbuild,
 #   ocamlfind, topkg
 
@@ -37,11 +36,11 @@ utop.2.13.1
 csexp.1.5.2
 ##      global-compile
 #       bin/lambda-term-actions # not in [is_bytecode_exe] in dkml-runtime-apps
-lambda-term.3.3.1
+lambda-term.3.3.2
 ##      global-compile
 logs.0.7.0
 ##      global-compile
-lwt.5.6.1
+lwt.5.7.0
 ##      global-compile
 lwt_react.1.2.0
 ##      global-compile
@@ -66,7 +65,9 @@ uuseg.15.0.0
 ##      global-compile
 uutf.1.0.3
 ##      global-compile
-zed.3.2.2
+xdg.3.12.1
+##      global-compile
+zed.3.2.3
 
 # ------------ graphics and its transitive dependencies ------------
 
