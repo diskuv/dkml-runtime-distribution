@@ -1063,7 +1063,7 @@ echo 'pinned: [
   "dune-rpc-lwt.3.12.1"
   "dune-rpc.3.12.1"
   "dune-site.3.12.1"
-  "dune.3.12.1+shim"
+  "dune.3.12.1"
   "dyn.3.12.1"
   "either.1.0.0"
   "extlib.1.7.9"
