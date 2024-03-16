@@ -21,7 +21,7 @@ $Windows10SdkCompatibleTriples = @(
 
     #   GitLab CI switched to 19041 with https://gitlab.com/gitlab-org/ci-cd/shared-runners/images/gcp/windows-containers/-/commit/5f94426f12d082c2226da29ab7b79f0b90ec7725
     "10.0.19041"
-    )
+)
 $Windows10SdkCompatibleVers = $Windows10SdkCompatibleTriples | ForEach-Object {
     # 10.0.18362 -> 18362
     $_.Split(".")[2]
@@ -31,6 +31,23 @@ $Windows10SdkCompatibleComponents = $Windows10SdkCompatibleVers | ForEach-Object
     "Microsoft.VisualStudio.Component.Windows10SDK.${_}"
 }
 if ($null -eq $Windows10SdkCompatibleComponents) { $Windows10SdkCompatibleComponents = @() }
+
+$Windows11SdkCompatibleTriples = @(
+    # Highest priority to lowest priority.
+    # KEEP IN SYNC with WindowsAdministrator.rst and dkml-installer-ocaml/installer/winget/manifest/Diskuv.OCaml.installer.yaml
+
+    #   GitLab CI saas-windows-medium-amd64.
+    #   Microsoft.VisualStudio.Component.Windows11SDK.22621
+    "10.0.22621.0"
+)
+$Windows11SdkCompatibleVers = $Windows11SdkCompatibleTriples | ForEach-Object {
+    $_.Split(".")[2]
+}
+$Windows11SdkCompatibleComponents = $Windows11SdkCompatibleVers | ForEach-Object {
+    # Ex. Microsoft.VisualStudio.Component.Windows11SDK.22621
+    "Microsoft.VisualStudio.Component.Windows11SDK.${_}"
+}
+if ($null -eq $Windows11SdkCompatibleComponents) { $Windows11SdkCompatibleComponents = @() }
 
 # Visual Studio minimum version
 # Why MSBuild / Visual Studio 2015+? Because [vcpkg](https://vcpkg.io/en/getting-started.html) needs
@@ -126,7 +143,10 @@ $VcVars2019CompatibleVers = @(
     "14.25",
     
     #   GitLab CI as of https://gitlab.com/gitlab-org/ci-cd/shared-runners/images/gcp/windows-containers/-/commit/5f94426f12d082c2226da29ab7b79f0b90ec7725
-    "14.29"
+    "14.29",
+
+    #   GitLab CI as of https://about.gitlab.com/blog/2024/01/22/windows-2022-support-for-gitlab-saas-runners/
+    "14.38"
     )
 $VcVarsCompatibleComponents = $VcVars2019CompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
 if ($null -eq $VcVarsCompatibleComponents) { $VcVarsCompatibleComponents = @() }
@@ -150,6 +170,7 @@ function Get-CompatibleVisualStudioVcVarsVer {
         "17.0" { if ($ThrowIfIncompatible) { throw "VS 17.0 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
         "17.2" { if ($ThrowIfIncompatible) { throw "VS 17.2 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
         "17.3" { if ($ThrowIfIncompatible) { throw "VS 17.3 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
+        "17.8" { "14.38" }
         default {
             if ($ThrowIfIncompatible) { throw "Visual Studio $VsToolsMajorMinVer is not yet supported by Diskuv" }
         }
@@ -202,7 +223,8 @@ $VsAvailableProductLangs = @(
 # Consolidate the magic constants into a single deployment id
 $VsComponentsHash = Get-Sha256Hex16OfText -Text ($CygwinPackagesArch -join ',')
 $Windows10SdkTriplesHash = Get-Sha256Hex16OfText -Text ($Windows10SdkCompatibleTriples -join ',')
-$MachineDeploymentId = "winsdk-$Windows10SdkTriplesHash;vsvermin-$VsVerMin;vssetup-$VsSetupVer;vscomp-$VsComponentsHash"
+$Windows11SdkTriplesHash = Get-Sha256Hex16OfText -Text ($Windows11SdkCompatibleTriples -join ',')
+$MachineDeploymentId = "winsdk11-$Windows11SdkTriplesHash;winsdk10-$Windows10SdkTriplesHash;vsvermin-$VsVerMin;vssetup-$VsSetupVer;vscomp-$VsComponentsHash"
 
 Export-ModuleMember -Variable MachineDeploymentId
 Export-ModuleMember -Variable VsBuildToolsMajorVer
@@ -352,23 +374,23 @@ function Get-VisualStudioProperties {
         $VcVarsVerChoice = $Matches.VCVersion
     }
 
-    # Find a compatible Component.Windows10SDK.<version>
-    $Windows10SdkCandidates = $VisualStudioInstallation.Packages | Where-Object {
-        $Windows10SdkCompatibleComponents.Contains($_.Id)
+    # Find a compatible Component.Windows10SDK.<version> or Component.Windows11SDK.<version>
+    $WindowsSdkCandidates = $VisualStudioInstallation.Packages | Where-Object {
+        $Windows10SdkCompatibleComponents.Contains($_.Id) -or $Windows11SdkCompatibleComponents.Contains($_.Id)
     }
     # Pick the latest (not the highest priority) compatible version
     # Caution: The different component "UniqueId":  "Win10SDK_10.0.19041,version=10.0.19041.1"
     # implies that -winsdk=10.0.19041.1. However, it is -winsdk=10.0.19041.0.
     # Always use the .0 suffix.
-    ($Windows10SdkCandidates | Sort-Object -Property Version -Descending | Select-Object -Property Id -First 1).Id -match "Microsoft[.]VisualStudio[.]Component[.]Windows10SDK[.](?<Win10SDKVersion>.*)"
-    $Windows10SdkChoice = "10.0.$($Matches.Win10SDKVersion).0"
+    ($WindowsSdkCandidates | Sort-Object -Property Version -Descending | Select-Object -Property Id -First 1).Id -match "Microsoft[.]VisualStudio[.]Component[.]Windows1[01]SDK[.](?<WinSDKVersion>.*)"
+    $WindowsSdkChoice = "10.0.$($Matches.WinSDKVersion).0"
 
     @{
         InstallPath = $VisualStudioInstallation.InstallationPath;
         MsvsPreference = "VS$MsvsPreference";
         CMakeGenerator = "$CMakeGenerator";
         VcVarsVer = $VcVarsVerChoice;
-        WinSdkVer = $Windows10SdkChoice;
+        WinSdkVer = $WindowsSdkChoice;
     }
 }
 Export-ModuleMember -Function Get-VisualStudioProperties
