@@ -19,7 +19,7 @@ set -euf
 # 2. Subset of packages from full-pkgs.txt, in `.txt` order
 # 3. Any packages that don't belong in #1 and #2, in alphabetical order
 
-OCAML_DEFAULT_VERSION=4.14.0
+OCAML_DEFAULT_VERSION=4.14.2
 
 # ------------------
 # BEGIN Command line processing
