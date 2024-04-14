@@ -1,0 +1,74 @@
+# All packages listed in this file are installed as part of
+# the "dkml" system switch as part of the "CI" distribution,
+# but only when distributing OCaml 4.14.0.
+
+# See README.md for a description of this file format.
+
+ocaml.4.14.2
+
+# Cmdliner and crunch are needed to compile opam-dkml.exe
+cmdliner.1.2.0
+crunch.3.3.1
+ptime.1.1.0
+uuidm.0.9.8
+
+# Bos, sha and sexplib are needed to compile with-dkml.exe
+# Bos needs rresult and fmt
+bos.0.2.1
+fmt.0.9.0
+rresult.0.7.0
+sha.1.15.4
+sexplib.v0.16.0
+
+# DKML apps (dkml-apps, dkml-exe and with-dkml version maintained by diskuv-ocaml's release.sh)
+dkml-c-probe.3.0.0
+##      global-install
+#       bin/dkml-fswatch.exe
+#       bin/dkml-confdir.exe
+dkml-apps.2.1.0
+##      global-install
+#       bin/dkml.exe
+dkml-exe.2.1.0
+##      global-install
+#       bin/with-dkml.exe
+with-dkml.2.1.0
+
+# conf-withdkml is needed so dune+shim is built+installed correctly
+# for any [global-compile] package that needs dune, except for the
+# dkml switch which does not install conf-withdkml. So we want
+# conf-withdkml to be a runtime decision. That is [create-opam-switch.sh
+# -m conf-withdkml] like is done by [dkml init] command.
+#
+#       .opam-switch/config/conf-withdkml.config
+conf-withdkml.3
+
+# ------------ refl and its transitive dependencies ------------
+
+##      global-compile
+# https://discuss.ocaml.org/t/idea-standard-ocaml-runtime-type-representation/12051/112
+refl.0.4.1
+
+# To get all transitive dependencies, we use:
+#   opam list --resolve=refl --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+#unneeded: fix.20230505
+#unneeded: metaquot.0.5.2
+##      global-compile
+metapp.0.4.4+win
+##      global-compile
+ocaml-compiler-libs.v0.12.4
+##      global-compile
+ppx_derivers.1.2.1
+##      global-compile
+ppxlib.0.30.0
+##      global-compile
+stdcompat.19+optautoconf
+##      global-compile
+stdlib-shims.0.3.0
+##      global-compile
+traverse.0.3.0

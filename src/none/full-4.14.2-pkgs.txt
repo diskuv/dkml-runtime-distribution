@@ -1,0 +1,62 @@
+# All packages listed in this file are installed as part of
+# the "dkml" system switch as part of the "Full" distribution,
+# but only when distributing OCaml 4.14.0.
+
+# See README.md for a description of this file format.
+
+##      global-install
+#       bin/odoc
+#       doc/odoc/odoc-pages/features.mld
+#       doc/odoc/odoc-pages/index.mld
+#       doc/odoc/odoc-pages/interface.mld
+#       share/odoc
+#       share/odoc/odoc-theme/default/highlight.pack.js
+#       share/odoc/odoc-theme/default/odoc.css
+odoc.2.4.1
+
+##      global-install
+#       bin/ocamlformat
+#       man/man1/ocamlformat.1
+#       share/emacs/site-lisp/ocamlformat.el
+ocamlformat.0.26.1
+ocamlformat-rpc-lib.0.26.1
+
+# ------------ base and its transitive dependencies ------------
+
+##      global-compile
+#       note: The global-compile is so that the (bytecode, non-relocatable) utop can
+#              load in base with: #require "base";;
+#       lib/base/base.cma
+#       lib/stublibs/dllbase_internalhash_types_stubs.dll
+#       lib/stublibs/dllbase_stubs.dll
+base.v0.16.1
+
+# To get all transitive dependencies, we use:
+#   opam list --resolve=base --columns=package
+# and exclude:
+#   base-*.base, cppo,
+#   dune (dune*, xdg),
+#   ocaml, ocaml-config, ocaml-system, ocamlbuild,
+#   ocamlfind, topkg
+
+#Already in [utop transitive dependencies]: csexp.1.5.2
+
+##      global-compile
+sexplib0.v0.16.0
+
+# ------------ Other Jane Street packages ------------
+stdio.v0.16.0
+#   These are independent of base and stdio, so bring them
+#   along to the same version
+ppx_ignore_instrumentation.v0.16.0
+ppx_pipebang.v0.16.0
+
+odoc-parser.2.4.1
+mdx.2.4.1
+
+# lsp, ocaml-lsp-server and jsonrpc are all vended from the ocaml-lsp project
+lsp.1.17.0
+##      global-install
+#       bin/ocamllsp
+ocaml-lsp-server.1.17.0
+jsonrpc.1.17.0

@@ -14,25 +14,25 @@
 #       man/man1/...
 #       man/man1/dune.1
 #       man/man5/dune-config.5
-dune.3.12.1
+dune.3.15.0
 #   [dune-*] must be compatible with [dune]
-dune-action-plugin.3.12.1
-dune-build-info.3.12.1
-dune-configurator.3.12.1
-dune-glob.3.12.1
-dune-private-libs.3.12.1
-dune-rpc.3.12.1
-dune-rpc-lwt.3.12.1
-dune-site.3.12.1
-dyn.3.12.1
+dune-action-plugin.3.15.0
+dune-build-info.3.15.0
+dune-configurator.3.15.0
+dune-glob.3.15.0
+dune-private-libs.3.15.0
+dune-rpc.3.15.0
+dune-rpc-lwt.3.15.0
+dune-site.3.15.0
+dyn.3.15.0
 #   fiber is special; does not go past 3.7.0
 fiber.3.7.0
-ordering.3.12.1
-stdune.3.12.1
+ordering.3.15.0
+stdune.3.15.0
 # xdg is a Dune related package but is listed separately
 
 ##      global-compile
 #       note: xdg.3.9.0+ is used by utop.2.13.0, and is independent from the
 #             rest of the Dune packages
 #       lib/stublibs/dllxdg_stubs.dll
-xdg.3.12.1
+xdg.3.15.0

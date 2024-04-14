@@ -1,0 +1,6 @@
+# All packages listed in this file are installed as part of
+# the "dkml" system switch.
+
+# See README.md for a description of this file format.
+
+# (for now all DkML compiler versions use the same Dune "anyver" version)

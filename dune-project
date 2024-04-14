@@ -8,8 +8,8 @@
 (source
  (github diskuv/dkml-runtime-distribution))
 (license Apache-2.0)
-(authors "Diskuv, Inc. <opensource+diskuv-ocaml@support.diskuv.com>")
-(maintainers "opensource+diskuv-ocaml@support.diskuv.com")
+(authors "Diskuv, Inc. <opensource+dkml@support.diskuv.com>")
+(maintainers "opensource+dkml@support.diskuv.com")
 
 (package
  (name dkml-runtime-distribution)
@@ -25,6 +25,7 @@
     (or
       (and (>= 4.12.1~) (< 4.12.2~))
       (and (>= 4.14.0~) (< 4.14.1~))
+      (and (>= 4.14.2~) (< 4.14.3~))
     )
   )
   (diskuvbox (and (>= 0.1.0) :build))))
