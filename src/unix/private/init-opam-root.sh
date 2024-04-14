@@ -38,8 +38,8 @@ usage() {
     printf "%s\n" "    -a Use local repository rather than git repository for diskuv-opam-repository. Requires rsync" >&2
     printf "%s\n" "    -e DISKUV_REPO: Use DISKUV_REPO rather than the default diskuv-opam-repository. Valid opam" >&2
     printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
-    printf "%s\n" "    -c CENTRAL_REPO: Use CENTRAL_REPO rather than the default https://opam.ocaml.org repository. Valid opam" >&2
-    printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
+    printf "%s\n" "    -c CENTRAL_REPO: Use CENTRAL_REPO rather than the default git+https://github.com/ocaml/opam-repository.git" >&2
+    printf "%s\n" "       repository. Valid opam urls must be used like https:// or git+https:// or git+file:// urls." >&2
     printf "%s\n" "    -x Disable sandboxing in all platforms. By default, sandboxing is disabled in Windows, WSL2 and in dockcross" >&2
     printf "%s\n" "       Linux containers" >&2
     printf "%s\n" "    -i Re-init the Opam root. Useful to force disabling of the sandboxing" >&2
@@ -51,7 +51,7 @@ STATEDIR=
 OPAMEXE_OR_HOME=
 OCAMLVERSION_OR_HOME=
 DISKUVOPAMREPO=REMOTE
-CENTRAL_REPO=https://opam.ocaml.org
+CENTRAL_REPO=git+https://github.com/ocaml/opam-repository.git
 DISABLE_SANDBOX=OFF
 REINIT=OFF
 while getopts ":hp:r:d:o:v:ac:xie:" opt; do
