@@ -29,10 +29,4 @@ dyn.3.15.0
 fiber.3.7.0
 ordering.3.15.0
 stdune.3.15.0
-# xdg is a Dune related package but is listed separately
-
-##      global-compile
-#       note: xdg.3.9.0+ is used by utop.2.13.0, and is independent from the
-#             rest of the Dune packages
-#       lib/stublibs/dllxdg_stubs.dll
-xdg.3.15.0
+# xdg is a Dune related package but is listed separately in full-anyver-pkgs.txt
