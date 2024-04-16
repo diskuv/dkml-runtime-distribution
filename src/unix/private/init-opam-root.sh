@@ -43,6 +43,8 @@ usage() {
     printf "%s\n" "    -x Disable sandboxing in all platforms. By default, sandboxing is disabled in Windows, WSL2 and in dockcross" >&2
     printf "%s\n" "       Linux containers" >&2
     printf "%s\n" "    -i Re-init the Opam root. Useful to force disabling of the sandboxing" >&2
+    printf "%s\n" "    -g GIT_EXECUTABLE: Optional. Location of a git executable. On Windows it must not be in the same directory" >&2
+    printf "%s\n" "       as a bash.exe or any other executables that have conflicting names with MSYS2 binaries." >&2
 }
 
 DKMLABI=
@@ -54,7 +56,8 @@ DISKUVOPAMREPO=REMOTE
 CENTRAL_REPO=git+https://github.com/ocaml/opam-repository.git
 DISABLE_SANDBOX=OFF
 REINIT=OFF
-while getopts ":hp:r:d:o:v:ac:xie:" opt; do
+GIT_EXECUTABLE=
+while getopts ":hp:r:d:o:v:ac:xie:g:" opt; do
     case ${opt} in
         h )
             usage
@@ -78,6 +81,7 @@ while getopts ":hp:r:d:o:v:ac:xie:" opt; do
         c ) CENTRAL_REPO=$OPTARG ;;
         x ) DISABLE_SANDBOX=ON ;;
         i ) REINIT=ON ;;
+        g ) GIT_EXECUTABLE=$OPTARG ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -124,6 +128,18 @@ fi
 
 # Set DKMLPARENTHOME_BUILDHOST
 set_dkmlparenthomedir
+
+# Set GIT_LOCATION_MIXED
+autodetect_system_path_with_git_before_usr_bin
+if [ -z "$GIT_EXECUTABLE" ]; then
+    GIT_EXECUTABLE=$(PATH="$DKML_SYSTEM_PATH" command -v git)
+fi
+GIT_LOCATION_MIXED=$(dirname "$GIT_EXECUTABLE")
+if [ -x /usr/bin/cygpath ]; then
+    GIT_LOCATION_MIXED=$(/usr/bin/cygpath -am "$GIT_LOCATION_MIXED")
+else
+    GIT_LOCATION_MIXED=$(cd "$GIT_LOCATION_MIXED" && pwd)
+fi
 
 # Set DKMLSYS_AWK and other things
 autodetect_system_binaries
@@ -217,18 +233,22 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]
     # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
     #             the home directory inside the Docker container is not persistent anyways.
     # --bare: so we can configure its settings before adding the OCaml system compiler.
+    # --git-location: git binary directory
     if [ "$REINIT" = ON ]; then
         run_opam_init() {
-            run_opam init --yes --no-setup --bare --reinit "$@"
+            run_opam init --yes --no-setup "--git-location=$GIT_LOCATION_MIXED" --bare --reinit "$@"
         }
     else
         run_opam_init() {
-            run_opam init --yes --no-setup --bare "$@"
+            run_opam init --yes --no-setup "--git-location=$GIT_LOCATION_MIXED" --bare "$@"
         }
     fi
-    if is_unixy_windows_build_machine || [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
+    if [ -x /usr/bin/cygpath ]; then
         # --disable-sandboxing: Sandboxing does not work on native Windows.
-        # And in WSL2 the bwrap sandboxing does not work.
+        # --cygwin-location=DIR: Cygwin (actually MSYS2) root location
+        run_opam_init --disable-sandboxing "--cygwin-location=$(/usr/bin/cygpath -am /)" default "$CENTRAL_REPO"
+    elif [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
+        # In WSL2 the bwrap sandboxing does not work.
         # See https://giters.com/realworldocaml/book/issues/3331 for one issue; jonahbeckford@ tested as well
         # with Ubuntu 20.04 LTS in WSL2 and got (paths are slightly changed):
         #   [ERROR] Sandboxing is not working on your platform ubuntu:
