@@ -234,13 +234,33 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]
     # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
     #             the home directory inside the Docker container is not persistent anyways.
     # --bare: so we can configure its settings before adding the OCaml system compiler.
+    #
+    # Problem:
+    #   [build] <><> Fetching repository information ><><><><><><><><><><><><><><><><><><><><><>
+    #   [build] [ERROR] Could not update repository "default": Y:\source\dkml\build\pkg\bump\.ci\sd4\bs\bin\opam.exe: "rename" failed on Y:\source\dkml\build\pkg\bump\.ci\o\repo\default.new: Permission denied
+    #   [build] [ERROR] Initial download of repository failed.
+    # Context (conversation with Jonah and David):
+    #   > So far it seems very much timing influenced. If I turn on logging it (my own, not opam's) between steps it (so far) works ... but if I turn off logging it doesn't consistently. And if I do them manually from the command line I can never get the symptom to appear. (I have turned off antivirus)
+    #
+    #   > The behavior is sounding like https://devblogs.microsoft.com/oldnewthing/20120907-00/?p=6663
+    #
+    #   > One thing I do know is that I have to kill git occasionally in VS Code because the stupid thing (git) holds references to sub directories.
+    #
+    # Solution: Do `opam init` with retries and backoff.
     if [ "$REINIT" = ON ]; then
         run_opam_init() {
-            run_opam init --yes --no-setup --bare --reinit "$@"
+            if ! run_opam_return_error init --yes --no-setup --bare --reinit "$@"; then
+                sleep 10
+                run_opam init --yes --no-setup --bare --reinit "$@"
+            fi
         }
     else
         run_opam_init() {
-            run_opam init --yes --no-setup --bare "$@"
+            # Start without any [--reinit] ...
+            if ! run_opam_return_error init --yes --no-setup --bare "$@"; then
+                sleep 10
+                run_opam init --yes --no-setup --bare --reinit "$@"
+            fi
         }
     fi
     if [ -x /usr/bin/cygpath ]; then
