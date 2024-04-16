@@ -395,14 +395,8 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     # Tell opam about MSYS2.
     # * We can use sys-pkg-manager-cmd+= is idempotent, even if msys2 has a
     #   different existing value.
-    # * Only some later prereleases of opam 2.2 support that option, so we'll
-    #   use essentially a try/catch to fallback to the older option.
-    #   That can disappear sometime after
-    #   https://github.com/ocaml/opam/pull/5436 propagates
-    #   to DkML. Then only **sys-pkg-manager-cmd** should be kept.
-    if ! run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath\"]" --yes; then
-        run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath" --yes
-    fi
+    syspkgmgrpath_ESCAPED=$(printf "%s" "$syspkgmgrpath" | "$DKMLSYS_SED" 's#\\#\\\\#g')
+    run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath_ESCAPED\"]" --yes
 fi
 
 # Diagnostics
