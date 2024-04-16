@@ -233,20 +233,23 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]
     # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
     #             the home directory inside the Docker container is not persistent anyways.
     # --bare: so we can configure its settings before adding the OCaml system compiler.
-    # --git-location: git binary directory
     if [ "$REINIT" = ON ]; then
         run_opam_init() {
-            run_opam init --yes --no-setup "--git-location=$GIT_LOCATION_MIXED" --bare --reinit "$@"
+            run_opam init --yes --no-setup --bare --reinit "$@"
         }
     else
         run_opam_init() {
-            run_opam init --yes --no-setup "--git-location=$GIT_LOCATION_MIXED" --bare "$@"
+            run_opam init --yes --no-setup --bare "$@"
         }
     fi
     if [ -x /usr/bin/cygpath ]; then
         # --disable-sandboxing: Sandboxing does not work on native Windows.
         # --cygwin-location=DIR: Cygwin (actually MSYS2) root location
-        run_opam_init --disable-sandboxing "--cygwin-location=$(/usr/bin/cygpath -am /)" default "$CENTRAL_REPO"
+        # --git-location: git binary directory
+        run_opam_init --disable-sandboxing \
+            "--cygwin-location=$(/usr/bin/cygpath -am /)" \
+            "--git-location=$GIT_LOCATION_MIXED" \
+            default "$CENTRAL_REPO"
     elif [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
         # In WSL2 the bwrap sandboxing does not work.
         # See https://giters.com/realworldocaml/book/issues/3331 for one issue; jonahbeckford@ tested as well
