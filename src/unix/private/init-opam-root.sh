@@ -402,7 +402,6 @@ fi
 #       So use --yes for any subsequent [opam var]
 if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     msys2nativedir=$(/usr/bin/cygpath -aw "/")
-    syspkgmgrpath=$(/usr/bin/cygpath -aw "/usr/bin/pacman.exe")
     run_opam var --global "os-distribution=msys2" --yes
     run_opam var --global "msystem=$MSYSTEM" --yes
     run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}" --yes
@@ -412,11 +411,8 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}" --yes
     run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}" --yes
     run_opam var --global "msys2-nativedir=$msys2nativedir" --yes
-    # Tell opam about MSYS2.
-    # * We can use sys-pkg-manager-cmd+= is idempotent, even if msys2 has a
-    #   different existing value.
-    syspkgmgrpath_ESCAPED=$(printf "%s" "$syspkgmgrpath" | "$DKMLSYS_SED" 's#\\#\\\\#g')
-    run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath_ESCAPED\"]" --yes
+    # Tell opam to not use MSYS2's pacman for depexts
+    run_opam option --global "depext=false" --yes
 fi
 
 # Diagnostics
