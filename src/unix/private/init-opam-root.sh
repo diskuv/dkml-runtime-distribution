@@ -375,18 +375,23 @@ fi
 #   Opam Global Variables (part 2):
 #       msys2-nativedir=C:\msys64
 #       os-distribution=msys2
+#
+#   Note: Here is where opam may upgrade the repository layout:
+#       This [development] version of opam requires an update to the layout of C:\build\pkg\bump\.ci\o
+#       from version 2.1 to version 2.2~alpha, which can't be reverted.
+#       So use --yes for any subsequent [opam var]
 if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     msys2nativedir=$(/usr/bin/cygpath -aw "/")
     syspkgmgrpath=$(/usr/bin/cygpath -aw "/usr/bin/pacman.exe")
-    run_opam var --global "os-distribution=msys2"
-    run_opam var --global "msystem=$MSYSTEM"
-    run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}"
-    run_opam var --global "msystem-carch=${MSYSTEM_CARCH:-}"
-    run_opam var --global "msystem-chost=${MSYSTEM_CHOST:-}"
-    run_opam var --global "mingw-chost=${MINGW_CHOST:-}"
-    run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}"
-    run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}"
-    run_opam var --global "msys2-nativedir=$msys2nativedir"
+    run_opam var --global "os-distribution=msys2" --yes
+    run_opam var --global "msystem=$MSYSTEM" --yes
+    run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}" --yes
+    run_opam var --global "msystem-carch=${MSYSTEM_CARCH:-}" --yes
+    run_opam var --global "msystem-chost=${MSYSTEM_CHOST:-}" --yes
+    run_opam var --global "mingw-chost=${MINGW_CHOST:-}" --yes
+    run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}" --yes
+    run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}" --yes
+    run_opam var --global "msys2-nativedir=$msys2nativedir" --yes
     # Tell opam about MSYS2.
     # * We can use sys-pkg-manager-cmd+= is idempotent, even if msys2 has a
     #   different existing value.
@@ -395,16 +400,16 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     #   That can disappear sometime after
     #   https://github.com/ocaml/opam/pull/5436 propagates
     #   to DkML. Then only **sys-pkg-manager-cmd** should be kept.
-    if ! run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath\"]"; then
-        run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath"
+    if ! run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath\"]" --yes; then
+        run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath" --yes
     fi
 fi
 
 # Diagnostics
 log_trace echo '=== opam repository list --all ==='
-run_opam repository list --all
+run_opam repository list --all --yes
 log_trace echo '=== opam var --global ==='
-run_opam var --global
+run_opam var --global --yes
 
 # END opam init
 # -----------------------
