@@ -228,6 +228,7 @@ run_opam_return_error() {
 }
 
 # `opam init`.
+already_added_default_repository=0
 if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]; then
     # Common options.
     # --no-setup: Don't modify user shell configuration (ex. ~/.profile). For containers,
@@ -270,6 +271,7 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]
     else
         run_opam_init default "$CENTRAL_REPO"
     fi
+    already_added_default_repository=1
 fi
 
 # If we have a state directory then "sys-ocaml-*"
@@ -360,14 +362,19 @@ else
 fi
 
 # add the [default] repository if a [default] is not there
-if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
-    run_opam repository add default "$CENTRAL_REPO" --yes --dont-select --rank=3
-else
-    # force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
-    # [default] is not versioned (which means we have no way to tell it is up-to-date).
-    # using `set-url` is required in case CENTRAL_REPO changes, and since it also
-    # updates the repository we don't need an explicit `run_opam update default --yes --all`
-    run_opam repository set-url default "$CENTRAL_REPO" --yes --all
+if [ "$already_added_default_repository" = 0 ]; then
+    if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/default.tar.gz" ]; then
+        if [ -d "$OPAMROOTDIR_BUILDHOST/repo" ]; then
+            ls -l "$OPAMROOTDIR_BUILDHOST/repo"
+        fi
+        run_opam repository add default "$CENTRAL_REPO" --yes --dont-select --rank=3
+    else
+        # force the [default] to be up-to-date because unlike [diskuv-opam-repository] the
+        # [default] is not versioned (which means we have no way to tell it is up-to-date).
+        # using `set-url` is required in case CENTRAL_REPO changes, and since it also
+        # updates the repository we don't need an explicit `run_opam update default --yes --all`
+        run_opam repository set-url default "$CENTRAL_REPO" --yes --all
+    fi
 fi
 
 # Set MSYS2
