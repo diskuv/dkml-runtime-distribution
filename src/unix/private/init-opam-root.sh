@@ -226,6 +226,15 @@ run_opam_return_error() {
         -p "$DKMLABI" -d "$STATEDIR" -r "$DKML_OPAM_ROOT" \
         -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
+run_opam_with_retries() {
+    if ! run_opam_return_error "$@"; then
+        sleep 2
+        if ! run_opam_return_error "$@"; then
+            sleep 8
+            run_opam "$@"
+        fi
+    fi
+}
 
 # `opam init`.
 already_added_default_repository=0
@@ -393,7 +402,10 @@ if [ "$already_added_default_repository" = 0 ]; then
         # [default] is not versioned (which means we have no way to tell it is up-to-date).
         # using `set-url` is required in case CENTRAL_REPO changes, and since it also
         # updates the repository we don't need an explicit `run_opam update default --yes --all`
-        run_opam repository set-url default "$CENTRAL_REPO" --yes --all
+        #
+        # This is also prone to:
+        #   [build] [ERROR] Could not update repository "default": Y:\source\dkml\build\pkg\bump\.ci\sd4\bs\bin\opam.exe: "rename" failed on Y:\source\dkml\build\pkg\bump\.ci\o\repo\default.new: Permission denied
+        run_opam_with_retries repository set-url default "$CENTRAL_REPO" --yes --all
     fi
 fi
 
