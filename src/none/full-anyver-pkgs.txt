@@ -10,6 +10,17 @@
 #       share/ocp-indent/vim/indent/ocaml.vim
 ocp-indent.1.8.2-windowssupport
 
+# ------------ tiny_httpd and its transitive dependencies ------------
+
+##      global-compile
+#       note: http_of_dir is a sample executable. don't actually want it
+#       bin/http_of_dir.exe
+tiny_httpd.0.16
+##      global-compile
+hmap.0.8.1
+##      global-compile
+iostream.0.2.2
+
 # ------------ utop and its transitive dependencies ------------
 
 ##      global-compile

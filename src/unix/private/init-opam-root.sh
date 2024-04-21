@@ -116,6 +116,14 @@ fi
 # From here onwards everything should be run using RELATIVE PATHS ...
 # >>>>>>>>>
 
+# ------------------
+# BEGIN Feature flags
+DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2=${DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2:-}
+
+if [ "$DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2" = ON ]; then
+    echo "Using feature flag: DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2"
+fi
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # BEGIN         ON-DEMAND VERSIONED GLOBAL INSTALLS
 #
@@ -274,12 +282,16 @@ if ! is_minimal_opam_root_present "$OPAMROOTDIR_BUILDHOST" || [ "$REINIT" = ON ]
     fi
     if [ -x /usr/bin/cygpath ]; then
         # --disable-sandboxing: Sandboxing does not work on native Windows.
-        # --cygwin-location=DIR: Cygwin (actually MSYS2) root location
-        # --git-location: git binary directory
-        run_opam_init --disable-sandboxing \
-            "--cygwin-location=$(/usr/bin/cygpath -am /)" \
-            "--git-location=$GIT_LOCATION_MIXED" \
-            default "$CENTRAL_REPO"
+        if [ "$DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2" = ON ]; then
+            # --cygwin-location=DIR: Cygwin (actually MSYS2) root location
+            # --git-location: git binary directory
+            run_opam_init --disable-sandboxing \
+                "--cygwin-location=$(/usr/bin/cygpath -am /)" \
+                "--git-location=$GIT_LOCATION_MIXED" \
+                default "$CENTRAL_REPO"
+        else
+            run_opam_init --disable-sandboxing default "$CENTRAL_REPO"
+        fi
     elif [ -n "${WSL_DISTRO_NAME:-}" ] || [ -n "${WSL_INTEROP:-}" ]; then
         # In WSL2 the bwrap sandboxing does not work.
         # See https://giters.com/realworldocaml/book/issues/3331 for one issue; jonahbeckford@ tested as well
@@ -455,6 +467,21 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     run_opam var --global "msys2-nativedir=$msys2nativedir" --yes
     # Tell opam to not use MSYS2's pacman for depexts
     run_opam option --global "depext=false" --yes
+    if ! [ "$DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2" = ON ]; then
+        syspkgmgrpath=$(/usr/bin/cygpath -aw "/usr/bin/pacman.exe")
+        syspkgmgrpath_ESCAPED=$(printf "%s" "$syspkgmgrpath" | "$DKMLSYS_SED" 's#\\#\\\\#g')
+        # * We can use sys-pkg-manager-cmd+= is idempotent, even if msys2 has a
+        #   different existing value.
+        # * Only some later prereleases of opam 2.2 support that option, so we'll
+        #   use essentially a try/catch to fallback to the older option.
+        #   That can disappear sometime after
+        #   https://github.com/ocaml/opam/pull/5436 propagates
+        #   to DkML. Then only **sys-pkg-manager-cmd** should be kept.
+        if ! run_opam_return_error option --global "sys-pkg-manager-cmd+=[\"msys2\" \"$syspkgmgrpath_ESCAPED\"]" --yes; then
+            run_opam var --global "sys-pkg-manager-cmd-msys2=$syspkgmgrpath" --yes
+        fi
+
+    fi
 fi
 
 # Diagnostics
