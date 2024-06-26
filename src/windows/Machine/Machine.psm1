@@ -37,15 +37,15 @@ $Windows11SdkCompatibleTriples = @(
     # KEEP IN SYNC with WindowsAdministrator.rst and dkml-installer-ocaml/installer/winget/manifest/Diskuv.OCaml.installer.yaml
 
     #   GitLab CI saas-windows-medium-amd64.
-    #   Microsoft.VisualStudio.Component.Windows11SDK.22621
+    #   Win11SDK_10.0.22621
     "10.0.22621.0"
 )
 $Windows11SdkCompatibleVers = $Windows11SdkCompatibleTriples | ForEach-Object {
-    $_.Split(".")[2]
+    "$($_.Split(".")[0]).$($_.Split(".")[1]).$($_.Split(".")[2])"
 }
 $Windows11SdkCompatibleComponents = $Windows11SdkCompatibleVers | ForEach-Object {
-    # Ex. Microsoft.VisualStudio.Component.Windows11SDK.22621
-    "Microsoft.VisualStudio.Component.Windows11SDK.${_}"
+    # Ex. Win11SDK_10.0.22621
+    "Win11SDK_${_}"
 }
 if ($null -eq $Windows11SdkCompatibleComponents) { $Windows11SdkCompatibleComponents = @() }
 
@@ -132,7 +132,7 @@ $VsBuildToolsInstallChannel = "https://aka.ms/vs/16/release/channel" # use 'inst
 # or the specific compiler selected:
 #   >> Microsoft.VisualStudio.Component.VC.14.26.x86.x64 <<
 # Either of those will give use 14.26 compiler tools.
-$VcVars2019CompatibleVers = @( 
+$VcVars2019CompatibleVers = @(
     # Highest priority to lowest priority.
 
     #   Original GitLab CI
@@ -141,15 +141,21 @@ $VcVars2019CompatibleVers = @(
 
     #   Original GitHub Actions
     "14.25",
-    
-    #   GitLab CI as of https://gitlab.com/gitlab-org/ci-cd/shared-runners/images/gcp/windows-containers/-/commit/5f94426f12d082c2226da29ab7b79f0b90ec7725
-    "14.29",
 
-    #   GitLab CI as of https://about.gitlab.com/blog/2024/01/22/windows-2022-support-for-gitlab-saas-runners/
-    "14.38"
+    #   GitLab CI as of https://gitlab.com/gitlab-org/ci-cd/shared-runners/images/gcp/windows-containers/-/commit/5f94426f12d082c2226da29ab7b79f0b90ec7725
+    "14.29"
     )
-$VcVarsCompatibleComponents = $VcVars2019CompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
-if ($null -eq $VcVarsCompatibleComponents) { $VcVarsCompatibleComponents = @() }
+$VcVars2022CompatibleVers = @(
+    #   GitLab CI as of https://about.gitlab.com/blog/2024/01/22/windows-2022-support-for-gitlab-saas-runners/.
+    #   Started at 14.38. As of Jun 6, 2024 is 14.40.
+    "14.38",
+    "14.39",
+    "14.40"
+)
+$VcVars2019CompatibleComponents = $VcVars2019CompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
+if ($null -eq $VcVars2019CompatibleComponents) { $VcVars2019CompatibleComponents = @() }
+$VcVars2022CompatibleComponents = $VcVars2022CompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
+if ($null -eq $VcVars2022CompatibleComponents) { $VcVars2022CompatibleComponents = @() }
 
 function Get-CompatibleVisualStudioVcVarsVer {
     param (
@@ -171,6 +177,8 @@ function Get-CompatibleVisualStudioVcVarsVer {
         "17.2" { if ($ThrowIfIncompatible) { throw "VS 17.2 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
         "17.3" { if ($ThrowIfIncompatible) { throw "VS 17.3 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
         "17.8" { "14.38" }
+        "17.9" { "14.39" }
+        "17.10" { "14.40" }
         default {
             if ($ThrowIfIncompatible) { throw "Visual Studio $VsToolsMajorMinVer is not yet supported by Diskuv" }
         }
@@ -275,18 +283,20 @@ function Get-VisualStudioComponentDescription {
 
     # Troubleshooting description of what needs to be installed
     $Windows10SdkFullVersDescription = $Windows10SdkCompatibleTriples -join " or "
+    $Windows11SdkFullVersDescription = $Windows11SdkCompatibleTriples -join " or "
     $VcVars2019Description = ($VcVars2019CompatibleVers | ForEach-Object { "v$_" }) -join " or "
+    $VcVars2022Description = ($VcVars2022CompatibleVers | ForEach-Object { "v$_" }) -join " or "
     if ($VcpkgCompatibility) {
         (
             "`ta) English language pack (en-US)`n" +
-            "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools ($VcVars2019Description)`n" +
-            "`tc) MSVC v142 - VS 2019 C++ x64/x86 build tools (Latest)`n" +
-            "`td) Windows 10 SDK ($Windows10SdkFullVersDescription)`n")
+            "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools ($VcVars2019Description) or VS 2022 C++ x64/x86 build tools ($VcVars2022Description)`n" +
+            "`tc) MSVC v142 - VS 2019 C++ x64/x86 build tools (Latest) or VS 2022 C++ x64/x86 build tools (Latest)`n" +
+            "`td) Windows 10 SDK ($Windows10SdkFullVersDescription) or Windows 11 SDK ($Windows11SdkFullVersDescription)`n")
     } else {
         (
-            "`ta) MSVC v142 - VS 2019 C++ x64/x86 build tools ($VcVars2019Description)`n" +
-            "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools (Latest)`n" +
-            "`tc) Windows 10 SDK ($Windows10SdkFullVersDescription)`n")
+            "`ta) MSVC v142 - VS 2019 C++ x64/x86 build tools ($VcVars2019Description) or VS 2022 C++ x64/x86 build tools ($VcVars2022Description)`n" +
+            "`tb) MSVC v142 - VS 2019 C++ x64/x86 build tools (Latest) or VS 2022 C++ x64/x86 build tools (Latest)`n" +
+            "`tc) Windows 10 SDK ($Windows10SdkFullVersDescription) or Windows 11 SDK ($Windows11SdkFullVersDescription)`n")
     }
 }
 
@@ -360,7 +370,7 @@ function Get-VisualStudioProperties {
 
     # Find a compatible Component.VC.<version>.x86.x64
     $VcVarsVerCandidates = $VisualStudioInstallation.Packages | Where-Object {
-        $VcVarsCompatibleComponents.Contains($_.Id)
+        $VcVars2019CompatibleComponents.Contains($_.Id) -or $VcVars2022CompatibleComponents.Contains($_.Id)
     }
     if ($VcVarsVerCandidates.Count -eq 0) {
         # Only Microsoft.VisualStudio.Component.VC.Tools.x86.x64 (part of $VsComponents)
@@ -428,7 +438,7 @@ function Get-CompatibleVisualStudios {
             $_.Id -eq "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
         };
         $VCCompatible = $_.Packages | Where-Object {
-            $VcVarsCompatibleComponents.Contains($_.Id)
+            $VcVars2019CompatibleComponents.Contains($_.Id) -or $VcVars2022CompatibleComponents.Contains($_.Id)
         }
         ($VCToolsMatch.Count -gt 0) -or ( ($VCTools.Count -gt 0) -and ($VCCompatible.Count -gt 0) )
     }
