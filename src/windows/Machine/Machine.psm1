@@ -384,7 +384,7 @@ function Get-VisualStudioProperties {
         $VcVarsVerChoice = $Matches.VCVersion
     }
 
-    # Find a compatible Component.Windows10SDK.<version> or Component.Windows11SDK.<version>
+    # Find a compatible Component.Windows10SDK.<version> or Win11SDK_<version>
     $WindowsSdkCandidates = $VisualStudioInstallation.Packages | Where-Object {
         $Windows10SdkCompatibleComponents.Contains($_.Id) -or $Windows11SdkCompatibleComponents.Contains($_.Id)
     }
@@ -392,8 +392,18 @@ function Get-VisualStudioProperties {
     # Caution: The different component "UniqueId":  "Win10SDK_10.0.19041,version=10.0.19041.1"
     # implies that -winsdk=10.0.19041.1. However, it is -winsdk=10.0.19041.0.
     # Always use the .0 suffix.
-    ($WindowsSdkCandidates | Sort-Object -Property Version -Descending | Select-Object -Property Id -First 1).Id -match "Microsoft[.]VisualStudio[.]Component[.]Windows1[01]SDK[.](?<WinSDKVersion>.*)"
-    $WindowsSdkChoice = "10.0.$($Matches.WinSDKVersion).0"
+    $Id = ($WindowsSdkCandidates | Sort-Object -Property Version -Descending | Select-Object -Property Id -First 1).Id
+    if ($Id -match "Microsoft[.]VisualStudio[.]Component[.]Windows10SDK[.](?<WinSDKVersion>.*)") {
+        $WindowsSdkChoice = "10.0.$($Matches.WinSDKVersion).0"
+    } elseif ($Id -match "Win11SDK_10[.](?<WinSDKMinorVersion>.*)[.](?<WinSDKPatchVersion>.*)") {
+        $WindowsSdkChoice = "10.$($Matches.WinSDKMinorVersion).$($Matches.WinSDKPatchVersion).0"
+    } else {
+        Write-Warning "The Windows SDK identifier '$Id' from candidates $WindowsSdkCandidates is not in a recognized format."
+        # flush for GitLab CI
+        [Console]::Out.Flush()
+        [Console]::Error.Flush()
+        exit 2
+    }
 
     @{
         InstallPath = $VisualStudioInstallation.InstallationPath;
