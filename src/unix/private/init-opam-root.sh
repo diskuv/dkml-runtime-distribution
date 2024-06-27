@@ -502,7 +502,7 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
 
     fi
 fi
-run_opam var --global "sys-ocaml-version=$OCAMLVERSION"
+#run_opam var --global "sys-ocaml-version=$OCAMLVERSION"
 
 # Diagnostics
 log_trace echo '=== opam repository list --all ==='
