@@ -118,7 +118,7 @@ fi
 
 # ------------------
 # BEGIN Feature flags
-DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2=${DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2:-}
+DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2=${DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2:-ON}
 
 if [ "$DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2" = ON ]; then
     echo "Using feature flag: DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2"
@@ -151,6 +151,25 @@ fi
 
 # Set DKMLSYS_AWK and other things
 autodetect_system_binaries
+
+# Get the OCaml version
+if [ -x /usr/bin/cygpath ]; then
+    # If OCAMLVERSION_OR_HOME=C:/x/y/z then match against /c/x/y/z
+    OCAMLVERSION_OR_HOME_UNIX=$(/usr/bin/cygpath -u "$OCAMLVERSION_OR_HOME")
+else
+    OCAMLVERSION_OR_HOME_UNIX="$OCAMLVERSION_OR_HOME"
+fi
+case "$OCAMLVERSION_OR_HOME_UNIX" in
+    /* | ?:*) # /a/b/c or C:\Windows
+        validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"
+        # the `awk ...` is dos2unix equivalent
+        "$DKML_OCAMLHOME_ABSBINDIR_UNIX/ocamlc" -version > "$WORK/ocamlc.version"
+        OCAMLVERSION=$(awk '{ sub(/\r$/,""); print }' "$WORK/ocamlc.version")
+        ;;
+    *)
+        OCAMLVERSION="$OCAMLVERSION_OR_HOME"
+        ;;
+esac
 
 # -----------------------
 # BEGIN install opam repositories
@@ -483,6 +502,7 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
 
     fi
 fi
+run_opam var --global "sys-ocaml-version=$OCAMLVERSION"
 
 # Diagnostics
 log_trace echo '=== opam repository list --all ==='
