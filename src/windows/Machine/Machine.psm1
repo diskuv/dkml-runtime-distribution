@@ -150,7 +150,18 @@ $VcVars2022CompatibleVers = @(
     #   Started at 14.38. As of Jun 6, 2024 is 14.40.
     "14.38",
     "14.39",
-    "14.40"
+    #       https://devblogs.microsoft.com/cppblog/msvc-toolset-minor-version-number-14-40-in-vs-2022-v17-10/
+    #       > In Visual Studio 2022 version 17.10, the MSVC Toolset minor version will continue with 14.40 and continue incrementing in the ‘14.4x’ series.
+    "14.40",
+    "14.41",
+    "14.42",
+    "14.43",
+    "14.44",
+    "14.45",
+    "14.46",
+    "14.47",
+    "14.48",
+    "14.49"    
 )
 $VcVars2019CompatibleComponents = $VcVars2019CompatibleVers | ForEach-Object { "Microsoft.VisualStudio.Component.VC.${_}.x86.x64" }
 if ($null -eq $VcVars2019CompatibleComponents) { $VcVars2019CompatibleComponents = @() }
@@ -178,6 +189,10 @@ function Get-CompatibleVisualStudioVcVarsVer {
         "17.3" { if ($ThrowIfIncompatible) { throw "VS 17.3 (aka 14.3) has not been verified to be compatible with OCaml by Diskuv" } }
         "17.8" { "14.38" }
         "17.9" { "14.39" }
+        #       https://devblogs.microsoft.com/cppblog/msvc-toolset-minor-version-number-14-40-in-vs-2022-v17-10/
+        #       > In Visual Studio 2022 version 17.10, the MSVC Toolset minor version will continue with 14.40 and continue incrementing in the ‘14.4x’ series.
+        #       We can leave 17.10 to always install the earliest minor version (14.40) since that minor version will always be available for 17.10.
+        #       If there is a serious 14.40 bug we can bump up the minimum minor version.
         "17.10" { "14.40" }
         default {
             if ($ThrowIfIncompatible) { throw "Visual Studio $VsToolsMajorMinVer is not yet supported by Diskuv" }
