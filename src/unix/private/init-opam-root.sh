@@ -73,9 +73,7 @@ while getopts ":hp:r:d:o:v:ac:xie:g:" opt; do
         d ) STATEDIR=$OPTARG ;;
         r ) DKML_OPAM_ROOT=$OPTARG ;;
         o ) OPAMEXE_OR_HOME=$OPTARG ;;
-        v )
-            OCAMLVERSION_OR_HOME=$OPTARG
-        ;;
+        v ) OCAMLVERSION_OR_HOME=$OPTARG ;;
         a ) DISKUVOPAMREPO=LOCAL ;;
         e ) DISKUVOPAMREPO=$OPTARG ;;
         c ) CENTRAL_REPO=$OPTARG ;;
@@ -151,25 +149,6 @@ fi
 
 # Set DKMLSYS_AWK and other things
 autodetect_system_binaries
-
-# Get the OCaml version
-if [ -x /usr/bin/cygpath ]; then
-    # If OCAMLVERSION_OR_HOME=C:/x/y/z then match against /c/x/y/z
-    OCAMLVERSION_OR_HOME_UNIX=$(/usr/bin/cygpath -u "$OCAMLVERSION_OR_HOME")
-else
-    OCAMLVERSION_OR_HOME_UNIX="$OCAMLVERSION_OR_HOME"
-fi
-case "$OCAMLVERSION_OR_HOME_UNIX" in
-    /* | ?:*) # /a/b/c or C:\Windows
-        validate_and_explore_ocamlhome "$OCAMLVERSION_OR_HOME"
-        # the `awk ...` is dos2unix equivalent
-        "$DKML_OCAMLHOME_ABSBINDIR_UNIX/ocamlc" -version > "$WORK/ocamlc.version"
-        OCAMLVERSION=$(awk '{ sub(/\r$/,""); print }' "$WORK/ocamlc.version")
-        ;;
-    *)
-        OCAMLVERSION="$OCAMLVERSION_OR_HOME"
-        ;;
-esac
 
 # -----------------------
 # BEGIN install opam repositories
@@ -502,7 +481,6 @@ if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
 
     fi
 fi
-#run_opam var --global "sys-ocaml-version=$OCAMLVERSION"
 
 # Diagnostics
 log_trace echo '=== opam repository list --all ==='
