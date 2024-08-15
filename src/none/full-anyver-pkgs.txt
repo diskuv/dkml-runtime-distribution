@@ -103,7 +103,7 @@ graphics.5.1.2
 ##      global-compile
 #       lib/sqlite3/libsqlite3_stubs.lib
 #       lib/stublibs/dllsqlite3_stubs.dll
-sqlite3.5.1.0+msvc
+sqlite3.5.2.0
 
 # To get all transitive dependencies, we use:
 #   opam list --resolve=sqlite3 --columns=package
