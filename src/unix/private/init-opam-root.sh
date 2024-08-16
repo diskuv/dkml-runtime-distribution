@@ -455,17 +455,20 @@ fi
 if [ -n "${MSYSTEM:-}" ] && [ -x /usr/bin/cygpath ]; then
     msys2nativedir=$(/usr/bin/cygpath -aw "/")
     run_opam var --global "os-distribution=msys2" --yes
-    run_opam var --global "msystem=$MSYSTEM" --yes
-    run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}" --yes
-    run_opam var --global "msystem-carch=${MSYSTEM_CARCH:-}" --yes
-    run_opam var --global "msystem-chost=${MSYSTEM_CHOST:-}" --yes
-    run_opam var --global "mingw-chost=${MINGW_CHOST:-}" --yes
-    run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}" --yes
-    run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}" --yes
     run_opam var --global "msys2-nativedir=$msys2nativedir" --yes
     # Tell opam to not use MSYS2's pacman for depexts
     run_opam option --global "depext=false" --yes
     if ! [ "$DKML_FEATURE_FLAG_POST_OPAM_2_2_BETA2" = ON ]; then
+        # All of these are provided by the `msys2` opam package that is added (through `msys2-clang64`)
+        # by `dkml init` per switch.
+        run_opam var --global "msystem=$MSYSTEM" --yes
+        run_opam var --global "msystem-prefix=${MSYSTEM_PREFIX:-}" --yes
+        run_opam var --global "msystem-carch=${MSYSTEM_CARCH:-}" --yes
+        run_opam var --global "msystem-chost=${MSYSTEM_CHOST:-}" --yes
+        run_opam var --global "mingw-chost=${MINGW_CHOST:-}" --yes
+        run_opam var --global "mingw-prefix=${MINGW_PREFIX:-}" --yes
+        run_opam var --global "mingw-package-prefix=${MINGW_PACKAGE_PREFIX:-}" --yes
+
         syspkgmgrpath=$(/usr/bin/cygpath -aw "/usr/bin/pacman.exe")
         syspkgmgrpath_ESCAPED=$(printf "%s" "$syspkgmgrpath" | "$DKMLSYS_SED" 's#\\#\\\\#g')
         # * We can use sys-pkg-manager-cmd+= is idempotent, even if msys2 has a
