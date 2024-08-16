@@ -1268,6 +1268,7 @@ if [ "$NEEDS_INVARIANT" = ON ] && [ -s "$WORK"/invariant.formula.txt ]; then
         cat "$WORK"/nonswitchexec.sh
         printf "  switch set-invariant --quiet --packages="
         cat "$WORK"/invariant.formula.txt
+        if [ "$YES" = ON ]; then printf " --yes"; fi
     } > "$WORK"/set-invariant.sh
     log_shell "$WORK"/set-invariant.sh
 
