@@ -1017,10 +1017,12 @@ do_pin_adds() {
 ### BEGIN pinned-section. DO NOT EDIT THE LINES IN THIS SECTION
 # Managed by bump-packages.cmake
 echo 'pinned: [
+  "angstrom.0.16.0"
   "astring.0.8.5"
   "base.v0.16.1"
   "base64.3.5.1"
   "bigarray-compat.1.1.0"
+  "bigstringaf.0.10.0"
   "bos.0.2.1"
   "camlp-streams.5.0.1"
   "chrome-trace.3.15.0"
@@ -1126,6 +1128,7 @@ echo 'pinned: [
   "num.1.5"
   "ocaml-compiler-libs.v0.12.4"
   "ocaml-lsp-server.1.17.0"
+  "ocaml-syntax-shims.1.0.0"
   "ocaml-version.3.6.5"
   "ocaml.4.14.2"
   "ocamlbuild.0.14.2+win+unix"
@@ -1178,6 +1181,7 @@ echo 'pinned: [
   "stdio.v0.16.0"
   "stdlib-shims.0.3.0"
   "stdune.3.15.0"
+  "stringext.1.6.0"
   "time_now.v0.16.0"
   "tiny_httpd.0.16"
   "topkg.1.0.7"
@@ -1186,6 +1190,7 @@ echo 'pinned: [
   "tsort.2.1.0"
   "tyxml.4.6.0"
   "uchar.0.0.2"
+  "uri.4.4.0"
   "utop.2.13.1"
   "uucp.15.0.0"
   "uuidm.0.9.8"
