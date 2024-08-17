@@ -1046,7 +1046,7 @@ echo 'pinned: [
   "dkml-install-installer.0.5.2"
   "dkml-install-runner.0.5.2"
   "dkml-install.0.5.2"
-  "dkml-installer-ocaml-common.2.1.1"
+  "dkml-installer-ocaml-common.2.1.2"
   "dkml-installer-ocaml-network.2.1.2"
   "dkml-installer-ocaml-offline.2.1.2"
   "dkml-package-console.0.5.2"
