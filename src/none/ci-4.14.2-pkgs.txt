@@ -28,6 +28,7 @@ dkml-c-probe.3.0.0
 dkml-apps.2.1.2
 ##      global-install
 #       bin/dkml.exe
+#       bin/dk.exe
 dkml-exe.2.1.2
 ##      global-install
 #       bin/with-dkml.exe
