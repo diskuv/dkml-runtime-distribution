@@ -105,7 +105,6 @@ usage() {
     printf "%s\n" "       to all users of and packages in the switch" >&2
     printf "%s\n" "    -f NAME=VAL or -f NAME=: Optional; can be repeated. Opam variables that will be available" >&2
     printf "%s\n" "       to all <package>.opam in the switch. '-f NAME=' will delete the variable if present." >&2
-    printf "%s\n" "       An implicit '-f dkml-abi=<DKMLABI>' is always added, where <DKMLABI> comes from the -p DKMLABI option." >&2
     printf "%s\n" "    -R NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
     printf "%s\n" "       than the implicit repositories like the default opam.ocaml.org repository. First repository listed on command" >&2
     printf "%s\n" "       line will be highest priority of the extra repositories." >&2
@@ -305,9 +304,6 @@ elif [ ! "$_switch_count" = x ]; then
     usage
     exit 1
 fi
-
-# Add implicit [-f dkml-abi=$DKMLABI]
-add_do_var "dkml-abi=$DKMLABI"
 
 # END Command line processing
 # ------------------
