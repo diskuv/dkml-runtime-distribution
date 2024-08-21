@@ -194,6 +194,15 @@ function Get-CompatibleVisualStudioVcVarsVer {
         #       We can leave 17.10 to always install the earliest minor version (14.40) since that minor version will always be available for 17.10.
         #       If there is a serious 14.40 bug we can bump up the minimum minor version.
         "17.10" { "14.40" }
+        "17.11" { "14.41" }
+        "17.12" { "14.42" } # This is the latest to be announced as of 2024-08-13. https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-notes-preview
+        "17.13" { "14.43" }
+        "17.14" { "14.44" }
+        "17.15" { "14.45" }
+        "17.16" { "14.46" }
+        "17.17" { "14.47" }
+        "17.18" { "14.48" }
+        "17.19" { "14.49" }        
         default {
             if ($ThrowIfIncompatible) { throw "Visual Studio $VsToolsMajorMinVer is not yet supported by Diskuv" }
         }
