@@ -455,7 +455,8 @@ function Get-CompatibleVisualStudios {
     )
     $VsDescribeComponents = Get-VisualStudioComponentDescription -VcpkgCompatibility:$VcpkgCompatibility
     # Some examples of the related `vswhere` product: https://github.com/Microsoft/vswhere/wiki/Examples
-    $allinstances = Get-VSSetupInstance
+    # * Add [-Prerelease] per https://gitlab.com/dkml/distributions/dkml/-/issues/23
+    $allinstances = Get-VSSetupInstance -Prerelease
     # Filter on minimum Visual Studio version and required components
     $instances = $allinstances | Select-VSSetupInstance `
         -Product * `
