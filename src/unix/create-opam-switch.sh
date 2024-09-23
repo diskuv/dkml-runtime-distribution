@@ -487,22 +487,27 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     if [ $BUILD_DEBUG = ON ]; then
         OCAML_OPTIONS="$OCAML_OPTIONS",dkml-option-debuginfo
     fi
-    if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
-        # Frame pointer should be on in Debug mode.
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-    fi
-    if [ "$BUILDTYPE" = ReleaseCompatPerf ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
-        # If we need Linux `perf` we need frame pointers enabled
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-    fi
-    if [ $BUILD_RELEASE = ON ]; then
-        # All release builds should get flambda optimization
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-flambda
-    fi
-    if cmake_flag_on "${DKML_COMPILE_CM_HAVE_AFL:-OFF}" || [ "$BUILDTYPE" = ReleaseCompatFuzz ]; then
-        # If we need fuzzing we must add AFL. If we have a fuzzing compiler, use AFL in OCaml.
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-afl
-    fi
+
+    # TODO: These ocaml-option-* have not been integrated into dkml-base-compiler.
+    # We should always enable frame pointers.
+    # Flambda optimization should get an option, and select with dk Ml.Switch --flambda
+    #
+    # if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
+    #     # Frame pointer should be on in Debug mode.
+    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
+    # fi
+    # if [ "$BUILDTYPE" = ReleaseCompatPerf ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
+    #     # If we need Linux `perf` we need frame pointers enabled
+    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
+    # fi
+    # if [ $BUILD_RELEASE = ON ]; then
+    #     # All release builds should get flambda optimization
+    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-flambda
+    # fi
+    # if cmake_flag_on "${DKML_COMPILE_CM_HAVE_AFL:-OFF}" || [ "$BUILDTYPE" = ReleaseCompatFuzz ]; then
+    #     # If we need fuzzing we must add AFL. If we have a fuzzing compiler, use AFL in OCaml.
+    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-afl
+    # fi
 fi
 
 # Set DKMLBASECOMPILERVERSION. Ex: 4.12.1~v1.0.2~prerel27
