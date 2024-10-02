@@ -591,15 +591,17 @@ do_switch_create() {
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ]; then
         if [ "$BUILD_OCAML_BASE" = ON ]; then
             # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
-            invariants=$(printf "dkml-base-compiler.%s%s\n" \
+            invariants=$(printf "dkml-base-compiler.%s%s%s\n" \
                 "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
-                "$EXTRAINVARIANTS"
+                "$EXTRAINVARIANTS" \
+                ",dkml-target-abi-$DKMLABI"
             )
         else
             # ex. '"ocaml-system" {= "4.12.1"}'
-            invariants=$(printf "ocaml-system.%s%s\n" \
+            invariants=$(printf "ocaml-system.%s%s%s\n" \
                 "$OCAMLVERSION" \
-                "$EXTRAINVARIANTS"
+                "$EXTRAINVARIANTS" \
+                ",dkml-target-abi-$DKMLABI"
             )
         fi
         printf "  --packages='%s' %s\n" "$invariants" "\\" >> "$WORK"/switchcreateargs.sh
