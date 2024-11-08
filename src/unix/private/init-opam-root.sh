@@ -223,12 +223,12 @@ fi
 set_opamrootdir
 
 run_opam() {
-    log_trace "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
+    log_trace bash "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
         -p "$DKMLABI" -d "$STATEDIR" -r "$DKML_OPAM_ROOT" \
         -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }
 run_opam_return_error() {
-    log_trace --return-error-code "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
+    log_trace --return-error-code bash "$DKMLDIR"/vendor/drd/src/unix/private/platform-opam-exec.sh \
         -p "$DKMLABI" -d "$STATEDIR" -r "$DKML_OPAM_ROOT" \
         -o "$OPAMEXE_OR_HOME" -v "$OCAMLVERSION_OR_HOME" "$@"
 }

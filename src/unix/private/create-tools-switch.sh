@@ -229,7 +229,7 @@ chmod +x "$WORK"/troubleshoot-opam.sh
 # BEGIN Flavor packages
 
 {
-    printf "%s" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMEXE_OR_HOME' \"\$@\" install -y"
+    printf "%s" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh -s -v '$OCAMLVERSION_OR_HOME' -o '$OPAMEXE_OR_HOME' \"\$@\" install -y"
     printf " %s" "--jobs=$NUMCPUS"
     if [ -n "$EXTRAPKGS" ]; then
         printf " %s" "$EXTRAPKGS"

@@ -539,9 +539,9 @@ fi
 if [ "$NO_WITHDKML" = ON ]; then
     OPAM_EXEC_OPTS="$OPAM_EXEC_OPTS -a"
 fi
-printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
+printf "%s\n" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh
-printf "%s\n" "'$DKMLDIR/vendor/drd/src/unix/private/platform-opam-exec.sh' \\" > "$WORK"/nonswitchcall.sh
+printf "%s\n" "bash '$DKMLDIR/vendor/drd/src/unix/private/platform-opam-exec.sh' \\" > "$WORK"/nonswitchcall.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchcall.sh
 
 printf "%s\n" "switch create \\" > "$WORK"/switchcreateargs.sh
