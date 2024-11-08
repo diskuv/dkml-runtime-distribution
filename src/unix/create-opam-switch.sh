@@ -633,13 +633,13 @@ do_switch_create() {
     if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "+ ! is_minimal_opam_switch_present \"$OPAMSWITCHFINALDIR_BUILDHOST\"" >&2; fi
     if ! is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
         # clean up any partial install
-        printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS switch remove \\" > "$WORK"/switchremoveargs.sh
+        printf "%s\n" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS switch remove \\" > "$WORK"/switchremoveargs.sh
         if [ "$YES" = ON ]; then printf "%s\n" "  --yes \\" >> "$WORK"/switchremoveargs.sh; fi
         printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchremoveargs.sh
         log_shell "$WORK"/switchremoveargs.sh || rm -rf "$OPAMSWITCHFINALDIR_BUILDHOST"
 
         # do real install
-        printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
+        printf "%s\n" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
         cat "$WORK"/switchcreateargs.sh >> "$WORK"/switchcreateexec.sh
         printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchcreateexec.sh
         #   Do troubleshooting if the initial switch creation fails (it shouldn't fail!)
