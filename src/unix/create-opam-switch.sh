@@ -37,7 +37,7 @@ __escape_args_for_shell() {
 
 usage() {
     printf "%s\n" "Creates a local Opam switch with a working compiler.">&2
-    printf "%s\n" "  Will pre-pin package versions based on the installed Diskuv OCaml distribution." >&2
+    printf "%s\n" "  Will pre-pin package versions based on the installed DkML distribution." >&2
     printf "%s\n" "  Will set switch options pin package versions needed to compile on Windows." >&2
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    create-opam-switch.sh -h           Display this help message" >&2
@@ -63,7 +63,7 @@ usage() {
     printf "%s\n" "    In highest precedence order:" >&2
     printf "%s\n" "    1. If the environment variable DKSDK_INVOCATION is set to ON," >&2
     printf "%s\n" "       the [dkml] switch will be the 'dksdk-<DKML_HOST_ABI>' global switch." >&2
-    printf "%s\n" "    2. If there is a Diskuv OCaml installation, then the [dkml] switch will be" >&2
+    printf "%s\n" "    2. If there is a DkML installation, then the [dkml] switch will be" >&2
     printf "%s\n" "       the local <DiskuvOCamlHome>/dkml switch." >&2
     printf "%s\n" "    These rules allow for the DKML OCaml system compiler to be distinct from" >&2
     printf "%s\n" "    any DKSDK OCaml system compiler." >&2
@@ -89,7 +89,8 @@ usage() {
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
     printf "%s\n" "        Useful during local development" >&2
-    printf "%s\n" "    -F: Deprecated. Disable adding of the fdopen repository on Windows, which is no longer available" >&2
+    printf "%s\n" "    -F: Disable adding of the DkML repository 'diskuv-opam-repository'. A side-effect is that automatic upgrades" >&2
+    printf "%s\n" "        of repositories will not be triggered when DkML is upgraded." >&2
     printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
     printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home containing bin/ocaml or usr/bin/ocaml" >&2
@@ -219,6 +220,7 @@ TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
+DISABLE_DKML_REPOSITORY=OFF
 WRAP_COMMAND=
 NO_WITHDKML=OFF
 while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
@@ -269,7 +271,7 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
         x ) DISABLE_SWITCH_CREATE=ON ;;
         z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
         a ) NO_WITHDKML=ON ;;
-        F ) ;;
+        F ) DISABLE_DKML_REPOSITORY=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -585,8 +587,12 @@ if [ -n "$EXTRAREPOCMDS" ]; then
 fi
 
 do_switch_create() {
-    printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
-    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
+    if [ "$DISABLE_DKML_REPOSITORY" = ON ]; then
+        printf "%s\n" "  $EXTRAREPONAMES default \\" > "$WORK"/repos-choice.lst
+    else
+        printf "%s\n" "  $EXTRAREPONAMES dkml-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
+    fi
+    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "dkml-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
 
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ]; then
         if [ "$BUILD_OCAML_BASE" = ON ]; then
@@ -651,9 +657,9 @@ do_switch_create() {
         # the switch create already set the invariant
         NEEDS_INVARIANT=OFF
     else
-        # We need to upgrade each Opam switch's selected/ranked Opam repository choices whenever Diskuv OCaml
+        # We need to upgrade each Opam switch's selected/ranked Opam repository choices whenever DkML
         # has an upgrade. If we don't the PINNED_PACKAGES_* may fail.
-        # We know from `diskuv-$dkml_root_version` what Diskuv OCaml version the Opam switch is using, so
+        # We know from `dkml-$dkml_root_version` what DkML version the Opam switch is using, so
         # we have the logic to detect here when it is time to upgrade!
         {
             cat "$WORK"/nonswitchexec.sh
@@ -661,9 +667,7 @@ do_switch_create() {
         } > "$WORK"/list.sh
         log_shell "$WORK"/list.sh > "$WORK"/list
         UPGRADE_REPO=OFF
-        if awk -v N="diskuv-$dkml_root_version" '$1==N {exit 1}' "$WORK"/list; then
-            UPGRADE_REPO=ON
-        elif is_unixy_windows_build_machine && awk -v N="fdopen-mingw-$dkml_root_version-$OCAMLVERSION" '$1==N {exit 1}' "$WORK"/list; then
+        if [ "$DISABLE_DKML_REPOSITORY" = OFF ] && awk -v N="dkml-$dkml_root_version" '$1==N {exit 1}' "$WORK"/list; then
             UPGRADE_REPO=ON
         elif [ -n "$EXTRAREPONAMES" ]; then
             printf "%s" "$EXTRAREPONAMES" | $DKMLSYS_TR ' ' '\n' > "$WORK"/extrarepos
