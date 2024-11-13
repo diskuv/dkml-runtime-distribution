@@ -564,10 +564,11 @@ fi
 do_switch_create() {
     if [ "$DISABLE_DKML_REPOSITORY" = ON ]; then
         printf "%s\n" "  $EXTRAREPONAMES default \\" > "$WORK"/repos-choice.lst
+        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "default" "\\" >> "$WORK"/switchcreateargs.sh
     else
         printf "%s\n" "  $EXTRAREPONAMES dkml-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
+        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "dkml-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
     fi
-    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "dkml-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
 
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ]; then
         if [ "$BUILD_OCAML_BASE" = ON ]; then
