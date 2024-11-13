@@ -427,9 +427,9 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     #  https://github.com/ocaml/opam-repository/blob/ed5ed7529d1d3672ed4c0d2b09611a98ec87d690/packages/ocaml-option-fp/ocaml-option-fp.1/opam#L6
     OCAML_OPTIONS=
     case "$BUILDTYPE" in
-        Debug*) BUILD_DEBUG=ON; BUILD_RELEASE=OFF ;;
-        Release*) BUILD_DEBUG=OFF; BUILD_RELEASE=ON ;;
-        *) BUILD_DEBUG=OFF; BUILD_RELEASE=OFF
+        Debug*) BUILD_DEBUG=ON ;;
+        Release*) BUILD_DEBUG=OFF ;;
+        *) BUILD_DEBUG=OFF
     esac
     # We'll set compiler options to:
     # * use static builds for Linux platforms running in a (musl-based Alpine) container
@@ -477,10 +477,6 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
         *_x86 | linux_arm32*) TARGET_32BIT=ON ;;
         *) TARGET_32BIT=OFF
     esac
-    case "$DKMLABI" in
-        linux_x86_64) TARGET_CANENABLEFRAMEPOINTER=ON ;;
-        *) TARGET_CANENABLEFRAMEPOINTER=OFF
-    esac
 
     if [ $TARGET_LINUXARM32 = ON ]; then
         # Optimize for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
@@ -489,27 +485,6 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     if [ $BUILD_DEBUG = ON ]; then
         OCAML_OPTIONS="$OCAML_OPTIONS",dkml-option-debuginfo
     fi
-
-    # TODO: These ocaml-option-* have not been integrated into dkml-base-compiler.
-    # We should always enable frame pointers.
-    # Flambda optimization should get an option, and select with dk Ml.Switch --flambda
-    #
-    # if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
-    #     # Frame pointer should be on in Debug mode.
-    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-    # fi
-    # if [ "$BUILDTYPE" = ReleaseCompatPerf ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
-    #     # If we need Linux `perf` we need frame pointers enabled
-    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-    # fi
-    # if [ $BUILD_RELEASE = ON ]; then
-    #     # All release builds should get flambda optimization
-    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-flambda
-    # fi
-    # if cmake_flag_on "${DKML_COMPILE_CM_HAVE_AFL:-OFF}" || [ "$BUILDTYPE" = ReleaseCompatFuzz ]; then
-    #     # If we need fuzzing we must add AFL. If we have a fuzzing compiler, use AFL in OCaml.
-    #     OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-afl
-    # fi
 fi
 
 # Set DKMLBASECOMPILERVERSION. Ex: 4.12.1~v1.0.2~prerel27
