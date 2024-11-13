@@ -99,8 +99,9 @@ usage() {
     printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -y Say yes to all questions (can be overridden with DKML_OPAM_FORCE_INTERACTIVE=ON)" >&2
-    printf "%s\n" "    -c EXTRAPATH: Optional. Semicolon separated PATH that should be available to all users of and packages" >&2
-    printf "%s\n" "       in the switch. Since the PATH is affected the EXTRAPATH must be for the host ABI." >&2
+    printf "%s\n" "    -c EXTRAPATH: Optional. Semicolon separated PATH that should be available to all users of the switch and" >&2
+    printf "%s\n" "       all packages (including invariants) in the switch. Since the PATH is affected the EXTRAPATH must be for" >&2
+    printf "%s\n" "       the host ABI." >&2
     printf "%s\n" "       Users of with-dkml.exe should also do '-e DKML_3P_PROGRAM_PATH+=<EXTRAPATH>' so that PATH can propagate." >&2
     printf "%s\n" "    -e NAME=VAL or -e NAME+=VAL: Optional; can be repeated. Environment variables that will be available" >&2
     printf "%s\n" "       to all users of and packages in the switch" >&2
@@ -351,6 +352,18 @@ TOOLS_OPAMSWITCHNAME_EXPAND="$OPAMSWITCHNAME_EXPAND"
 #   switch, we avoid bugs by clearing the variables from the environment.
 unset OPAMSWITCHFINALDIR_BUILDHOST OPAMSWITCHNAME_EXPAND
 unset OPAMROOTDIR_BUILDHOST OPAMROOTDIR_EXPAND
+
+# Sanitize EXTRAPATH and translate to Unix paths
+EXTRAPATH_UNIX=
+if [ -n "$EXTRAPATH" ]; then
+    #   Remove leading and trailing and duplicated separators
+    EXTRAPATH=$(printf "%s" "$EXTRAPATH" | $DKMLSYS_SED 's/^;*//; s/;*$//; s/;;*/;/g')
+    if [ -x /usr/bin/cygpath ]; then
+        EXTRAPATH_UNIX=$(/usr/bin/cygpath --path "$EXTRAPATH")
+    else
+        EXTRAPATH_UNIX=$EXTRAPATH
+    fi
+fi
 
 # --------------------------------
 # BEGIN Opam troubleshooting script
@@ -603,6 +616,12 @@ do_switch_create() {
         printf "%s\n" "export OPAMROOT="
         printf "%s\n" "export OPAMSWITCH="
         printf "%s\n" "export OPAM_SWITCH_PREFIX="
+        # The PATH will be set to the system PATH in platform-opam-exec.sh -> _within_dev.sh.
+        # EXTRAPATH entries must be available to the invariant packages during opam switch create.
+        if [ -n "$EXTRAPATH_UNIX" ]; then
+            #   shellcheck disable=SC2016
+            printf 'export PATH="%s;%s"\n' "$EXTRAPATH_UNIX" '$PATH'
+        fi
         printf "exec \"\$@\"\n"
     } > "$WORK"/switch-create-prehook.sh
     chmod +x "$WORK"/switch-create-prehook.sh
