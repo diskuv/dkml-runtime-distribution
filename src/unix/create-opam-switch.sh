@@ -99,12 +99,12 @@ usage() {
     printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -y Say yes to all questions (can be overridden with DKML_OPAM_FORCE_INTERACTIVE=ON)" >&2
-    printf "%s\n" "    -c EXTRAPATH: Optional. Semicolon separated PATH that should be available to all users of the switch and" >&2
+    printf "%s\n" "    -c EXTRAPATH: Optional; can be repeated. The EXTRAPATH will be available to all users of the switch and" >&2
     printf "%s\n" "       all packages (including invariants) in the switch. Since the PATH is affected the EXTRAPATH must be for" >&2
     printf "%s\n" "       the host ABI." >&2
-    printf "%s\n" "       Users of with-dkml.exe should also do '-e DKML_3P_PROGRAM_PATH+=<EXTRAPATH>' so that PATH can propagate." >&2
-    printf "%s\n" "    -e NAME=VAL or -e NAME+=VAL: Optional; can be repeated. Environment variables that will be available" >&2
-    printf "%s\n" "       to all users of and packages in the switch" >&2
+    printf "%s\n" "       Users of dk.exe/with-dkml.exe should also do '-e DKML_3P_PROGRAM_PATH+=<EXTRAPATH>' so PATH can propagate." >&2
+    printf "%s\n" "    -e NAME=VAL or -e NAME+=VAL or -e NAME=+=VAL: Optional; can be repeated. Environment variables that will" >&2
+    printf "%s\n" "       be available to all users of and packages in the switch" >&2
     printf "%s\n" "    -f NAME=VAL or -f NAME=: Optional; can be repeated. Opam variables that will be available" >&2
     printf "%s\n" "       to all <package>.opam in the switch. '-f NAME=' will delete the variable if present." >&2
     printf "%s\n" "    -R NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
@@ -149,10 +149,12 @@ usage() {
 # ---
 #   http://opam.ocaml.org/doc/Manual.html#Environment-updates
 #   `=` overrides the environment variable
-#   `+=` prepends to the environment variable without adding a path separator (`;` or `:`) at the end if empty
+#   `+=` or `:=` prepends to the environment variable. += does not add a path separator (`;` or `:`) at the end if empty, while := does.
+#   `=+` or `=:` append. =+ does not prepend a path separator if empty, while =: prepends a leading separator.
+#   `=+=` is similar to +=, except that when the variable was previously altered by opam, the new value will replace the old one at the same position instead of being put in front.
 #
-# [add_do_setenv_option "NAME OP2 VALUE"] is OP1=`+=` and OP2="NAME OP2 VALUE"
-# [add_remove_setenv NAME OP2] is OP1=`-=` for all existing "NAME OP2 *"
+# [add_do_setenv_option "NameOP2Value"] is OP1=`+=` and OP2="Name OP2 Value"
+# [add_remove_setenv Name OP2] is OP1=`-=` for all existing "Name OP2 *"
 DO_SETENV_OPTIONS=
 add_do_setenv_option() {
     add_do_setenv_option_CMD=$1
@@ -175,6 +177,16 @@ add_remove_setenv() {
     else
         DO_SETENV_OPTIONS=$(printf "%s ; remove_setenv %s %s" "$DO_SETENV_OPTIONS" "$add_remove_setenv_NAME" "$add_remove_setenv_OP2")
     fi
+}
+add_addpath() {
+    if [ -x /usr/bin/cygpath ]; then
+        #   esoteric: tr / '\\' is needed for single-char / to single-char \
+        #   confer https://cygwin.com/pipermail/cygwin/2018-December/239487.html
+        add_addpath_OPAM=$(printf "%s" "$1" | $DKMLSYS_TR / "\\\\")
+    else
+        add_addpath_OPAM=$1
+    fi
+    add_do_setenv_option "PATH=+=$add_addpath_OPAM"
 }
 
 DO_VARS=
@@ -210,8 +222,9 @@ YES=OFF
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
 OPAMEXE_OR_HOME=
 DKMLABI=
-EXTRAPATH=
-EXTRAREPOCMDS=
+EXTRAPATH_UNIX_TRAILSEMI=
+EXTRA_REPO_CMDS=
+EXTRA_PATH_CMDS=
 PREBUILDS=
 POSTINSTALLS=
 PREREMOVES=
@@ -253,15 +266,27 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
             if [ -n "$OPTARG" ]; then OCAMLVERSION_OR_HOME=$OPTARG; fi
         ;;
         o ) OPAMEXE_OR_HOME=$OPTARG ;;
-        c ) EXTRAPATH=$OPTARG ;;
+        c )
+            # For PATH
+            if [ -x /usr/bin/cygpath ]; then
+                EXTRAPATH_UNIX_TRAILSEMI=$(/usr/bin/cygpath -au "$OPTARG")";$EXTRAPATH_UNIX_TRAILSEMI"
+            else
+                EXTRAPATH_UNIX_TRAILSEMI="$OPTARG;$EXTRAPATH_UNIX_TRAILSEMI"
+            fi
+            # For opam option
+            if [ -n "$EXTRA_PATH_CMDS" ]; then
+                EXTRA_PATH_CMDS="$EXTRA_PATH_CMDS; "
+            fi
+            EXTRA_PATH_CMDS="${EXTRA_PATH_CMDS}add_addpath '${OPTARG}'"
+            ;;
         e ) add_do_setenv_option "$OPTARG" ;;
         f ) add_do_var "$OPTARG" ;;
         R )
-            if [ -n "$EXTRAREPOCMDS" ]; then
-                EXTRAREPOCMDS="$EXTRAREPOCMDS; "
+            if [ -n "$EXTRA_REPO_CMDS" ]; then
+                EXTRA_REPO_CMDS="$EXTRA_REPO_CMDS; "
             fi
-            EXTRAREPOCMDS="${EXTRAREPOCMDS}add_extra_repo '${OPTARG}'"
-        ;;
+            EXTRA_REPO_CMDS="${EXTRA_REPO_CMDS}add_extra_repo '${OPTARG}'"
+            ;;
         i ) add_do_hook "$OPTARG" ;;
         0 ) WRAP_COMMAND=$OPTARG ;;
         j ) PREBUILDS="${PREBUILDS} [$OPTARG]" ;;
@@ -352,18 +377,6 @@ TOOLS_OPAMSWITCHNAME_EXPAND="$OPAMSWITCHNAME_EXPAND"
 #   switch, we avoid bugs by clearing the variables from the environment.
 unset OPAMSWITCHFINALDIR_BUILDHOST OPAMSWITCHNAME_EXPAND
 unset OPAMROOTDIR_BUILDHOST OPAMROOTDIR_EXPAND
-
-# Sanitize EXTRAPATH and translate to Unix paths
-EXTRAPATH_UNIX=
-if [ -n "$EXTRAPATH" ]; then
-    #   Remove leading and trailing and duplicated separators
-    EXTRAPATH=$(printf "%s" "$EXTRAPATH" | $DKMLSYS_SED 's/^;*//; s/;*$//; s/;;*/;/g')
-    if [ -x /usr/bin/cygpath ]; then
-        EXTRAPATH_UNIX=$(/usr/bin/cygpath --path "$EXTRAPATH")
-    else
-        EXTRAPATH_UNIX=$EXTRAPATH
-    fi
-fi
 
 # --------------------------------
 # BEGIN Opam troubleshooting script
@@ -570,8 +583,8 @@ add_extra_repo() {
         log_shell "$WORK"/repoadd.sh
     fi
 }
-if [ -n "$EXTRAREPOCMDS" ]; then
-    eval "$EXTRAREPOCMDS"
+if [ -n "$EXTRA_REPO_CMDS" ]; then
+    eval "$EXTRA_REPO_CMDS"
 fi
 
 do_switch_create() {
@@ -618,9 +631,9 @@ do_switch_create() {
         printf "%s\n" "export OPAM_SWITCH_PREFIX="
         # The PATH will be set to the system PATH in platform-opam-exec.sh -> _within_dev.sh.
         # EXTRAPATH entries must be available to the invariant packages during opam switch create.
-        if [ -n "$EXTRAPATH_UNIX" ]; then
+        if [ -n "$EXTRAPATH_UNIX_TRAILSEMI" ]; then
             #   shellcheck disable=SC2016
-            printf 'export PATH="%s;%s"\n' "$EXTRAPATH_UNIX" '$PATH'
+            printf 'export PATH="%s%s"\n' "$EXTRAPATH_UNIX_TRAILSEMI" '$PATH'
         fi
         printf "exec \"\$@\"\n"
     } > "$WORK"/switch-create-prehook.sh
@@ -724,8 +737,6 @@ install -d "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
 # as a cache key. If an option does not depend on the version we use ".once" as the cache
 # key.
 
-SETPATH=
-
 # Add FLEXLINKFLAGS
 case "$BUILDTYPE,$DKMLABI" in
     Debug*,windows_*)
@@ -738,25 +749,13 @@ case "$BUILDTYPE,$DKMLABI" in
 esac
 
 # Add PATH=<system ocaml>:$EXTRAPATH:$PATH
-#   Add PATH=<system ocaml> if system ocaml. (Especially on Windows and for DKSDK, the system ocaml may not necessarily be on the system PATH)
+#   Add PATH=<system ocaml> if system ocaml. (Especially on Windows and for DkSDK, the system ocaml may not necessarily be on the system PATH)
 if [ "$BUILD_OCAML_BASE" = OFF ]; then
-    SETPATH="$DKML_OCAMLHOME_ABSBINDIR_BUILDHOST;$SETPATH"
+    add_addpath "$DKML_OCAMLHOME_ABSBINDIR_BUILDHOST"
 fi
-#   Add PATH=$EXTRAPATH
-if [ -n "$EXTRAPATH" ]; then
-    SETPATH="$EXTRAPATH;$SETPATH"
-fi
-#   Remove leading and trailing and duplicated separators
-SETPATH=$(printf "%s" "$SETPATH" | $DKMLSYS_SED 's/^;*//; s/;*$//; s/;;*/;/g')
-#   Add the setenv command
-if [ -n "$SETPATH" ]; then
-    # Use Win32 (;) or Unix (:) path separators
-    if is_unixy_windows_build_machine; then
-        SETPATH_WU=$SETPATH # already has semicolons
-    else
-        SETPATH_WU=$(printf "%s" "$SETPATH" | $DKMLSYS_TR ';' ':')
-    fi
-    add_do_setenv_option "PATH+=$SETPATH_WU"
+#   Add EXTRAPATH
+if [ -n "$EXTRA_PATH_CMDS" ]; then
+    eval "$EXTRA_PATH_CMDS"
 fi
 
 # Run the `var` commands
@@ -852,15 +851,18 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         # [do_setenv_option 'NAME=VALUE'] and [do_setenv_option 'NAME+=VALUE'] remove all
         # matching entries from the Opam setenv options, and then add it to the
         # Opam setenv options.
+        #
+        # NOTE: Test the sed expressions with:
+        #   testsed() { for _OP in = += := =+ =: =+=; do printf "OP %-10s ==> " "$_OP"; printf "PATH%sC:/a/b/c" "$_OP" | sed "$1"; echo; done; }
         printf "do_setenv_option() {\n"
         printf "  do_setenv_option_ARG=\$1\n"
         printf "  shift\n"
         # shellcheck disable=SC2016
         printf "  do_setenv_option_NAME=\$(%s)\n" \
-            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/+*=.*//"'
+            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/[+=:].*//"'
         # shellcheck disable=SC2016
         printf "  do_setenv_option_OP=\$(%s)\n" \
-            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^+=]*//; s/=.*/=/"'
+            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^+=:]*//; s/^\([+=:]*\).*/\1/"'
         # shellcheck disable=SC2016
         printf "  %s > '%s'/do_setenv_option_value.%s.txt\n" \
             'printf "%s" "$do_setenv_option_ARG"' \
@@ -873,7 +875,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
         # shellcheck disable=SC2016
         printf "  do_setenv_option_VALUE=\$(%s)\n" \
-            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^=]*=//"'
+            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^+=:]*//; s/^\([+=:]*\)\(.*\)/\2/"'
         # VALUE, since it is an OCaml value, will have escaped backslashes and quotes
         printf "  do_setenv_option_VALUE=\$(escape_arg_as_ocaml_string \"\$do_setenv_option_VALUE\")\n"
 
@@ -894,7 +896,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "%s" "$DO_SETENV_OPTIONS" ; printf "\n"
     } > "$WORK"/setenv.sh
     # debugging:
-    if [ -e /home/jonahbeckford/source/dkml/setvars.sh ]; then install "$WORK/setenv.sh" /home/jonahbeckford/source/dkml/setvars.sh; fi
+    # if [ -e /home/jonahbeckford/source/dkml/setvars.sh ]; then install "$WORK/setenv.sh" /home/jonahbeckford/source/dkml/setvars.sh; fi
     log_shell "$WORK"/setenv.sh
 fi
 
