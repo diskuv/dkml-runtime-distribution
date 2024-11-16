@@ -222,7 +222,7 @@ YES=OFF
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
 OPAMEXE_OR_HOME=
 DKMLABI=
-EXTRAPATH_UNIX_TRAILSEMI=
+EXTRAPATH_UNIX_TRAILSEP=
 EXTRA_REPO_CMDS=
 EXTRA_PATH_CMDS=
 PREBUILDS=
@@ -269,9 +269,9 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
         c )
             # For PATH
             if [ -x /usr/bin/cygpath ]; then
-                EXTRAPATH_UNIX_TRAILSEMI=$(/usr/bin/cygpath -au "$OPTARG")";$EXTRAPATH_UNIX_TRAILSEMI"
+                EXTRAPATH_UNIX_TRAILSEP=$(/usr/bin/cygpath -au "$OPTARG")":$EXTRAPATH_UNIX_TRAILSEP"
             else
-                EXTRAPATH_UNIX_TRAILSEMI="$OPTARG;$EXTRAPATH_UNIX_TRAILSEMI"
+                EXTRAPATH_UNIX_TRAILSEP="$OPTARG:$EXTRAPATH_UNIX_TRAILSEP"
             fi
             # For opam option
             if [ -n "$EXTRA_PATH_CMDS" ]; then
@@ -631,9 +631,9 @@ do_switch_create() {
         printf "%s\n" "export OPAM_SWITCH_PREFIX="
         # The PATH will be set to the system PATH in platform-opam-exec.sh -> _within_dev.sh.
         # EXTRAPATH entries must be available to the invariant packages during opam switch create.
-        if [ -n "$EXTRAPATH_UNIX_TRAILSEMI" ]; then
+        if [ -n "$EXTRAPATH_UNIX_TRAILSEP" ]; then
             #   shellcheck disable=SC2016
-            printf 'export PATH="%s%s"\n' "$EXTRAPATH_UNIX_TRAILSEMI" '$PATH'
+            printf 'export PATH="%s%s"\n' "$EXTRAPATH_UNIX_TRAILSEP" '$PATH'
         fi
         printf "exec \"\$@\"\n"
     } > "$WORK"/switch-create-prehook.sh
