@@ -37,7 +37,8 @@ usage() {
     printf "%s\n" "       Examples: 4.13.1, /usr, /opt/homebrew" >&2
     printf "%s\n" "    -a Use local repository rather than git repository for diskuv-opam-repository. Requires rsync" >&2
     printf "%s\n" "    -e DISKUV_REPO: Use DISKUV_REPO rather than the default diskuv-opam-repository. Valid opam" >&2
-    printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls." >&2
+    printf "%s\n" "       urls must be used like https:// or git+https:// or git+file:// urls. The name of the repository will be" >&2
+    printf "%s\n" "       'dkml-<dkml_root_version>' where dkml_root_version is the current DkML version (available in .dkmlroot)." >&2
     printf "%s\n" "    -c CENTRAL_REPO: Use CENTRAL_REPO rather than the default git+https://github.com/ocaml/opam-repository.git" >&2
     printf "%s\n" "       repository. Valid opam urls must be used like https:// or git+https:// or git+file:// urls." >&2
     printf "%s\n" "    -x Disable sandboxing in all platforms. By default, sandboxing is disabled in Windows, WSL2 and in dockcross" >&2
@@ -379,24 +380,24 @@ fi
 # If we don't we get make a repo named "default" in opam 2.1.0 the following will happen:
 #     #=== ERROR while compiling ocamlbuild.0.14.0 ==================================#
 #     Sys_error("C:\\Users\\user\\.opam\\repo\\default\\packages\\ocamlbuild\\ocamlbuild.0.14.0\\files\\ocamlbuild-0.14.0.patch: No such file or directory")
-if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/diskuv-$dkml_root_version.tar.gz" ]; then
+if [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/dkml-$dkml_root_version" ] && [ ! -e "$OPAMROOTDIR_BUILDHOST/repo/dkml-$dkml_root_version.tar.gz" ]; then
     case "$DISKUVOPAMREPO" in
         LOCAL)
             OPAMREPO_DISKUV="$OPAMREPOS_MIXED/diskuv-opam-repository"
-            run_opam repository add diskuv-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
+            run_opam repository add dkml-"$dkml_root_version" "$OPAMREPO_DISKUV" --yes --dont-select --rank=1
             ;;
         REMOTE)
-            run_opam repository add diskuv-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
+            run_opam repository add dkml-"$dkml_root_version" "git+https://github.com/diskuv/diskuv-opam-repository.git#$dkml_root_version" --yes --dont-select --rank=1
             ;;
         *)
-            run_opam repository add diskuv-"$dkml_root_version" "$DISKUVOPAMREPO" --yes --dont-select --rank=1
+            run_opam repository add dkml-"$dkml_root_version" "$DISKUVOPAMREPO" --yes --dont-select --rank=1
     esac
 else
     # If there is an update for an updateable repository, use it
     case "$DISKUVOPAMREPO" in
         LOCAL|REMOTE) ;;
         *)
-            run_opam repository set-url diskuv-"$dkml_root_version" "$DISKUVOPAMREPO" --yes
+            run_opam repository set-url dkml-"$dkml_root_version" "$DISKUVOPAMREPO" --yes
     esac
 fi
 

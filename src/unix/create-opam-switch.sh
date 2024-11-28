@@ -107,7 +107,7 @@ usage() {
     printf "%s\n" "       be available to all users of and packages in the switch" >&2
     printf "%s\n" "    -f NAME=VAL or -f NAME=: Optional; can be repeated. Opam variables that will be available" >&2
     printf "%s\n" "       to all <package>.opam in the switch. '-f NAME=' will delete the variable if present." >&2
-    printf "%s\n" "    -R NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
+    printf "%s\n" "    -R NAME[=EXTRAREPO]: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
     printf "%s\n" "       than the implicit repositories like the default opam.ocaml.org repository. First repository listed on command" >&2
     printf "%s\n" "       line will be highest priority of the extra repositories." >&2
     printf "%s\n" "    -i HOOK: Optional; may be repeated. Command that will be run after the Opam switch has been created." >&2
@@ -571,6 +571,8 @@ add_extra_repo() {
             cat "$WORK"/nonswitchexec.sh
             # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
             case "$add_extra_repo_REPO" in
+                "") # empty string. the repository is presumed to exist already
+                    ;;
                 /* | ?:* | file://) # /a/b/c or C:\Windows or file://
                     printf "  repository add %s '%s' --yes --dont-select --kind local" "$add_extra_repo_NAME" "$add_extra_repo_REPO"
                     ;;
