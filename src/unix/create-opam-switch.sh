@@ -562,7 +562,11 @@ add_extra_repo() {
     add_extra_repo_ARG=$1
     shift
     add_extra_repo_NAME=$(printf "%s" "$add_extra_repo_ARG" | $DKMLSYS_SED 's@=.*@@')
-    add_extra_repo_REPO=$(printf "%s" "$add_extra_repo_ARG" | $DKMLSYS_SED 's@^[^=]*=@@')
+    if printf "%s" "$add_extra_repo_ARG" | "$DKMLSYS_GREP" -q =; then
+        add_extra_repo_REPO=$(printf "%s" "$add_extra_repo_ARG" | $DKMLSYS_SED 's@^[^=]*=@@')
+    else
+        add_extra_repo_REPO=
+    fi
     EXTRAREPONAMES="$EXTRAREPONAMES $add_extra_repo_NAME"
     FIRST_REPOS="${FIRST_REPOS}$add_extra_repo_NAME,"
     # Add it
