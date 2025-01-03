@@ -91,6 +91,7 @@ usage() {
     printf "%s\n" "        Useful during local development" >&2
     printf "%s\n" "    -F: Disable adding of the DkML repository 'diskuv-opam-repository'. A side-effect is that automatic upgrades" >&2
     printf "%s\n" "        of repositories will not be triggered when DkML is upgraded." >&2
+    printf "%s\n" "    -P: Disable setting of pins" >&2
     printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
     printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home containing bin/ocaml or usr/bin/ocaml" >&2
@@ -235,9 +236,10 @@ DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
 DISABLE_DKML_REPOSITORY=OFF
+DISABLE_PINS=OFF
 WRAP_COMMAND=
 NO_WITHDKML=OFF
-while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
+while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aFP" opt; do
     case ${opt} in
         h )
             usage
@@ -296,6 +298,7 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
         w ) DISABLE_UPDATE=ON ;;
         x ) DISABLE_SWITCH_CREATE=ON ;;
         z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
+        P ) DISABLE_PINS=ON ;;
         a ) NO_WITHDKML=ON ;;
         F ) DISABLE_DKML_REPOSITORY=ON ;;
         \? )
@@ -1223,7 +1226,7 @@ echo 'pinned: [
         touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version"
     fi
 }
-if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
+if [ "$DISABLE_SWITCH_CREATE" = OFF ] && [ "$DISABLE_PINS" = OFF ]; then
     # When there are no invariants (ie. --empty), there can't be any pins since
     # `.opam-switch/switch-state` will not be present (at least in prereleases of opam 2.2).
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ] || [ -n "$EXTRAINVARIANTS" ]; then
