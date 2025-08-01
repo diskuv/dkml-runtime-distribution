@@ -37,7 +37,7 @@ __escape_args_for_shell() {
 
 usage() {
     printf "%s\n" "Creates a local Opam switch with a working compiler.">&2
-    printf "%s\n" "  Will pre-pin package versions based on the installed Diskuv OCaml distribution." >&2
+    printf "%s\n" "  Will pre-pin package versions based on the installed DkML distribution." >&2
     printf "%s\n" "  Will set switch options pin package versions needed to compile on Windows." >&2
     printf "%s\n" "Usage:" >&2
     printf "%s\n" "    create-opam-switch.sh -h           Display this help message" >&2
@@ -63,7 +63,7 @@ usage() {
     printf "%s\n" "    In highest precedence order:" >&2
     printf "%s\n" "    1. If the environment variable DKSDK_INVOCATION is set to ON," >&2
     printf "%s\n" "       the [dkml] switch will be the 'dksdk-<DKML_HOST_ABI>' global switch." >&2
-    printf "%s\n" "    2. If there is a Diskuv OCaml installation, then the [dkml] switch will be" >&2
+    printf "%s\n" "    2. If there is a DkML installation, then the [dkml] switch will be" >&2
     printf "%s\n" "       the local <DiskuvOCamlHome>/dkml switch." >&2
     printf "%s\n" "    These rules allow for the DKML OCaml system compiler to be distinct from" >&2
     printf "%s\n" "    any DKSDK OCaml system compiler." >&2
@@ -89,7 +89,9 @@ usage() {
     printf "%s\n" "    -w: Disable updating of opam repositories. Useful when already updated (ex. by init-opam-root.sh)" >&2
     printf "%s\n" "    -x: Disable creation of switch and setting of pins. All other steps like option creation are done." >&2
     printf "%s\n" "        Useful during local development" >&2
-    printf "%s\n" "    -F: Deprecated. Disable adding of the fdopen repository on Windows, which is no longer available" >&2
+    printf "%s\n" "    -F: Disable adding of the DkML repository 'diskuv-opam-repository'. A side-effect is that automatic upgrades" >&2
+    printf "%s\n" "        of repositories will not be triggered when DkML is upgraded." >&2
+    printf "%s\n" "    -P: Disable setting of pins" >&2
     printf "%s\n" "    -z: Do not use any default invariants (ocaml-system, dkml-base-compiler). If the -m option is not used," >&2
     printf "%s\n" "       there will be no invariants. When there are no invariants no pins will be created" >&2
     printf "%s\n" "    -v OCAMLVERSION_OR_HOME: Optional. The OCaml version or OCaml home containing bin/ocaml or usr/bin/ocaml" >&2
@@ -98,14 +100,15 @@ usage() {
     printf "%s\n" "    -o OPAMEXE_OR_HOME: Optional. If a directory, it is the home for Opam containing bin/opam-real or bin/opam." >&2
     printf "%s\n" "       If an executable, it is the opam to use (and when there is an opam shim the opam-real can be used)" >&2
     printf "%s\n" "    -y Say yes to all questions (can be overridden with DKML_OPAM_FORCE_INTERACTIVE=ON)" >&2
-    printf "%s\n" "    -c EXTRAPATH: Optional. Semicolon separated PATH that should be available to all users of and packages" >&2
-    printf "%s\n" "       in the switch. Since the PATH is affected the EXTRAPATH must be for the host ABI." >&2
-    printf "%s\n" "       Users of with-dkml.exe should also do '-e DKML_3P_PROGRAM_PATH+=<EXTRAPATH>' so that PATH can propagate." >&2
-    printf "%s\n" "    -e NAME=VAL or -e NAME+=VAL: Optional; can be repeated. Environment variables that will be available" >&2
-    printf "%s\n" "       to all users of and packages in the switch" >&2
+    printf "%s\n" "    -c EXTRAPATH: Optional; can be repeated. The EXTRAPATH will be available to all users of the switch and" >&2
+    printf "%s\n" "       all packages (including invariants) in the switch. Since the PATH is affected the EXTRAPATH must be for" >&2
+    printf "%s\n" "       the host ABI." >&2
+    printf "%s\n" "       Users of dk.exe/with-dkml.exe should also do '-e DKML_3P_PROGRAM_PATH+=<EXTRAPATH>' so PATH can propagate." >&2
+    printf "%s\n" "    -e NAME=VAL or -e NAME+=VAL or -e NAME=+=VAL: Optional; can be repeated. Environment variables that will" >&2
+    printf "%s\n" "       be available to all users of and packages in the switch" >&2
     printf "%s\n" "    -f NAME=VAL or -f NAME=: Optional; can be repeated. Opam variables that will be available" >&2
     printf "%s\n" "       to all <package>.opam in the switch. '-f NAME=' will delete the variable if present." >&2
-    printf "%s\n" "    -R NAME=EXTRAREPO: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
+    printf "%s\n" "    -R NAME[=EXTRAREPO]: Optional; may be repeated. Opam repository to use in the switch. Will be higher priority" >&2
     printf "%s\n" "       than the implicit repositories like the default opam.ocaml.org repository. First repository listed on command" >&2
     printf "%s\n" "       line will be highest priority of the extra repositories." >&2
     printf "%s\n" "    -i HOOK: Optional; may be repeated. Command that will be run after the Opam switch has been created." >&2
@@ -147,10 +150,12 @@ usage() {
 # ---
 #   http://opam.ocaml.org/doc/Manual.html#Environment-updates
 #   `=` overrides the environment variable
-#   `+=` prepends to the environment variable without adding a path separator (`;` or `:`) at the end if empty
+#   `+=` or `:=` prepends to the environment variable. += does not add a path separator (`;` or `:`) at the end if empty, while := does.
+#   `=+` or `=:` append. =+ does not prepend a path separator if empty, while =: prepends a leading separator.
+#   `=+=` is similar to +=, except that when the variable was previously altered by opam, the new value will replace the old one at the same position instead of being put in front.
 #
-# [add_do_setenv_option "NAME OP2 VALUE"] is OP1=`+=` and OP2="NAME OP2 VALUE"
-# [add_remove_setenv NAME OP2] is OP1=`-=` for all existing "NAME OP2 *"
+# [add_do_setenv_option "NameOP2Value"] is OP1=`+=` and OP2="Name OP2 Value"
+# [add_remove_setenv Name OP2] is OP1=`-=` for all existing "Name OP2 *"
 DO_SETENV_OPTIONS=
 add_do_setenv_option() {
     add_do_setenv_option_CMD=$1
@@ -173,6 +178,16 @@ add_remove_setenv() {
     else
         DO_SETENV_OPTIONS=$(printf "%s ; remove_setenv %s %s" "$DO_SETENV_OPTIONS" "$add_remove_setenv_NAME" "$add_remove_setenv_OP2")
     fi
+}
+add_addpath() {
+    if [ -x /usr/bin/cygpath ]; then
+        #   esoteric: tr / '\\' is needed for single-char / to single-char \
+        #   confer https://cygwin.com/pipermail/cygwin/2018-December/239487.html
+        add_addpath_OPAM=$(printf "%s" "$1" | $DKMLSYS_TR / "\\\\")
+    else
+        add_addpath_OPAM=$1
+    fi
+    add_do_setenv_option "PATH=+=$add_addpath_OPAM"
 }
 
 DO_VARS=
@@ -208,8 +223,9 @@ YES=OFF
 OCAMLVERSION_OR_HOME=${OCAML_DEFAULT_VERSION}
 OPAMEXE_OR_HOME=
 DKMLABI=
-EXTRAPATH=
-EXTRAREPOCMDS=
+EXTRAPATH_UNIX_TRAILSEP=
+EXTRA_REPO_CMDS=
+EXTRA_PATH_CMDS=
 PREBUILDS=
 POSTINSTALLS=
 PREREMOVES=
@@ -219,9 +235,11 @@ TARGETGLOBAL_OPAMSWITCH=
 DISABLE_UPDATE=OFF
 DISABLE_SWITCH_CREATE=OFF
 DISABLE_DEFAULT_INVARIANTS=OFF
+DISABLE_DKML_REPOSITORY=OFF
+DISABLE_PINS=OFF
 WRAP_COMMAND=
 NO_WITHDKML=OFF
-while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
+while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aFP" opt; do
     case ${opt} in
         h )
             usage
@@ -250,15 +268,27 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
             if [ -n "$OPTARG" ]; then OCAMLVERSION_OR_HOME=$OPTARG; fi
         ;;
         o ) OPAMEXE_OR_HOME=$OPTARG ;;
-        c ) EXTRAPATH=$OPTARG ;;
+        c )
+            # For PATH
+            if [ -x /usr/bin/cygpath ]; then
+                EXTRAPATH_UNIX_TRAILSEP=$(/usr/bin/cygpath -au "$OPTARG")":$EXTRAPATH_UNIX_TRAILSEP"
+            else
+                EXTRAPATH_UNIX_TRAILSEP="$OPTARG:$EXTRAPATH_UNIX_TRAILSEP"
+            fi
+            # For opam option
+            if [ -n "$EXTRA_PATH_CMDS" ]; then
+                EXTRA_PATH_CMDS="$EXTRA_PATH_CMDS; "
+            fi
+            EXTRA_PATH_CMDS="${EXTRA_PATH_CMDS}add_addpath '${OPTARG}'"
+            ;;
         e ) add_do_setenv_option "$OPTARG" ;;
         f ) add_do_var "$OPTARG" ;;
         R )
-            if [ -n "$EXTRAREPOCMDS" ]; then
-                EXTRAREPOCMDS="$EXTRAREPOCMDS; "
+            if [ -n "$EXTRA_REPO_CMDS" ]; then
+                EXTRA_REPO_CMDS="$EXTRA_REPO_CMDS; "
             fi
-            EXTRAREPOCMDS="${EXTRAREPOCMDS}add_extra_repo '${OPTARG}'"
-        ;;
+            EXTRA_REPO_CMDS="${EXTRA_REPO_CMDS}add_extra_repo '${OPTARG}'"
+            ;;
         i ) add_do_hook "$OPTARG" ;;
         0 ) WRAP_COMMAND=$OPTARG ;;
         j ) PREBUILDS="${PREBUILDS} [$OPTARG]" ;;
@@ -268,8 +298,9 @@ while getopts ":hb:p:sd:r:u:o:n:t:v:yc:R:e:f:i:j:k:l:m:wxz0:aF" opt; do
         w ) DISABLE_UPDATE=ON ;;
         x ) DISABLE_SWITCH_CREATE=ON ;;
         z ) DISABLE_DEFAULT_INVARIANTS=ON ;;
+        P ) DISABLE_PINS=ON ;;
         a ) NO_WITHDKML=ON ;;
-        F ) ;;
+        F ) DISABLE_DKML_REPOSITORY=ON ;;
         \? )
             printf "%s\n" "This is not an option: -$OPTARG" >&2
             usage
@@ -425,9 +456,9 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     #  https://github.com/ocaml/opam-repository/blob/ed5ed7529d1d3672ed4c0d2b09611a98ec87d690/packages/ocaml-option-fp/ocaml-option-fp.1/opam#L6
     OCAML_OPTIONS=
     case "$BUILDTYPE" in
-        Debug*) BUILD_DEBUG=ON; BUILD_RELEASE=OFF ;;
-        Release*) BUILD_DEBUG=OFF; BUILD_RELEASE=ON ;;
-        *) BUILD_DEBUG=OFF; BUILD_RELEASE=OFF
+        Debug*) BUILD_DEBUG=ON ;;
+        Release*) BUILD_DEBUG=OFF ;;
+        *) BUILD_DEBUG=OFF
     esac
     # We'll set compiler options to:
     # * use static builds for Linux platforms running in a (musl-based Alpine) container
@@ -475,10 +506,6 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
         *_x86 | linux_arm32*) TARGET_32BIT=ON ;;
         *) TARGET_32BIT=OFF
     esac
-    case "$DKMLABI" in
-        linux_x86_64) TARGET_CANENABLEFRAMEPOINTER=ON ;;
-        *) TARGET_CANENABLEFRAMEPOINTER=OFF
-    esac
 
     if [ $TARGET_LINUXARM32 = ON ]; then
         # Optimize for size. Useful for CPUs with small cache sizes. Confer https://wiki.gentoo.org/wiki/GCC_optimization
@@ -486,22 +513,6 @@ if [ "$BUILD_OCAML_BASE" = ON ]; then
     fi
     if [ $BUILD_DEBUG = ON ]; then
         OCAML_OPTIONS="$OCAML_OPTIONS",dkml-option-debuginfo
-    fi
-    if [ $BUILD_DEBUG = ON ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
-        # Frame pointer should be on in Debug mode.
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-    fi
-    if [ "$BUILDTYPE" = ReleaseCompatPerf ] && [ $TARGET_CANENABLEFRAMEPOINTER = ON ]; then
-        # If we need Linux `perf` we need frame pointers enabled
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-fp
-    fi
-    if [ $BUILD_RELEASE = ON ]; then
-        # All release builds should get flambda optimization
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-flambda
-    fi
-    if cmake_flag_on "${DKML_COMPILE_CM_HAVE_AFL:-OFF}" || [ "$BUILDTYPE" = ReleaseCompatFuzz ]; then
-        # If we need fuzzing we must add AFL. If we have a fuzzing compiler, use AFL in OCaml.
-        OCAML_OPTIONS="$OCAML_OPTIONS",ocaml-option-afl
     fi
 fi
 
@@ -534,9 +545,9 @@ fi
 if [ "$NO_WITHDKML" = ON ]; then
     OPAM_EXEC_OPTS="$OPAM_EXEC_OPTS -a"
 fi
-printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
+printf "%s\n" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh \\" > "$WORK"/nonswitchexec.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchexec.sh
-printf "%s\n" "'$DKMLDIR/vendor/drd/src/unix/private/platform-opam-exec.sh' \\" > "$WORK"/nonswitchcall.sh
+printf "%s\n" "bash '$DKMLDIR/vendor/drd/src/unix/private/platform-opam-exec.sh' \\" > "$WORK"/nonswitchcall.sh
 printf "%s\n" "  $OPAM_EXEC_OPTS \\" >> "$WORK"/nonswitchcall.sh
 
 printf "%s\n" "switch create \\" > "$WORK"/switchcreateargs.sh
@@ -554,7 +565,11 @@ add_extra_repo() {
     add_extra_repo_ARG=$1
     shift
     add_extra_repo_NAME=$(printf "%s" "$add_extra_repo_ARG" | $DKMLSYS_SED 's@=.*@@')
-    add_extra_repo_REPO=$(printf "%s" "$add_extra_repo_ARG" | $DKMLSYS_SED 's@^[^=]*=@@')
+    if printf "%s" "$add_extra_repo_ARG" | "$DKMLSYS_GREP" -q =; then
+        add_extra_repo_REPO=$(printf "%s" "$add_extra_repo_ARG" | $DKMLSYS_SED 's@^[^=]*=@@')
+    else
+        add_extra_repo_REPO=
+    fi
     EXTRAREPONAMES="$EXTRAREPONAMES $add_extra_repo_NAME"
     FIRST_REPOS="${FIRST_REPOS}$add_extra_repo_NAME,"
     # Add it
@@ -563,6 +578,8 @@ add_extra_repo() {
             cat "$WORK"/nonswitchexec.sh
             # `--kind local` is so we get file:/// rather than git+file:/// which would waste time with git
             case "$add_extra_repo_REPO" in
+                "") # empty string. the repository is presumed to exist already
+                    ;;
                 /* | ?:* | file://) # /a/b/c or C:\Windows or file://
                     printf "  repository add %s '%s' --yes --dont-select --kind local" "$add_extra_repo_NAME" "$add_extra_repo_REPO"
                     ;;
@@ -575,26 +592,33 @@ add_extra_repo() {
         log_shell "$WORK"/repoadd.sh
     fi
 }
-if [ -n "$EXTRAREPOCMDS" ]; then
-    eval "$EXTRAREPOCMDS"
+if [ -n "$EXTRA_REPO_CMDS" ]; then
+    eval "$EXTRA_REPO_CMDS"
 fi
 
 do_switch_create() {
-    printf "%s\n" "  $EXTRAREPONAMES diskuv-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
-    printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "diskuv-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
+    if [ "$DISABLE_DKML_REPOSITORY" = ON ]; then
+        printf "%s\n" "  $EXTRAREPONAMES default \\" > "$WORK"/repos-choice.lst
+        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "default" "\\" >> "$WORK"/switchcreateargs.sh
+    else
+        printf "%s\n" "  $EXTRAREPONAMES dkml-$dkml_root_version default \\" > "$WORK"/repos-choice.lst
+        printf "  --repos='%s%s' %s\n" "$FIRST_REPOS" "dkml-$dkml_root_version,default" "\\" >> "$WORK"/switchcreateargs.sh
+    fi
 
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ]; then
         if [ "$BUILD_OCAML_BASE" = ON ]; then
             # ex. '"dkml-base-compiler" {= "4.12.1~v1.0.2~prerel27"}'
-            invariants=$(printf "dkml-base-compiler.%s%s\n" \
+            invariants=$(printf "dkml-base-compiler.%s%s%s\n" \
                 "$DKMLBASECOMPILERVERSION$OCAML_OPTIONS" \
-                "$EXTRAINVARIANTS"
+                "$EXTRAINVARIANTS" \
+                ",dkml-target-abi-$DKMLABI"
             )
         else
             # ex. '"ocaml-system" {= "4.12.1"}'
-            invariants=$(printf "ocaml-system.%s%s\n" \
+            invariants=$(printf "ocaml-system.%s%s%s\n" \
                 "$OCAMLVERSION" \
-                "$EXTRAINVARIANTS"
+                "$EXTRAINVARIANTS" \
+                ",dkml-target-abi-$DKMLABI"
             )
         fi
         printf "  --packages='%s' %s\n" "$invariants" "\\" >> "$WORK"/switchcreateargs.sh
@@ -614,6 +638,12 @@ do_switch_create() {
         printf "%s\n" "export OPAMROOT="
         printf "%s\n" "export OPAMSWITCH="
         printf "%s\n" "export OPAM_SWITCH_PREFIX="
+        # The PATH will be set to the system PATH in platform-opam-exec.sh -> _within_dev.sh.
+        # EXTRAPATH entries must be available to the invariant packages during opam switch create.
+        if [ -n "$EXTRAPATH_UNIX_TRAILSEP" ]; then
+            #   shellcheck disable=SC2016
+            printf 'export PATH="%s%s"\n' "$EXTRAPATH_UNIX_TRAILSEP" '$PATH'
+        fi
         printf "exec \"\$@\"\n"
     } > "$WORK"/switch-create-prehook.sh
     chmod +x "$WORK"/switch-create-prehook.sh
@@ -626,13 +656,13 @@ do_switch_create() {
     if [ "${DKML_BUILD_TRACE:-OFF}" = ON ]; then printf "%s\n" "+ ! is_minimal_opam_switch_present \"$OPAMSWITCHFINALDIR_BUILDHOST\"" >&2; fi
     if ! is_minimal_opam_switch_present "$OPAMSWITCHFINALDIR_BUILDHOST"; then
         # clean up any partial install
-        printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS switch remove \\" > "$WORK"/switchremoveargs.sh
+        printf "%s\n" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS switch remove \\" > "$WORK"/switchremoveargs.sh
         if [ "$YES" = ON ]; then printf "%s\n" "  --yes \\" >> "$WORK"/switchremoveargs.sh; fi
         printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchremoveargs.sh
         log_shell "$WORK"/switchremoveargs.sh || rm -rf "$OPAMSWITCHFINALDIR_BUILDHOST"
 
         # do real install
-        printf "%s\n" "exec '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
+        printf "%s\n" "exec bash '$DKMLDIR'/vendor/drd/src/unix/private/platform-opam-exec.sh $OPAM_EXEC_OPTS -0 '$WORK/switch-create-prehook.sh' \\" > "$WORK"/switchcreateexec.sh
         cat "$WORK"/switchcreateargs.sh >> "$WORK"/switchcreateexec.sh
         printf "  '%s'\n" "$OPAMSWITCHNAME_EXPAND" >> "$WORK"/switchcreateexec.sh
         #   Do troubleshooting if the initial switch creation fails (it shouldn't fail!)
@@ -644,9 +674,9 @@ do_switch_create() {
         # the switch create already set the invariant
         NEEDS_INVARIANT=OFF
     else
-        # We need to upgrade each Opam switch's selected/ranked Opam repository choices whenever Diskuv OCaml
+        # We need to upgrade each Opam switch's selected/ranked Opam repository choices whenever DkML
         # has an upgrade. If we don't the PINNED_PACKAGES_* may fail.
-        # We know from `diskuv-$dkml_root_version` what Diskuv OCaml version the Opam switch is using, so
+        # We know from `dkml-$dkml_root_version` what DkML version the Opam switch is using, so
         # we have the logic to detect here when it is time to upgrade!
         {
             cat "$WORK"/nonswitchexec.sh
@@ -654,9 +684,7 @@ do_switch_create() {
         } > "$WORK"/list.sh
         log_shell "$WORK"/list.sh > "$WORK"/list
         UPGRADE_REPO=OFF
-        if awk -v N="diskuv-$dkml_root_version" '$1==N {exit 1}' "$WORK"/list; then
-            UPGRADE_REPO=ON
-        elif is_unixy_windows_build_machine && awk -v N="fdopen-mingw-$dkml_root_version-$OCAMLVERSION" '$1==N {exit 1}' "$WORK"/list; then
+        if [ "$DISABLE_DKML_REPOSITORY" = OFF ] && awk -v N="dkml-$dkml_root_version" '$1==N {exit 1}' "$WORK"/list; then
             UPGRADE_REPO=ON
         elif [ -n "$EXTRAREPONAMES" ]; then
             printf "%s" "$EXTRAREPONAMES" | $DKMLSYS_TR ' ' '\n' > "$WORK"/extrarepos
@@ -718,8 +746,6 @@ install -d "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR"
 # as a cache key. If an option does not depend on the version we use ".once" as the cache
 # key.
 
-SETPATH=
-
 # Add FLEXLINKFLAGS
 case "$BUILDTYPE,$DKMLABI" in
     Debug*,windows_*)
@@ -732,25 +758,13 @@ case "$BUILDTYPE,$DKMLABI" in
 esac
 
 # Add PATH=<system ocaml>:$EXTRAPATH:$PATH
-#   Add PATH=<system ocaml> if system ocaml. (Especially on Windows and for DKSDK, the system ocaml may not necessarily be on the system PATH)
+#   Add PATH=<system ocaml> if system ocaml. (Especially on Windows and for DkSDK, the system ocaml may not necessarily be on the system PATH)
 if [ "$BUILD_OCAML_BASE" = OFF ]; then
-    SETPATH="$DKML_OCAMLHOME_ABSBINDIR_BUILDHOST;$SETPATH"
+    add_addpath "$DKML_OCAMLHOME_ABSBINDIR_BUILDHOST"
 fi
-#   Add PATH=$EXTRAPATH
-if [ -n "$EXTRAPATH" ]; then
-    SETPATH="$EXTRAPATH;$SETPATH"
-fi
-#   Remove leading and trailing and duplicated separators
-SETPATH=$(printf "%s" "$SETPATH" | $DKMLSYS_SED 's/^;*//; s/;*$//; s/;;*/;/g')
-#   Add the setenv command
-if [ -n "$SETPATH" ]; then
-    # Use Win32 (;) or Unix (:) path separators
-    if is_unixy_windows_build_machine; then
-        SETPATH_WU=$SETPATH # already has semicolons
-    else
-        SETPATH_WU=$(printf "%s" "$SETPATH" | $DKMLSYS_TR ';' ':')
-    fi
-    add_do_setenv_option "PATH+=$SETPATH_WU"
+#   Add EXTRAPATH
+if [ -n "$EXTRA_PATH_CMDS" ]; then
+    eval "$EXTRA_PATH_CMDS"
 fi
 
 # Run the `var` commands
@@ -846,15 +860,18 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         # [do_setenv_option 'NAME=VALUE'] and [do_setenv_option 'NAME+=VALUE'] remove all
         # matching entries from the Opam setenv options, and then add it to the
         # Opam setenv options.
+        #
+        # NOTE: Test the sed expressions with:
+        #   testsed() { for _OP in = += := =+ =: =+=; do printf "OP %-10s ==> " "$_OP"; printf "PATH%sC:/a/b/c" "$_OP" | sed "$1"; echo; done; }
         printf "do_setenv_option() {\n"
         printf "  do_setenv_option_ARG=\$1\n"
         printf "  shift\n"
         # shellcheck disable=SC2016
         printf "  do_setenv_option_NAME=\$(%s)\n" \
-            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/+*=.*//"'
+            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/[+=:].*//"'
         # shellcheck disable=SC2016
         printf "  do_setenv_option_OP=\$(%s)\n" \
-            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^+=]*//; s/=.*/=/"'
+            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^+=:]*//; s/^\([+=:]*\).*/\1/"'
         # shellcheck disable=SC2016
         printf "  %s > '%s'/do_setenv_option_value.%s.txt\n" \
             'printf "%s" "$do_setenv_option_ARG"' \
@@ -867,7 +884,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
             "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR" "$dkml_root_version"
         # shellcheck disable=SC2016
         printf "  do_setenv_option_VALUE=\$(%s)\n" \
-            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^=]*=//"'
+            'printf "%s" "$do_setenv_option_ARG" | PATH=/usr/bin:/bin sed "s/^[^+=:]*//; s/^\([+=:]*\)\(.*\)/\2/"'
         # VALUE, since it is an OCaml value, will have escaped backslashes and quotes
         printf "  do_setenv_option_VALUE=\$(escape_arg_as_ocaml_string \"\$do_setenv_option_VALUE\")\n"
 
@@ -888,7 +905,7 @@ if [ -n "$DO_SETENV_OPTIONS" ]; then
         printf "%s" "$DO_SETENV_OPTIONS" ; printf "\n"
     } > "$WORK"/setenv.sh
     # debugging:
-    if [ -e /home/jonahbeckford/source/dkml/setvars.sh ]; then install "$WORK/setenv.sh" /home/jonahbeckford/source/dkml/setvars.sh; fi
+    # if [ -e /home/jonahbeckford/source/dkml/setvars.sh ]; then install "$WORK/setenv.sh" /home/jonahbeckford/source/dkml/setvars.sh; fi
     log_shell "$WORK"/setenv.sh
 fi
 
@@ -1209,7 +1226,7 @@ echo 'pinned: [
         touch "$OPAMSWITCHFINALDIR_BUILDHOST/$OPAM_CACHE_SUBDIR/pins-set.$dkml_root_version"
     fi
 }
-if [ "$DISABLE_SWITCH_CREATE" = OFF ]; then
+if [ "$DISABLE_SWITCH_CREATE" = OFF ] && [ "$DISABLE_PINS" = OFF ]; then
     # When there are no invariants (ie. --empty), there can't be any pins since
     # `.opam-switch/switch-state` will not be present (at least in prereleases of opam 2.2).
     if [ "$DISABLE_DEFAULT_INVARIANTS" = OFF ] || [ -n "$EXTRAINVARIANTS" ]; then
