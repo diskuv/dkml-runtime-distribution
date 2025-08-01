@@ -7,7 +7,7 @@
 ocaml.4.14.2
 
 # Cmdliner and crunch are needed to compile opam-dkml.exe
-cmdliner.1.2.0
+cmdliner.1.3.0
 crunch.3.3.1
 ptime.1.1.0
 uuidm.0.9.8
