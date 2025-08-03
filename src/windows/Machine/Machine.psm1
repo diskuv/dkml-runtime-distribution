@@ -38,7 +38,8 @@ $Windows11SdkCompatibleTriples = @(
 
     #   GitLab CI saas-windows-medium-amd64.
     #   Win11SDK_10.0.22621
-    "10.0.22621.0"
+    "10.0.22621.0",
+    "10.0.26100.0"
 )
 $Windows11SdkCompatibleVers = $Windows11SdkCompatibleTriples | ForEach-Object {
     "$($_.Split(".")[0]).$($_.Split(".")[1]).$($_.Split(".")[2])"
